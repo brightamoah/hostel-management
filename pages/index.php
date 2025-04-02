@@ -15,7 +15,7 @@
     dir="ltr"
     data-skin="default"
     data-assets-path="../assets/"
-    data-template="front-pages-no-customizer"
+    data-template="front-pages"
     data-bs-theme="light">
 
 <head>
@@ -24,6 +24,13 @@
     <title>Kings Hostel - Home Page</title>
 
     <meta name="description" content="" />
+
+    <!-- favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon_io/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/img/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/img/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="../assets/img/favicon_io/site.webmanifest">
 
     <!-- fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -34,12 +41,13 @@
 
     <link rel="stylesheet" href="../assets/css/fonts/iconify-icons.css" />
 
-    <!-- core css  -->
+    <!-- core css, Vendors css  -->
+    <link rel="stylesheet" href="../assets/vendor/libs/pickr/pickr-themes.css" />
     <link rel="stylesheet" href="../assets/css/core.css" />
     <link rel="stylesheet" href="../assets/css/demo.css" />
     <link rel="stylesheet" href="../assets/css/front-page.css" />
 
-    <!-- vendor css -->
+    <!-- endbuild -->
     <link rel="stylesheet" href="../assets/vendor/libs/nouislider/nouislider.css" />
 
     <link rel="stylesheet" href="../assets/vendor/libs/swiper/swiper.css" />
@@ -48,14 +56,18 @@
     <link rel="stylesheet" href="../assets/css/front-page-landing.css" />
 
     <!-- Helpers -->
-    <!-- <script src="../assets/vendor/js/helpers.js"></script> -->
+    <script src="../assets/vendor/js/helpers.js"></script>
 
     <script src="../assets/js/front-config.js"></script>
 </head>
 
 
 <body>
-    <nav class="layout-navbar shadow-none mt-0 py-0 ">
+    <script src="../assets/vendor/js/dropdown-hover.js"></script>
+    <script src="../assets/vendor/js/mega-dropdown.js"></script>
+
+    <!-- Navbar -->
+    <nav class="layout-navbar shadow-none py-0">
         <div class="container">
             <div class="navbar navbar-expand-lg landing-navbar px-3 px-md-8">
                 <!-- Menu logo wrapper: Start -->
@@ -73,7 +85,11 @@
                     </button>
                     <!-- Mobile menu toggle: End-->
                     <a href="/" class="app-brand-link">
-                        <span class="app-brand-logo demo">
+                        <img
+                            src="../assets/img/favicon_io/favicon-32x32.png"
+                            alt="logo"
+                            class="app-brand-logo demo" />
+                        <!-- <span class="app-brand-logo demo">
                             <span class="text-primary">
                                 <svg
                                     width="25"
@@ -123,7 +139,7 @@
                                     </g>
                                 </svg>
                             </span>
-                        </span>
+                        </span> -->
                         <span class="app-brand-text demo menu-text fw-bold ms-2 ps-1">Kings Hostel</span>
                     </a>
                 </div>
@@ -140,7 +156,7 @@
                         aria-label="Toggle navigation">
                         <i class="icon-base bx bx-x icon-lg"></i>
                     </button>
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 text-center">
+                    <ul class="navbar-nav me-auto">
                         <li class="nav-item">
                             <a class="nav-link fw-medium" aria-current="page" href="/">Home</a>
                         </li>
@@ -227,11 +243,11 @@
                 <div class="container">
                     <div class="hero-text-box text-center position-relative">
                         <h1 class="text-primary hero-title display-6 fw-extrabold">
-                            One dashboard to manage all your businesses
+                            Welcome to Kings Hostel Management System
                         </h1>
                         <h2 class="hero-sub-title h6 mb-6">
-                            Production-ready & easy to use Admin Template<br class="d-none d-lg-block" />
-                            for Reliability and Customizability.
+                            Seamless Hostel Management for Everyone.<br class="d-none d-lg-block" />
+                            Easily book rooms, manage tenants, and track payments.Whether you're a resident or an admin, our system keeps everything organized and hassle-free!
                         </h2>
                         <div class="landing-hero-btn d-inline-block position-relative">
                             <span class="hero-btn-item position-absolute d-none d-md-flex fw-medium">Join community
@@ -239,7 +255,7 @@
                                     src="../assets/img/front-pages/icons/Join-community-arrow.png"
                                     alt="Join community arrow"
                                     class="scaleX-n1-rtl" /></span>
-                            <a href="login" class="btn btn-primary btn-lg">Get early access</a>
+                            <a href="login" class="btn btn-primary btn-lg">Start Your Journey</a>
                         </div>
                     </div>
                     <div id="heroDashboardAnimation" class="hero-animation-img">
@@ -249,12 +265,6 @@
                                     src="../assets/img/hostel.png"
                                     alt="hero dashboard"
                                     class="animation-img" />
-                                <!-- <img
-                                    src="../../assets/img/front-pages/landing-page/hero-elements-light.png"
-                                    alt="hero elements"
-                                    class="position-absolute hero-elements-img animation-img top-0 start-0"
-                                    data-app-light-img="front-pages/landing-page/hero-elements-light.png"
-                                    data-app-dark-img="front-pages/landing-page/hero-elements-dark.png" /> -->
                             </div>
                         </a>
                     </div>
@@ -265,16 +275,16 @@
         <!-- Hero: End -->
 
         <!-- Useful features: Start -->
-        <?php include 'home/features.php'; ?>
+        <?php include_once 'home/features.php'; ?>
         <!-- Useful features: End -->
 
         <!-- FAQ: Start -->
-        <?php include 'home/faq.php'; ?>
+        <?php include_once 'home/faq.php'; ?>
 
         <!-- FAQ: End -->
 
         <!-- contact us -->
-        <?php include 'home/contact-us.php'; ?>
+        <?php include_once 'home/contact-us.php'; ?>
         <!-- contact us: End -->
 
     </div>
@@ -345,7 +355,7 @@
     <script src="../assets/vendor/libs/popper/popper.js"></script>
     <script src="../assets/vendor/js/bootstrap.js"></script>
     <script src="../assets/vendor/libs/@algolia/autocomplete-js.js"></script>
-
+    <script src="../assets/vendor/libs/pickr/pickr.js"></script>
     <!-- endbuild -->
 
     <!-- Vendors JS -->
@@ -354,7 +364,8 @@
 
     <!-- Main JS -->
 
-    <script src="../assets/vendor/js/menu.js"></script>
+    <!-- <script src="../assets/vendor/js/menu.js"></script> -->
+    <script src="../assets/js/front-main.js"></script>
 
     <!-- Page JS -->
     <script src="../assets/js/front-page-landing.js"></script>
