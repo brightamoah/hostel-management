@@ -13,8 +13,8 @@ get('/', '/pages/index.php');
 get('/signup', '/pages/auth/signup.php');
 get('/login', '/pages/auth/login.php', );
 
-post('/signup', '/app/controller/Signup.php');
-post('/login', '/app/controller/Login.php');
+post('/signup', '/app/controllers/Signup.php');
+post('/login', '/app/controllers/Login.php');
 
 
 
