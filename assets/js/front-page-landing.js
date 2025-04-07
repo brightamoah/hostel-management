@@ -56,91 +56,91 @@
   // swiper carousel
   // Customers reviews
   // -----------------------------------
-  if (swiperReviews) {
-    new Swiper(swiperReviews, {
-      slidesPerView: 1,
-      spaceBetween: 5,
-      grabCursor: true,
-      autoplay: {
-        delay: 3000,
-        disableOnInteraction: false
-      },
-      loop: true,
-      loopAdditionalSlides: 1,
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev'
-      },
-      breakpoints: {
-        1200: {
-          slidesPerView: 3,
-          spaceBetween: 26
-        },
-        992: {
-          slidesPerView: 2,
-          spaceBetween: 20
-        }
-      }
-    });
-  }
+  // if (swiperReviews) {
+  //   new Swiper(swiperReviews, {
+  //     slidesPerView: 1,
+  //     spaceBetween: 5,
+  //     grabCursor: true,
+  //     autoplay: {
+  //       delay: 3000,
+  //       disableOnInteraction: false
+  //     },
+  //     loop: true,
+  //     loopAdditionalSlides: 1,
+  //     navigation: {
+  //       nextEl: '.swiper-button-next',
+  //       prevEl: '.swiper-button-prev'
+  //     },
+  //     breakpoints: {
+  //       1200: {
+  //         slidesPerView: 3,
+  //         spaceBetween: 26
+  //       },
+  //       992: {
+  //         slidesPerView: 2,
+  //         spaceBetween: 20
+  //       }
+  //     }
+  //   });
+  // }
 
   // Reviews slider next and previous
   // -----------------------------------
   // Add click event listener to next button
-  ReviewsNextBtn.addEventListener('click', function () {
-    ReviewsSliderNext.click();
-  });
-  ReviewsPreviousBtn.addEventListener('click', function () {
-    ReviewsSliderPrev.click();
-  });
+  // ReviewsNextBtn.addEventListener('click', function () {
+  //   ReviewsSliderNext.click();
+  // });
+  // ReviewsPreviousBtn.addEventListener('click', function () {
+  //   ReviewsSliderPrev.click();
+  // });
 
   // Review client logo
   // -----------------------------------
-  if (swiperLogos) {
-    new Swiper(swiperLogos, {
-      slidesPerView: 2,
-      autoplay: {
-        delay: 3000,
-        disableOnInteraction: false
-      },
-      breakpoints: {
-        992: {
-          slidesPerView: 5
-        },
-        768: {
-          slidesPerView: 3
-        }
-      }
-    });
-  }
+  // if (swiperLogos) {
+  //   new Swiper(swiperLogos, {
+  //     slidesPerView: 2,
+  //     autoplay: {
+  //       delay: 3000,
+  //       disableOnInteraction: false
+  //     },
+  //     breakpoints: {
+  //       992: {
+  //         slidesPerView: 5
+  //       },
+  //       768: {
+  //         slidesPerView: 3
+  //       }
+  //     }
+  //   });
+  // }
 
   // Pricing Plans
   // -----------------------------------
-  document.addEventListener('DOMContentLoaded', function (event) {
-    function togglePrice() {
-      if (priceDurationToggler.checked) {
-        // If checked
-        priceYearlyList.map(function (yearEl) {
-          yearEl.classList.remove('d-none');
-        });
-        priceMonthlyList.map(function (monthEl) {
-          monthEl.classList.add('d-none');
-        });
-      } else {
-        // If not checked
-        priceYearlyList.map(function (yearEl) {
-          yearEl.classList.add('d-none');
-        });
-        priceMonthlyList.map(function (monthEl) {
-          monthEl.classList.remove('d-none');
-        });
-      }
-    }
-    // togglePrice Event Listener
-    togglePrice();
+  // document.addEventListener('DOMContentLoaded', function (event) {
+  //   function togglePrice() {
+  //     if (priceDurationToggler.checked) {
+  //       // If checked
+  //       priceYearlyList.map(function (yearEl) {
+  //         yearEl.classList.remove('d-none');
+  //       });
+  //       priceMonthlyList.map(function (monthEl) {
+  //         monthEl.classList.add('d-none');
+  //       });
+  //     } else {
+  //       // If not checked
+  //       priceYearlyList.map(function (yearEl) {
+  //         yearEl.classList.add('d-none');
+  //       });
+  //       priceMonthlyList.map(function (monthEl) {
+  //         monthEl.classList.remove('d-none');
+  //       });
+  //     }
+  //   }
+  //   // togglePrice Event Listener
+  //   togglePrice();
 
-    priceDurationToggler.onchange = function () {
-      togglePrice();
-    };
-  });
+  //   priceDurationToggler.onchange = function () {
+  //     togglePrice();
+  //   };
+  // });
 })();

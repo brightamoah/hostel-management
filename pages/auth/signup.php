@@ -1,19 +1,34 @@
+<?php
+session_start();
+
+?>
+
 <!doctype html>
 
-<html lang="en" class="layout-wide customizer-hide" dir="ltr" data-skin="default" data-assets-path="../../assets/"
-    data-template="vertical-menu-template-no-customizer" data-bs-theme="light">
+<html
+    lang="en"
+    class="layout-wide customizer-hide"
+    dir="ltr"
+    data-skin="default"
+    data-assets-path="../../assets/"
+    data-template="vertical-menu-template"
+    data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport"
+    <meta
+        name="viewport"
         content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    <title>Sign Up</title>
+    <title>Kings Hostel - Sign Up</title>
 
     <meta name="description" content="" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="../../assets/img/favicon/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="../../assets/img/favicon_io/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../assets/img/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../assets/img/favicon_io/favicon-16x16.png">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -27,25 +42,35 @@
     <!-- Core CSS -->
     <!-- build:css assets/vendor/css/theme.css  -->
 
-    <link rel="stylesheet" href="../../assets/css/core.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/pickr/pickr-themes.css" />
+
+    <link rel="stylesheet" href="../../assets/vendor/css/core.css" />
     <link rel="stylesheet" href="../../assets/css/demo.css" />
+    <link rel="stylesheet" href="../../assets/css/signup.css" />
 
     <!-- Vendors CSS -->
 
-    <link rel="stylesheet" href="../../assets/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
 
     <!-- endbuild -->
 
     <!-- Vendor -->
-    <link rel="stylesheet" href="../../assets/@form-validation/form-validation.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/bs-stepper/bs-stepper.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/bootstrap-select/bootstrap-select.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/select2/select2.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/@form-validation/form-validation.css" />
 
     <!-- Page CSS -->
+
     <!-- Page -->
-    <link rel="stylesheet" href="../../assets/css/pages/page-auth.css" />
+    <link rel="stylesheet" href="../../assets/vendor/css/pages/page-auth.css" />
 
     <!-- Helpers -->
-    <!-- <script src="../../assets/vendor/js/helpers.js"></script> -->
+    <script src="../../assets/vendor/js/helpers.js"></script>
     <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
+
+    <!--? Template customizer: To hide customizer set displayCustomizer value false in config.js.  -->
+    <script src="../../assets/vendor/js/template-customizer.js"></script>
 
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
 
@@ -59,137 +84,224 @@
         <!-- Logo -->
         <a href="/" class="app-brand auth-cover-brand gap-2">
             <span class="app-brand-logo demo">
-                <span class="text-primary">
-                    <svg width="25" viewBox="0 0 25 42" version="1.1" xmlns="http://www.w3.org/2000/svg"
-                        xmlns:xlink="http://www.w3.org/1999/xlink">
-                        <defs>
-                            <path
-                                d="M13.7918663,0.358365126 L3.39788168,7.44174259 C0.566865006,9.69408886 -0.379795268,12.4788597 0.557900856,15.7960551 C0.68998853,16.2305145 1.09562888,17.7872135 3.12357076,19.2293357 C3.8146334,19.7207684 5.32369333,20.3834223 7.65075054,21.2172976 L7.59773219,21.2525164 L2.63468769,24.5493413 C0.445452254,26.3002124 0.0884951797,28.5083815 1.56381646,31.1738486 C2.83770406,32.8170431 5.20850219,33.2640127 7.09180128,32.5391577 C8.347334,32.0559211 11.4559176,30.0011079 16.4175519,26.3747182 C18.0338572,24.4997857 18.6973423,22.4544883 18.4080071,20.2388261 C17.963753,17.5346866 16.1776345,15.5799961 13.0496516,14.3747546 L10.9194936,13.4715819 L18.6192054,7.984237 L13.7918663,0.358365126 Z"
-                                id="path-1"></path>
-                            <path
-                                d="M5.47320593,6.00457225 C4.05321814,8.216144 4.36334763,10.0722806 6.40359441,11.5729822 C8.61520715,12.571656 10.0999176,13.2171421 10.8577257,13.5094407 L15.5088241,14.433041 L18.6192054,7.984237 C15.5364148,3.11535317 13.9273018,0.573395879 13.7918663,0.358365126 C13.5790555,0.511491653 10.8061687,2.3935607 5.47320593,6.00457225 Z"
-                                id="path-3"></path>
-                            <path
-                                d="M7.50063644,21.2294429 L12.3234468,23.3159332 C14.1688022,24.7579751 14.397098,26.4880487 13.008334,28.506154 C11.6195701,30.5242593 10.3099883,31.790241 9.07958868,32.3040991 C5.78142938,33.4346997 4.13234973,34 4.13234973,34 C4.13234973,34 2.75489982,33.0538207 2.37032616e-14,31.1614621 C-0.55822714,27.8186216 -0.55822714,26.0572515 -4.05231404e-15,25.8773518 C0.83734071,25.6075023 2.77988457,22.8248993 3.3049379,22.52991 C3.65497346,22.3332504 5.05353963,21.8997614 7.50063644,21.2294429 Z"
-                                id="path-4"></path>
-                            <path
-                                d="M20.6,7.13333333 L25.6,13.8 C26.2627417,14.6836556 26.0836556,15.9372583 25.2,16.6 C24.8538077,16.8596443 24.4327404,17 24,17 L14,17 C12.8954305,17 12,16.1045695 12,15 C12,14.5672596 12.1403557,14.1461923 12.4,13.8 L17.4,7.13333333 C18.0627417,6.24967773 19.3163444,6.07059163 20.2,6.73333333 C20.3516113,6.84704183 20.4862915,6.981722 20.6,7.13333333 Z"
-                                id="path-5"></path>
-                        </defs>
-                        <g id="g-app-brand" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                            <g id="Brand-Logo" transform="translate(-27.000000, -15.000000)">
-                                <g id="Icon" transform="translate(27.000000, 15.000000)">
-                                    <g id="Mask" transform="translate(0.000000, 8.000000)">
-                                        <mask id="mask-2" fill="white">
-                                            <use xlink:href="#path-1"></use>
-                                        </mask>
-                                        <use fill="currentColor" xlink:href="#path-1"></use>
-                                        <g id="Path-3" mask="url(#mask-2)">
-                                            <use fill="currentColor" xlink:href="#path-3"></use>
-                                            <use fill-opacity="0.2" fill="#FFFFFF" xlink:href="#path-3"></use>
-                                        </g>
-                                        <g id="Path-4" mask="url(#mask-2)">
-                                            <use fill="currentColor" xlink:href="#path-4"></use>
-                                            <use fill-opacity="0.2" fill="#FFFFFF" xlink:href="#path-4"></use>
-                                        </g>
-                                    </g>
-                                    <g id="Triangle"
-                                        transform="translate(19.000000, 11.000000) rotate(-300.000000) translate(-19.000000, -11.000000) ">
-                                        <use fill="currentColor" xlink:href="#path-5"></use>
-                                        <use fill-opacity="0.2" fill="#FFFFFF" xlink:href="#path-5"></use>
-                                    </g>
-                                </g>
-                            </g>
-                        </g>
-                    </svg>
-                </span>
+                <img src="../../assets/img/logo.svg" alt="logo" class="text-primary" width="80%" height="70%" />
             </span>
-            <span class="app-brand-text demo text-heading fw-bold">Kings Hostel</span>
+            <!-- <span class="app-brand-text demo text-heading fw-bold">Kings Hostel</span> -->
         </a>
         <!-- /Logo -->
+
+
         <div class="authentication-inner row m-0">
-            <!-- /Left Text -->
-            <div class="d-none d-lg-flex col-lg-7 col-xl-8 align-items-center p-5">
-                <div class="w-100 d-flex justify-content-center">
-                    <img src="../../assets/img/girl-with-laptop-light.png" class="img-fluid scaleX-n1-rtl"
-                        alt="Login image" width="700" data-app-dark-img="img/girl-with-laptop-dark.png"
-                        data-app-light-img="img/girl-with-laptop-light.png" />
+            <!-- Left Text -->
+            <div class="d-none d-lg-flex col-lg-4 align-items-center justify-content-end p-5 pe-0">
+                <div class="w-px-400">
+                    <img
+                        src="../../assets/img/illustrations/create-account-light.png"
+                        class="img-fluid"
+                        alt="multi-steps"
+                        width="600"
+                        data-app-dark-img="illustrations/create-account-dark.png"
+                        data-app-light-img="illustrations/create-account-light.png" />
                 </div>
             </div>
             <!-- /Left Text -->
 
-            <!-- Register -->
-            <div class="d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg p-sm-12 p-6">
-                <div class="w-px-400 mx-auto mt-sm-12 mt-8">
-                    <h4 class="mb-1">Adventure starts here 🚀</h4>
-                    <p class="mb-6">Make your app management easy and fun!</p>
+            <!--  Multi Steps Registration -->
+            <div class="d-flex col-lg-8 align-items-center justify-content-center authentication-bg p-5">
+                <div class="w-px-700">
+                    <h3 class="mb-2 text-center fw-bold">Welcome to Kings Hostel!</h3>
+                    <p class="text-center text-muted mb-4">Sign up to get started</p>
 
-                    <form id="formAuthentication" class="mb-6" action="signup" method="POST">
-                        <div class="mb-6 form-control-validation">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" name="username"
-                                placeholder="Enter your username" autofocus />
-                        </div>
-                        <div class="mb-6 form-control-validation">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="text" class="form-control" id="email" name="email"
-                                placeholder="Enter your email" />
-                        </div>
-                        <div class="form-password-toggle form-control-validation">
-                            <label class="form-label" for="password">Password</label>
-                            <div class="input-group input-group-merge">
-                                <input type="password" id="password" autocomplete="new-password"     class="form-control" name="password"
-                                    placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                                    aria-describedby="password" />
-                                <span class="input-group-text cursor-pointer"><i
-                                        class="icon-base bx bx-hide"></i></span>
+                    <div id="multiStepsValidation" class="bs-stepper border-none shadow-none mt-5">
+                        <div class="bs-stepper-header border-none pt-12 px-0 justify-content-center place-items-center">
+                            <div class="step" data-target="#accountDetailsValidation">
+                                <button type="button" class="step-trigger">
+                                    <span class="bs-stepper-circle"><i class="icon-base bx bx-home"></i></span>
+                                    <span class="bs-stepper-label">
+                                        <span class="bs-stepper-title">Account</span>
+                                        <span class="bs-stepper-subtitle">Account Details</span>
+                                    </span>
+                                </button>
                             </div>
-                        </div>
-                        <div class="my-7 form-control-validation">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="terms-conditions" name="terms" />
-                                <label class="form-check-label" for="terms-conditions">
-                                    I agree to
-                                    <a href="javascript:void(0);">privacy policy & terms</a>
-                                </label>
+                            <div class="line">
+                                <i class="icon-base bx bx-chevron-right icon-22px"></i>
                             </div>
+                            <div class="step" data-target="#personalInfoValidation">
+                                <button type="button" class="step-trigger">
+                                    <span class="bs-stepper-circle"><i class="icon-base bx bx-user"></i></span>
+                                    <span class="bs-stepper-label">
+                                        <span class="bs-stepper-title">Personal</span>
+                                        <span class="bs-stepper-subtitle">Enter Information</span>
+                                    </span>
+                                </button>
+                            </div>
+
                         </div>
-                        <input class="btn btn-primary d-grid w-100" type="submit" value="Sign up" />
-                    </form>
 
-                    <p class="text-center">
-                        <span>Already have an account?</span>
-                        <a href="/login">
-                            <span>Sign in instead</span>
-                        </a>
-                    </p>
+                        <?php
+                        if (isset($_SESSION['message-signup'])) {
+                            echo "<div class='text-center fw-bold alert alert-{$_SESSION['message_type']} mt-3' role='alert'>{$_SESSION['message-signup']}</div>";
+                            unset($_SESSION['message-signup'], $_SESSION['message_type']);
+                        }
+                        ?>
 
-                    <div class="divider my-6">
-                        <div class="divider-text">or</div>
+
+
+                        <div class="bs-stepper-content px-0">
+                            <form id="multiStepsForm" method="post" action="/signup" onSubmit="return false" novalidate>
+                                <?php
+                                ?>
+                                <?php set_csrf(); ?>
+                                <!-- Account Details -->
+                                <div id="accountDetailsValidation" class="content">
+
+                                    <div class="row g-6">
+                                        <div class="col-sm-6 form-control-validation">
+                                            <label class="form-label" for="name">Full Name</label>
+                                            <input
+                                                type="text"
+                                                name="name"
+                                                id="name"
+                                                class="form-control"
+                                                placeholder="Enter Your Full Name" />
+                                        </div>
+                                        <div class="col-sm-6 form-control-validation">
+                                            <label class="form-label" for="email">Email</label>
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                id="email"
+                                                class="form-control"
+                                                placeholder="Enter Your Email Address"
+                                                aria-label="email" />
+                                        </div>
+                                        <div class="col-sm-6 form-password-toggle form-control-validation">
+                                            <label class="form-label" for="password">Password</label>
+                                            <div class="input-group input-group-merge">
+                                                <input
+                                                    type="password"
+                                                    id="password"
+                                                    name="password"
+                                                    class="form-control"
+                                                    placeholder="Enter Your Password"
+                                                    aria-describedby="password" />
+                                                <span class="input-group-text cursor-pointer" id="multiStepsPass2"><i class="icon-base bx bx-hide"></i></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 form-password-toggle form-control-validation">
+                                            <label class="form-label" for="confirm_password">Confirm Password</label>
+                                            <div class="input-group input-group-merge">
+                                                <input
+                                                    type="password"
+                                                    id="confirm_password"
+                                                    name="confirm_password""
+                                                    class=" form-control"
+                                                    placeholder="Confirm Your Password"
+                                                    aria-describedby="multiStepsConfirmPass2" />
+                                                <span class="input-group-text cursor-pointer" id="multiStepsConfirmPass2"><i class="icon-base bx bx-hide"></i></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 d-flex justify-content-between">
+                                            <button class="btn btn-label-secondary btn-prev" disabled>
+                                                <i class="icon-base bx bx-left-arrow-alt icon-sm ms-sm-n2 me-sm-2"></i>
+                                                <span class="align-middle d-sm-inline-block d-none">Previous</span>
+                                            </button>
+                                            <button class="btn btn-primary btn-next">
+                                                <span class="align-middle d-sm-inline-block d-none me-sm-2 me-0">Next</span>
+                                                <i class="icon-base bx bx-right-arrow-alt icon-sm me-sm-n2"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Personal Info -->
+                                <div id="personalInfoValidation" class="content">
+                                    <div class="content-header mb-6">
+                                        <h4 class="mb-0">Personal Information</h4>
+                                        <p class="mb-0">Enter Your Personal Information</p>
+                                    </div>
+                                    <div class="row g-6">
+                                        <div class="col-sm-6 form-control-validation">
+                                            <label class="form-label" for="gender">Select Your Gender</label>
+                                            <select class="form-select" id="gender" name="gender" data-allow-clear="true">
+                                                <option value="" selected>Select Gender</option>
+                                                <option value="Male">Male</option>
+                                                <option value="Female">Female</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label for="date_of_birth" class="form-label">Date of Birth</label>
+                                            <input type="date" id="date_of_birth" name="date_of_birth" class="form-control">
+                                        </div>
+                                        <div class="col-sm-6 form-control-validation">
+                                            <label class="form-label" for="phone_number">Phone Number</label>
+                                            <input type="tel" class="form-control" id="phone_number" name="phone_number"
+                                                placeholder="+233501234567" pattern="^\+\d{9,14}$" required />
+                                        </div>
+
+                                        <div class="col-sm-6 form-control-validation">
+                                            <label class="form-label" for="emergency_contact_name">Emergency Contact's Full
+                                                Name</label>
+                                            <input type="text" class="form-control" id="emergency_contact_name"
+                                                name="emergency_contact_name" placeholder="Jane Doe" required />
+                                        </div>
+                                        <div class="col-sm-6 form-control-validation">
+                                            <label class="form-label" for="emergency_contact_number">Emergency Contact
+                                                Number</label>
+                                            <input type="tel" class="form-control" id="emergency_contact_number"
+                                                name="emergency_contact_number" placeholder="+233501234567"
+                                                pattern="^\+\d{9,14}$" required />
+                                        </div>
+                                        <div class="col-md-12 form-control-validation">
+                                            <label class="form-label" for="address">Address</label>
+                                            <textarea class="form-control" id="address" name="address"
+                                                placeholder="123 Hostel Lane, City" required></textarea>
+                                        </div>
+                                        <div class="col-md-12 form-control-validation">
+                                            <label class="form-label" for="health_condition">Health Conditions
+                                                (Optional)</label>
+                                            <textarea class="form-control" id="health_condition" name="health_condition"
+                                                placeholder="E.g., Asthma, Allergies"></textarea>
+                                        </div>
+                                        <div class="col-md-12 form-control-validation">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input" type="checkbox" id="terms" name="terms"
+                                                    required />
+                                                <label class="form-check-label" for="terms">
+                                                    I agree to the <a href="javascript:void(0);">privacy policy &
+                                                        terms</a>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 d-flex justify-content-between form-control-validation">
+                                            <button class="btn btn-label-secondary btn-prev">
+                                                <i class="icon-base bx bx-left-arrow-alt icon-sm ms-sm-n2 me-sm-2"></i>
+                                                <span class="align-middle d-sm-inline-block d-none">Previous</span>
+                                            </button>
+                                            <input type="submit" value="Sign Up" class="btn btn-primary btn-next btn-submit">
+                                        </div>
+                                    </div>
+                                    <!--/ Credit Card Details -->
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
-                    <div class="d-flex justify-content-center">
-                        <a href="javascript:;" class="btn btn-sm btn-icon rounded-circle btn-text-facebook me-1_5">
-                            <i class="icon-base bx bxl-facebook-circle icon-20px"></i>
-                        </a>
-
-                        <a href="javascript:;" class="btn btn-sm btn-icon rounded-circle btn-text-twitter me-1_5">
-                            <i class="icon-base bx bxl-twitter icon-20px"></i>
-                        </a>
-
-                        <a href="javascript:;" class="btn btn-sm btn-icon rounded-circle btn-text-github me-1_5">
-                            <i class="icon-base bx bxl-github icon-20px"></i>
-                        </a>
-
-                        <a href="javascript:;" class="btn btn-sm btn-icon rounded-circle btn-text-google-plus">
-                            <i class="icon-base bx bxl-google icon-20px"></i>
-                        </a>
+                    <!-- Login Link -->
+                    <div class="login-link fs-b">
+                        <p>Already have an account? <a href="/login" class="text-primary fw-bold pl-5 fs-big"> Login</a></p>
                     </div>
                 </div>
             </div>
-            <!-- /Register -->
+            <!-- / Multi Steps Registration -->
         </div>
     </div>
+
+    <script>
+        // Check selected custom option
+        window.Helpers.initCustomOptionCheck();
+    </script>
 
     <!-- / Content -->
 
@@ -202,6 +314,8 @@
     <script src="../../assets/vendor/js/bootstrap.js"></script>
     <script src="../../assets/vendor/libs/@algolia/autocomplete-js.js"></script>
 
+    <script src="../../assets/vendor/libs/pickr/pickr.js"></script>
+
     <script src="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
 
     <script src="../../assets/vendor/libs/hammer/hammer.js"></script>
@@ -213,6 +327,9 @@
     <!-- endbuild -->
 
     <!-- Vendors JS -->
+    <script src="../../assets/vendor/libs/cleave-zen/cleave-zen.js"></script>
+    <script src="../../assets/vendor/libs/bs-stepper/bs-stepper.js"></script>
+    <script src="../../assets/vendor/libs/select2/select2.js"></script>
     <script src="../../assets/vendor/libs/@form-validation/popular.js"></script>
     <script src="../../assets/vendor/libs/@form-validation/bootstrap5.js"></script>
     <script src="../../assets/vendor/libs/@form-validation/auto-focus.js"></script>
@@ -222,7 +339,7 @@
     <script src="../../assets/js/main.js"></script>
 
     <!-- Page JS -->
-    <script src="../../assets/js/pages-auth.js"></script>
+    <script src="../../assets/js/pages-auth-multisteps.js"></script>
 </body>
 
 </html>

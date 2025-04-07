@@ -11,8 +11,8 @@
 
     <h1>404-Error<br>Page Not Found</h1>
     <p>Sorry, the page you are looking for does not exist.</p>
-    <a href="/signup">
-        <button>Go to Home</button>
+    <a href="/login">
+        <button>Go to Login</button>
     </a>
 </body>
 

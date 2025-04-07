@@ -10,8 +10,16 @@ require_once __DIR__ . '/router.php';
 // In the URL -> http://localhost
 // The output -> Index
 get('/', '/pages/index.php');
+
 get('/signup', '/pages/auth/signup.php');
-get('/login', '/pages/auth/login.php', );
+get('/login', '/pages/auth/login.php',);
+get('/logout', '/app/controllers/logout.php');
+get('/forgot-password', '/pages/auth/forgotPassword.php');
+
+
+get('/layout', '/pages/layout.php');
+get('/admin/dashboard', '/pages/admin/admin_dashboard.php');
+get('/student/dashboard', '/pages/student/dashboard.php');
 
 post('/signup', '/app/controllers/Signup.php');
 post('/login', '/app/controllers/Login.php');

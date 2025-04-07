@@ -1,0 +1,40 @@
+.authentication-wrapper {
+   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+   min-height: 100vh;
+}
+
+.form-container {
+   background: #fff;
+   padding: 2.5rem;
+   border-radius: 10px;
+   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+   max-width: 750px;
+}
+
+.bs-stepper-header .step-trigger {
+   padding: 0.5rem 1rem;
+}
+
+.bs-stepper-circle {
+   width: 2.5rem;
+   height: 2.5rem;
+   line-height: 2.5rem;
+   font-size: 1.25rem;
+}
+
+.bs-stepper-label {
+   margin-left: 0.5rem;
+}
+
+.btn-next,
+.btn-prev,
+.btn-submit {
+   padding: 0.75rem 1.5rem;
+   font-size: 1rem;
+}
+
+.login-link {
+   text-align: center;
+   margin-top: 1.5rem;
+   font-size: 0.9rem;
+}
