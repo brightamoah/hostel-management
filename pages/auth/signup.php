@@ -1,5 +1,4 @@
 <?php
-session_start();
 
 ?>
 
@@ -25,7 +24,6 @@ session_start();
     <meta name="description" content="" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="../../assets/img/favicon_io/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/favicon_io/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="../../assets/img/favicon_io/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../../assets/img/favicon_io/favicon-16x16.png">
@@ -140,8 +138,8 @@ session_start();
 
                         <?php
                         if (isset($_SESSION['message-signup'])) {
-                            echo "<div class='text-center fw-bold alert alert-{$_SESSION['message_type']} mt-3' role='alert'>{$_SESSION['message-signup']}</div>";
-                            unset($_SESSION['message-signup'], $_SESSION['message_type']);
+                            echo "<div class='text-center fw-bold alert alert-{$_SESSION['message_type_signup']} mt-3' role='alert'>{$_SESSION['message-signup']}</div>";
+                            unset($_SESSION['message-signup'], $_SESSION['message_type_signup']);
                         }
                         ?>
 
@@ -263,7 +261,7 @@ session_start();
                                             <textarea class="form-control" id="health_condition" name="health_condition"
                                                 placeholder="E.g., Asthma, Allergies"></textarea>
                                         </div>
-                                        <div class="col-md-12 form-control-validation">
+                                        <!-- <div class="col-md-12 form-control-validation">
                                             <div class="form-check mb-0">
                                                 <input class="form-check-input" type="checkbox" id="terms" name="terms"
                                                     required />
@@ -272,7 +270,7 @@ session_start();
                                                         terms</a>
                                                 </label>
                                             </div>
-                                        </div>
+                                        </div> -->
 
                                         <div class="col-12 d-flex justify-content-between form-control-validation">
                                             <button class="btn btn-label-secondary btn-prev">

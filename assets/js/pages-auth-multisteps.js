@@ -209,14 +209,6 @@ document.addEventListener("DOMContentLoaded", function (e) {
                         },
                      },
                   },
-                  terms: {
-                     validators: {
-                        notEmpty: {
-                           message:
-                              "You must agree to the terms and conditions",
-                        },
-                     },
-                  },
                },
                plugins: {
                   trigger: new FormValidation.plugins.Trigger(),

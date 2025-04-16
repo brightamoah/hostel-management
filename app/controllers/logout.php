@@ -14,7 +14,7 @@ class Logout
 
     public function logout()
     {
-        session_start();
+     
         session_unset(); // Unset all session variables
 
         if (isset($_COOKIE['remember_me'])) {

@@ -1,12 +1,30 @@
-<!-- <?php
-        include_once "database/db.php";
+<?php
 
+require_once "./app/controllers/Login.php";
 
-        $path = __DIR__ . DIRECTORY_SEPARATOR;
+$user = $_SESSION['user'] ?? null;
 
+// if ($user) {
+//     echo "<pre>";
+//     print_r($user);
+//     echo "</pre>";
+// } else {
+//     echo "No user is logged in.";
+// }
 
+function getRoute()
+{
+    $role = $user['role'] ?? null;
+    if ($role === 'Admin') {
+        return 'admin/dashboard';
+    } elseif ($role === 'Student') {
+        return 'student/dashboard';
+    } else {
+        return 'login';
+    }
+}
 
-        ?> -->
+?>
 
 <!DOCTYPE html>
 <html
@@ -26,7 +44,6 @@
     <meta name="description" content="" />
 
     <!-- favicon -->
-    <link rel="icon" type="image/x-icon" href="../assets/img/favicon_io/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="../assets/img/favicon_io/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon_io/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../assets/img/favicon_io/favicon-16x16.png">
@@ -95,7 +112,7 @@
                         <i class="icon-base bx bx-menu icon-lg align-middle text-heading fw-medium"></i>
                     </button>
                     <a href="/" class="app-brand-link">
-                        <img src="./assets/img/logo.svg" alt="logo" class="app-brand-logo demo" width="80%" height="70%"/>
+                        <img src="./assets/img/logo.svg" alt="logo" class="app-brand-logo demo" width="80%" height="70%" />
                         <!-- <span class="app-brand-text demo menu-text fw-bold text-primary ms-2 ps-1">Hostel</span> -->
                     </a>
                 </div>
@@ -154,12 +171,24 @@
                         </ul>
                     </li>
                     <!-- Login/Register -->
-                    <li>
-                        <a href="login" class="btn btn-primary">
-                            <span class="tf-icons icon-base bx bx-log-in-circle scaleX-n1-rtl me-md-1"></span>
-                            <span class="d-none d-md-block">Login/Register</span>
-                        </a>
-                    </li>
+                    <?php if (isset($user) && !empty($_SESSION['user'])): ?>
+                        <li>
+                            <a href="<?= getRoute(); ?>" class="btn btn-success">
+                                <span class="tf-icons icon-lg bx bx-user-circle scaleX-n1-rtl me-md-1"></span>
+                                <span class="d-none d-md-block">
+                                    <?php echo isset($user['role']) && $user['role'] === 'Student' ? 'Student Dashboard' : 'Admin Dashboard'; ?>
+                                </span>
+                            </a>
+                        </li>
+                      
+                    <?php else: ?>
+                        <li>
+                            <a href="login" class="btn btn-primary">
+                                <span class="tf-icons icon-base bx bx-log-in-circle scaleX-n1-rtl me-md-1"></span>
+                                <span class="d-none d-md-block">Login/Register</span>
+                            </a>
+                        </li>
+                    <?php endif; ?></a></a>
                 </ul>
             </div>
         </div>

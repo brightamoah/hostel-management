@@ -35,7 +35,7 @@
                                     <div>
                                         <p class="mb-0">Email</p>
                                         <h6 class="mb-0">
-                                            <a href="mailto:example@gmail.com" class="text-heading">bkamoah02e@gmail.com</a>
+                                            <a href="mailto:example@gmail.com" class="text-heading">bkamoah02@gmail.com</a>
                                         </h6>
                                     </div>
                                 </div>

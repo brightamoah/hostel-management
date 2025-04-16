@@ -12492,6 +12492,7 @@ li:not(:first-child) .dropdown-item, .dropdown-menu .dropdown-item:not(:first-ch
   --bs-card-hover-border-color: color-mix(in sRGB, var(--bs-card-bg) 62%, var(--bs-primary));
 }
 
+
 .card-border-shadow-secondary {
   --bs-card-border-bottom-color: color-mix(in sRGB, var(--bs-card-bg) 60%, var(--bs-secondary));
   --bs-card-hover-border-bottom-color: var(--bs-secondary);

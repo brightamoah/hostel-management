@@ -1,52 +1,84 @@
 <?php
+session_start(); // Start session at the top unconditionally
 
-// https://phprouter.com/
-function get($route, $path_to_include)
+function get($route, $path_to_include, $middleware = [])
 {
     if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-        route($route, $path_to_include);
+        route($route, $path_to_include, $middleware);
     }
 }
-function post($route, $path_to_include)
+
+function post($route, $path_to_include, $middleware = [])
 {
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        route($route, $path_to_include);
+        route($route, $path_to_include, $middleware);
     }
 }
-function put($route, $path_to_include)
+
+function any($route, $path_to_include, $middleware = [])
 {
-    if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-        route($route, $path_to_include);
+    route($route, $path_to_include, $middleware);
+}
+
+function middleware($middleware)
+{
+    foreach ($middleware as $guard) {
+        if ($guard === 'auth' && !isAuthenticated()) {
+            header('Location: /login');
+            exit();
+        }
+        if ($guard === 'guest' && isAuthenticated()) {
+            redirectToDashboard();
+            exit();
+        }
+        if ($guard === 'admin' && (!isAuthenticated() || $_SESSION['user']['role'] !== 'Admin')) {
+            if (isAuthenticated()) {
+                redirectToDashboard();
+            } else {
+                header('Location: /login');
+            }
+            exit();
+        }
     }
 }
-function patch($route, $path_to_include)
+
+function isAuthenticated()
 {
-    if ($_SERVER['REQUEST_METHOD'] == 'PATCH') {
-        route($route, $path_to_include);
+    return isset($_SESSION['user']) && !empty($_SESSION['user']);
+}
+
+function redirectToDashboard()
+{
+    if (isset($_SESSION['user']['role'])) {
+        if ($_SESSION['user']['role'] === 'Admin') {
+            header('Location: /admin/dashboard');
+        } else {
+            header('Location: /student/dashboard');
+        }
+    } else {
+        header('Location: /');
     }
+    exit();
 }
-function delete($route, $path_to_include)
+
+function route($route, $path_to_include, $middleware = [])
 {
-    if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
-        route($route, $path_to_include);
+    if (headers_sent()) {
+        error_log("Headers already sent before routing to $route");
     }
-}
-function any($route, $path_to_include)
-{
-    route($route, $path_to_include);
-}
-function route($route, $path_to_include)
-{
+
     $callback = $path_to_include;
     if (!is_callable($callback)) {
         if (!strpos($path_to_include, '.php')) {
             $path_to_include .= '.php';
         }
     }
+
     if ($route == "/404") {
         include_once __DIR__ . "/$path_to_include";
         exit();
     }
+
     $request_url = filter_var($_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL);
     $request_url = rtrim($request_url, '/');
     $request_url = strtok($request_url, '?');
@@ -54,8 +86,9 @@ function route($route, $path_to_include)
     $request_url_parts = explode('/', $request_url);
     array_shift($route_parts);
     array_shift($request_url_parts);
+
     if ($route_parts[0] == '' && count($request_url_parts) == 0) {
-        // Callback function
+        middleware($middleware);
         if (is_callable($callback)) {
             call_user_func_array($callback, []);
             exit();
@@ -63,9 +96,11 @@ function route($route, $path_to_include)
         include_once __DIR__ . "/$path_to_include";
         exit();
     }
+
     if (count($route_parts) != count($request_url_parts)) {
         return;
     }
+
     $parameters = [];
     for ($__i__ = 0; $__i__ < count($route_parts); $__i__++) {
         $route_part = $route_parts[$__i__];
@@ -77,7 +112,8 @@ function route($route, $path_to_include)
             return;
         }
     }
-    // Callback function
+
+    middleware($middleware);
     if (is_callable($callback)) {
         call_user_func_array($callback, $parameters);
         exit();
@@ -85,6 +121,7 @@ function route($route, $path_to_include)
     include_once __DIR__ . "/$path_to_include";
     exit();
 }
+
 function out($text)
 {
     echo htmlspecialchars($text);
@@ -92,7 +129,6 @@ function out($text)
 
 function set_csrf()
 {
-    // session_start();
     if (!isset($_SESSION["csrf"])) {
         $_SESSION["csrf"] = bin2hex(random_bytes(50));
     }
@@ -101,7 +137,6 @@ function set_csrf()
 
 function is_csrf_valid()
 {
-    session_start();
     if (!isset($_SESSION['csrf']) || !isset($_POST['csrf'])) {
         return false;
     }
