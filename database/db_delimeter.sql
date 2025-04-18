@@ -1,4 +1,3 @@
-
 DELIMITER $$
 
 CREATE TRIGGER update_room_status
@@ -22,18 +21,19 @@ CREATE TRIGGER before_user_role_change
 BEFORE UPDATE ON users
 FOR EACH ROW
 BEGIN
-    -- Case 1: Role changes from Student to Admin
+    
     IF OLD.role = 'Student' AND NEW.role = 'Admin' THEN
         DELETE FROM students WHERE user_id = OLD.user_id;
     END IF;
 
-    -- Case 2: Role changes from Admin to Student
+   
     IF OLD.role = 'Admin' AND NEW.role = 'Student' THEN
         DELETE FROM admins WHERE user_id = OLD.user_id;
     END IF;
-END$$
-DELIMITER ;
+  END$$  
 
+
+DELIMITER;
 
 DELIMITER $$
 
@@ -51,6 +51,7 @@ BEGIN
 END$$
 
 -- Trigger 2: Set check_out_time when status changes to Checked-Out
+
 CREATE TRIGGER before_visitor_checkout
 BEFORE UPDATE ON visitors
 FOR EACH ROW

@@ -637,6 +637,8 @@
                               text: "Visitor deleted successfully!",
                               confirmButtonColor: "#3085d6",
                            });
+                           // location.reload();
+                           dt.ajax.reload();
                         } else {
                            Swal.fire({
                               icon: "error",

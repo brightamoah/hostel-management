@@ -243,6 +243,18 @@ CREATE TABLE maintenance_requests (
     FOREIGN KEY (room_id) REFERENCES rooms (room_id) ON DELETE CASCADE
 );
 
+
+CREATE TABLE maintenance_responses (
+    response_id INT AUTO_INCREMENT PRIMARY KEY,
+    request_id INT NOT NULL,
+    user_id INT NOT NULL,
+    response_text TEXT NOT NULL,
+    response_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (request_id) REFERENCES maintenance_requests (request_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    CONSTRAINT chk_response_text CHECK (TRIM(response_text) != '')
+);
+
 CREATE TABLE payments (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
@@ -339,6 +351,73 @@ CREATE TABLE password_reset_tokens (
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
     UNIQUE KEY (token)
 );
+
+
+
+-- Complaints table to store student-submitted complaints
+CREATE TABLE complaints (
+    complaint_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    room_id INT NULL, -- Optional, for room-specific complaints
+    complaint_type ENUM(
+        'Room Condition',
+        'Staff Behavior',
+        'Amenities',
+        'Noise',
+        'Security',
+        'Billing',
+        'Other'
+    ) NOT NULL,
+    description TEXT NOT NULL,
+    priority ENUM(
+        'Low',
+        'Medium',
+        'High',
+        'Emergency'
+    ) NOT NULL DEFAULT 'Medium',
+    status ENUM(
+        'Pending',
+        'In-Progress',
+        'Resolved',
+        'Rejected'
+    ) NOT NULL DEFAULT 'Pending',
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP NULL,
+    FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,
+    FOREIGN KEY (room_id) REFERENCES rooms (room_id) ON DELETE SET NULL,
+    CONSTRAINT chk_description CHECK (TRIM(description) != '')
+);
+
+-- Indexes for performance
+CREATE INDEX idx_complaint_student ON complaints (student_id);
+
+CREATE INDEX idx_complaint_status ON complaints (status);
+
+CREATE INDEX idx_complaint_priority ON complaints (priority);
+
+-- Complaint Responses table to store admin actions and notes
+CREATE TABLE complaint_responses (
+    response_id INT AUTO_INCREMENT PRIMARY KEY,
+    complaint_id INT NOT NULL,
+    admin_id INT NOT NULL,
+    response_text TEXT NOT NULL,
+    action_taken ENUM(
+        'Assigned',
+        'Updated',
+        'Resolved',
+        'Rejected'
+    ) NOT NULL,
+    response_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (complaint_id) REFERENCES complaints (complaint_id) ON DELETE CASCADE,
+    FOREIGN KEY (admin_id) REFERENCES admins (admin_id) ON DELETE CASCADE,
+    CONSTRAINT chk_response_text CHECK (TRIM(response_text) != '')
+);
+
+-- Index for complaint responses
+CREATE INDEX idx_response_complaint ON complaint_responses (complaint_id);
+
+
+
 
 --Add some data to the tables
 INSERT INTO
@@ -1838,6 +1917,8 @@ VALUES (
 
 SELECT * FROM announcements;
 
+
+-- Insert new maintenance requests
 INSERT INTO
     maintenance_requests (
         student_id,
@@ -1845,31 +1926,1027 @@ INSERT INTO
         issue_type,
         description,
         priority,
-        status
+        status,
+        request_date,
+        completion_date
+    )
+VALUES
+    -- Student 1 (Albert Smith, room 103, Hostel A)
+    (
+        1,
+        1,
+        'Structural',
+        'Crack in the wall near the window',
+        'High',
+        'In-Progress',
+        '2025-04-12 09:00:00',
+        NULL
+    ),
+    (
+        1,
+        1,
+        'Appliance',
+        'Refrigerator not cooling properly',
+        'Medium',
+        'Pending',
+        '2025-04-16 14:00:00',
+        NULL
+    ),
+    -- Student 2 (Grace Brown, room 311, Hostel A)
+    (
+        2,
+        5,
+        'Furniture',
+        'Desk drawer stuck and won’t open',
+        'Low',
+        'Pending',
+        '2025-04-17 08:30:00',
+        NULL
+    ),
+    (
+        2,
+        5,
+        'Electrical',
+        'Power outlet sparking intermittently',
+        'Emergency',
+        'Assigned',
+        '2025-04-17 10:00:00',
+        NULL
+    ),
+    -- Student 3 (John Doe, room 209, Hostel B)
+    (
+        1,
+        6,
+        'Plumbing',
+        'Showerhead leaking constantly',
+        'Medium',
+        'In-Progress',
+        '2025-04-14 11:00:00',
+        NULL
+    ),
+    (
+        2,
+        6,
+        'Appliance',
+        'Air conditioner making loud noises',
+        'High',
+        'Completed',
+        '2025-04-10 09:00:00',
+        '2025-04-11 15:00:00'
+    ),
+    (
+        1,
+        6,
+        'Structural',
+        'Loose floor tiles in bathroom',
+        'Low',
+        'Rejected',
+        '2025-04-08 12:00:00',
+        '2025-04-09 10:00:00'
+    );
+
+INSERT INTO
+    maintenance_requests (
+        student_id,
+        room_id,
+        issue_type,
+        description,
+        priority,
+        status,
+        request_date,
+        completion_date
+    )
+VALUES
+
+    (
+        1,
+        1,
+        'Structural',
+        'Crack in the wall near the window',
+        'High',
+        'In-Progress',
+        '2025-04-12 09:00:00',
+        NULL
+    ),
+    (
+        1,
+        1,
+        'Appliance',
+        'Refrigerator not cooling properly',
+        'Medium',
+        'Pending',
+        '2025-04-16 14:00:00',
+        NULL
+    ),
+   
+    (
+        2,
+        5,
+        'Furniture',
+        'Desk drawer stuck and won’t open',
+        'Low',
+        'Pending',
+        '2025-04-17 08:30:00',
+        NULL
+    ),
+    (
+        2,
+        5,
+        'Electrical',
+        'Power outlet sparking intermittently',
+        'Emergency',
+        'Assigned',
+        '2025-04-17 10:00:00',
+        NULL
+    ),
+    
+    (
+        2,
+        6,
+        'Plumbing',
+        'Showerhead leaking constantly',
+        'Medium',
+        'In-Progress',
+        '2025-04-14 11:00:00',
+        NULL
+    ),
+    (
+        1,
+        6,
+        'Appliance',
+        'Air conditioner making loud noises',
+        'High',
+        'Completed',
+        '2025-04-10 09:00:00',
+        '2025-04-11 15:00:00'
+    ),
+    (
+        1,
+        6,
+        'Structural',
+        'Loose floor tiles in bathroom',
+        'Low',
+        'Rejected',
+        '2025-04-08 12:00:00',
+        '2025-04-09 10:00:00'
+    );
+
+
+-- Insert maintenance responses
+INSERT INTO
+    maintenance_responses (
+        request_id,
+        user_id,
+        response_text,
+        response_date
     )
 VALUES (
+        14,
+        2,
+        'Electrician assigned to inspect the light switch.',
+        '2025-04-06 09:00:00'
+    ),
+    (
+        16,
         3,
+        'Thanks, when will the electrician arrive?',
+        '2025-04-06 12:00:00'
+    ),
+    (
+        28,
+        2,
+        'Hinge replaced; wardrobe fully functional.',
+        '2025-03-21 14:30:00'
+    ),
+    (
+        29,
+        1,
+        'Rejected: Construction noise is outside hostel control.',
+        '2025-04-10 10:00:00'
+    ),
+    (
+        15,
+        2,
+        'Technician scheduled to check AC on April 18.',
+        '2025-04-16 08:00:00'
+    ),
+    (
+        16,
+        1,
+        'Structural engineer assigned to assess the crack.',
+        '2025-04-13 10:00:00'
+    ),
+    (
+        17,
+        1,
+        'Plumber dispatched to fix the showerhead.',
+        '2025-04-15 09:00:00'
+    ),
+    (
+        29,
+        2,
+        'Please confirm the repair time.',
+        '2025-04-15 11:00:00'
+    ),
+    (
+        15,
+        1,
+        'AC repaired and tested.',
+        '2025-04-11 15:00:00'
+    ),
+    (
+        30,
+        2,
+        'Rejected: Tiles deemed safe; no immediate risk.',
+        '2025-04-09 10:00:00'
+    );
+
+
+    -- Insert sample complaints
+INSERT INTO
+    complaints (
+        student_id,
+        room_id,
+        complaint_type,
+        description,
+        priority,
+        status,
+        submitted_at
+    )
+VALUES (
+        1,
+        1,
+        'Maintenance',
+        'Leaking faucet in bathroom causing water pooling',
+        'High',
+        'In-Progress',
+        '2025-01-05 08:00:00'
+    ),
+    (
+        1,
+        2,
+        'Room Condition',
+        'Broken window latch in room 102',
+        'Medium',
+        'Resolved',
+        '2025-01-10 09:30:00'
+    ),
+    (
+        1,
+        NULL,
+        'Staff Behavior',
+        'Reception staff was rude during check-in',
+        'Medium',
+        'Rejected',
+        '2025-01-15 14:00:00'
+    ),
+    (
+        1,
         3,
-        'plumbing',
-        'Leaking faucet in the bathroom.',
-        'medium',
-        'assigned'
+        'Amenities',
+        'No hot water in shower for 2 days',
+        'High',
+        'In-Progress',
+        '2025-01-20 10:15:00'
+    ),
+    (
+        1,
+        4,
+        'Noise',
+        'Loud music from neighboring room at night',
+        'Medium',
+        'Pending',
+        '2025-01-25 22:00:00'
+    ),
+    (
+        1,
+        NULL,
+        'Security',
+        'Main gate lock is faulty, opens easily',
+        'Emergency',
+        'In-Progress',
+        '2025-01-30 07:00:00'
+    ),
+    (
+        1,
+        5,
+        'Maintenance',
+        'Ceiling fan not working in room 101-B',
+        'Medium',
+        'Resolved',
+        '2025-02-02 11:00:00'
+    ),
+    (
+        1,
+        NULL,
+        'Billing',
+        'Overcharged for laundry services',
+        'Low',
+        'Pending',
+        '2025-02-05 13:00:00'
+    ),
+    (
+        1,
+        6,
+        'Room Condition',
+        'Mold on bathroom walls',
+        'High',
+        'In-Progress',
+        '2025-02-10 09:00:00'
+    ),
+    (
+        1,
+        7,
+        'Amenities',
+        'Broken TV in common room',
+        'Low',
+        'Resolved',
+        '2025-02-15 15:30:00'
+    ),
+    (
+        1,
+        NULL,
+        'Other',
+        'Cafeteria food quality has declined',
+        'Medium',
+        'Pending',
+        '2025-02-20 12:00:00'
+    ),
+    (
+        1,
+        8,
+        'Maintenance',
+        'Clogged sink in room 202-B',
+        'High',
+        'In-Progress',
+        '2025-02-25 08:30:00'
+    ),
+    (
+        1,
+        9,
+        'Noise',
+        'Construction noise outside hostel at 6 AM',
+        'Medium',
+        'Resolved',
+        '2025-03-01 06:00:00'
+    ),
+    (
+        1,
+        NULL,
+        'Staff Behavior',
+        'Security guard ignored my request for help',
+        'Medium',
+        'Rejected',
+        '2025-03-05 10:00:00'
+    ),
+    (
+        1,
+        10,
+        'Security',
+        'CCTV camera in hallway not working',
+        'Emergency',
+        'In-Progress',
+        '2025-03-10 09:00:00'
+    ),
+    (
+        1,
+        1,
+        'Room Condition',
+        'Peeling paint on room walls',
+        'Low',
+        'Pending',
+        '2025-03-15 14:00:00'
+    ),
+    (
+        1,
+        2,
+        'Maintenance',
+        'Broken door lock in room 102',
+        'High',
+        'Resolved',
+        '2025-03-20 11:00:00'
+    ),
+    (
+        1,
+        NULL,
+        'Billing',
+        'Incorrect electricity bill for January',
+        'Medium',
+        'In-Progress',
+        '2025-03-25 13:00:00'
+    ),
+    (
+        1,
+        3,
+        'Amenities',
+        'Wi-Fi not working in common area',
+        'Medium',
+        'Resolved',
+        '2025-03-30 15:00:00'
+    ),
+    (
+        1,
+        4,
+        'Noise',
+        'Noisy AC unit in room 202',
+        'Medium',
+        'Pending',
+        '2025-04-01 20:00:00'
+    ),
+    (
+        1,
+        NULL,
+        'Other',
+        'Lack of recycling bins in hostel',
+        'Low',
+        'Pending',
+        '2025-04-05 10:00:00'
+    ),
+    (
+        1,
+        5,
+        'Maintenance',
+        'Leaking roof during rain',
+        'Emergency',
+        'In-Progress',
+        '2025-04-07 09:00:00'
+    ),
+    (
+        1,
+        6,
+        'Room Condition',
+        'Cracked floor tiles in bathroom',
+        'Medium',
+        'Resolved',
+        '2025-04-10 12:00:00'
+    ),
+    (
+        1,
+        NULL,
+        'Staff Behavior',
+        'Cleaning staff skipped my room',
+        'Medium',
+        'In-Progress',
+        '2025-04-12 11:00:00'
+    ),
+    (
+        1,
+        7,
+        'Security',
+        'Unidentified person entered hostel without ID check',
+        'Emergency',
+        'Resolved',
+        '2025-04-15 08:00:00'
+    );
+
+-- Update resolved_at for resolved/rejected complaints
+INSERT INTO
+    complaints (
+        student_id,
+        room_id,
+        complaint_type,
+        description,
+        priority,
+        status,
+        submitted_at
+    )
+VALUES (
+        2,
+        8,
+        'Maintenance',
+        'Faulty electrical outlet in room 202-B',
+        'High',
+        'In-Progress',
+        '2025-01-06 09:00:00'
+    ),
+    (
+        2,
+        9,
+        'Room Condition',
+        'Stained mattress in room 301',
+        'Medium',
+        'Resolved',
+        '2025-01-12 10:00:00'
+    ),
+    (
+        2,
+        NULL,
+        'Staff Behavior',
+        'Cafeteria staff ignored dietary restrictions',
+        'Medium',
+        'Rejected',
+        '2025-01-18 12:00:00'
+    ),
+    (
+        2,
+        10,
+        'Amenities',
+        'Gym equipment broken for a week',
+        'Low',
+        'Pending',
+        '2025-01-22 14:00:00'
     ),
     (
         2,
         1,
-        'electrical',
-        'Lights flickering in the study area.',
-        'high',
-        'in-progress'
+        'Noise',
+        'Loud parties in common area after midnight',
+        'Medium',
+        'In-Progress',
+        '2025-01-28 23:00:00'
+    ),
+    (
+        2,
+        NULL,
+        'Security',
+        'Lost key not replaced promptly',
+        'High',
+        'Resolved',
+        '2025-02-01 08:00:00'
+    ),
+    (
+        2,
+        2,
+        'Maintenance',
+        'Broken showerhead in room 102',
+        'Medium',
+        'Resolved',
+        '2025-02-04 10:00:00'
+    ),
+    (
+        2,
+        NULL,
+        'Billing',
+        'Double-charged for room rent',
+        'High',
+        'In-Progress',
+        '2025-02-08 11:00:00'
+    ),
+    (
+        2,
+        3,
+        'Room Condition',
+        'Bad odor in room 201',
+        'Medium',
+        'Pending',
+        '2025-02-12 09:00:00'
+    ),
+    (
+        2,
+        4,
+        'Amenities',
+        'No water dispenser in hostel block',
+        'Low',
+        'Resolved',
+        '2025-02-18 13:00:00'
+    ),
+    (
+        2,
+        NULL,
+        'Other',
+        'No study room available during exams',
+        'Medium',
+        'Pending',
+        '2025-02-22 15:00:00'
+    ),
+    (
+        2,
+        5,
+        'Maintenance',
+        'AC not cooling properly in room 101-B',
+        'High',
+        'In-Progress',
+        '2025-02-26 10:00:00'
+    ),
+    (
+        2,
+        6,
+        'Noise',
+        'Noisy plumbing pipes at night',
+        'Medium',
+        'Resolved',
+        '2025-03-02 22:00:00'
+    ),
+    (
+        2,
+        NULL,
+        'Staff Behavior',
+        'Maintenance staff entered room without permission',
+        'High',
+        'In-Progress',
+        '2025-03-06 08:00:00'
+    ),
+    (
+        2,
+        7,
+        'Security',
+        'Broken window in common room',
+        'Emergency',
+        'Resolved',
+        '2025-03-12 09:00:00'
+    ),
+    (
+        2,
+        8,
+        'Room Condition',
+        'Loose door hinges in room 202-B',
+        'Medium',
+        'Pending',
+        '2025-03-16 11:00:00'
+    ),
+    (
+        2,
+        9,
+        'Maintenance',
+        'Flickering lights in room 301',
+        'Medium',
+        'Resolved',
+        '2025-03-22 12:00:00'
+    ),
+    (
+        2,
+        NULL,
+        'Billing',
+        'Late fee applied incorrectly',
+        'Medium',
+        'In-Progress',
+        '2025-03-26 14:00:00'
+    ),
+    (
+        2,
+        10,
+        'Amenities',
+        'Laundry machine out of service',
+        'Low',
+        'Pending',
+        '2025-03-31 13:00:00'
+    ),
+    (
+        2,
+        1,
+        'Noise',
+        'Students shouting in hallway at 2 AM',
+        'Medium',
+        'In-Progress',
+        '2025-04-02 02:00:00'
+    ),
+    (
+        2,
+        NULL,
+        'Other',
+        'No parking space for visitors',
+        'Low',
+        'Pending',
+        '2025-04-06 10:00:00'
+    ),
+    (
+        2,
+        2,
+        'Maintenance',
+        'Broken toilet flush valve in room 102',
+        'High',
+        'In-Progress',
+        '2025-04-08 09:00:00'
+    ),
+    (
+        2,
+        3,
+        'Room Condition',
+        'Damaged wardrobe in room 201',
+        'Medium',
+        'Resolved',
+        '2025-04-11 11:00:00'
+    ),
+    (
+        2,
+        NULL,
+        'Staff Behavior',
+        'Security guard was unresponsive',
+        'Medium',
+        'Rejected',
+        '2025-04-13 10:00:00'
+    ),
+    (
+        2,
+        4,
+        'Security',
+        'Emergency exit blocked by furniture',
+        'Emergency',
+        'Resolved',
+        '2025-04-16 08:00:00'
+    );
+
+    UPDATE complaints
+SET
+    resolved_at = DATE_ADD(submitted_at, INTERVAL 2 DAY)
+WHERE
+    status IN ('Resolved', 'Rejected');
+
+
+    INSERT INTO
+    complaint_responses (
+        complaint_id,
+        admin_id,
+        response_text,
+        action_taken,
+        response_date
+    )
+VALUES
+    -- Student 1 Complaints
+    (
+        1,
+        1,
+        'Assigned to plumbing team for immediate repair',
+        'Assigned',
+        '2025-01-06 09:00:00'
     ),
     (
         1,
+        1,
+        'Plumber scheduled to visit tomorrow at 10 AM',
+        'Updated',
+        '2025-01-07 08:00:00'
+    ),
+    (
         2,
-        'furniture',
-        'Broken chair leg.',
-        'low',
-        'pending'
+        1,
+        'Window latch replaced successfully',
+        'Resolved',
+        '2025-01-12 11:00:00'
+    ),
+    (
+        3,
+        1,
+        'Investigated; no evidence of misconduct found',
+        'Rejected',
+        '2025-01-17 10:00:00'
+    ),
+    (
+        4,
+        1,
+        'Assigned to maintenance to check water heater',
+        'Assigned',
+        '2025-01-21 09:00:00'
+    ),
+    (
+        6,
+        1,
+        'Security team dispatched to inspect gate',
+        'Assigned',
+        '2025-01-31 08:00:00'
+    ),
+    (
+        6,
+        1,
+        'New lock installed on main gate',
+        'Updated',
+        '2025-02-01 10:00:00'
+    ),
+    (
+        7,
+        1,
+        'Fan repaired and tested',
+        'Resolved',
+        '2025-02-04 14:00:00'
+    ),
+    (
+        9,
+        1,
+        'Assigned to cleaning team to address mold',
+        'Assigned',
+        '2025-02-11 10:00:00'
+    ),
+    (
+        10,
+        1,
+        'New TV installed in common room',
+        'Resolved',
+        '2025-02-17 12:00:00'
+    ),
+    (
+        12,
+        1,
+        'Plumber assigned to unclog sink',
+        'Assigned',
+        '2025-02-26 09:00:00'
+    ),
+    (
+        12,
+        1,
+        'Sink unclogged; issue resolved',
+        'Updated',
+        '2025-02-27 11:00:00'
+    ),
+    (
+        13,
+        1,
+        'Construction team instructed to start later',
+        'Resolved',
+        '2025-03-03 08:00:00'
+    ),
+    (
+        14,
+        1,
+        'No evidence of security lapse; complaint rejected',
+        'Rejected',
+        '2025-03-07 09:00:00'
+    ),
+    (
+        15,
+        1,
+        'CCTV technician scheduled for repair',
+        'Assigned',
+        '2025-03-11 10:00:00'
+    ),
+    (
+        17,
+        1,
+        'Lock replaced and tested',
+        'Resolved',
+        '2025-03-22 13:00:00'
+    ),
+    (
+        18,
+        1,
+        'Billing team reviewing electricity charges',
+        'Assigned',
+        '2025-03-26 10:00:00'
+    ),
+    (
+        19,
+        1,
+        'Wi-Fi router reset and upgraded',
+        'Resolved',
+        '2025-04-01 12:00:00'
+    ),
+    (
+        22,
+        1,
+        'Roof repair team assigned',
+        'Assigned',
+        '2025-04-08 10:00:00'
+    ),
+    (
+        23,
+        1,
+        'Floor tiles replaced',
+        'Resolved',
+        '2025-04-12 14:00:00'
+    ),
+    (
+        24,
+        1,
+        'Cleaning schedule adjusted',
+        'Assigned',
+        '2025-04-13 09:00:00'
+    ),
+    (
+        25,
+        1,
+        'Security protocols tightened; issue addressed',
+        'Resolved',
+        '2025-04-17 10:00:00'
+    ),
+    -- Student 2 Complaints
+    (
+        26,
+        1,
+        'Electrician assigned to fix outlet',
+        'Assigned',
+        '2025-01-07 10:00:00'
+    ),
+    (
+        27,
+        1,
+        'Mattress replaced with new one',
+        'Resolved',
+        '2025-01-14 12:00:00'
+    ),
+    (
+        28,
+        1,
+        'Dietary issue not reported earlier; rejected',
+        'Rejected',
+        '2025-01-20 09:00:00'
+    ),
+    (
+        30,
+        1,
+        'Security warned about noise; monitoring situation',
+        'Assigned',
+        '2025-01-29 09:00:00'
+    ),
+    (
+        31,
+        1,
+        'New key issued and lock changed',
+        'Resolved',
+        '2025-02-03 10:00:00'
+    ),
+    (
+        32,
+        1,
+        'Showerhead replaced',
+        'Resolved',
+        '2025-02-06 11:00:00'
+    ),
+    (
+        33,
+        1,
+        'Billing team investigating double charge',
+        'Assigned',
+        '2025-02-09 10:00:00'
+    ),
+    (
+        33,
+        1,
+        'Refund processed for overcharge',
+        'Updated',
+        '2025-02-10 12:00:00'
+    ),
+    (
+        35,
+        1,
+        'Water dispenser installed in block',
+        'Resolved',
+        '2025-02-20 14:00:00'
+    ),
+    (
+        37,
+        1,
+        'AC technician scheduled for repair',
+        'Assigned',
+        '2025-02-27 09:00:00'
+    ),
+    (
+        38,
+        1,
+        'Plumbing issue fixed',
+        'Resolved',
+        '2025-03-04 10:00:00'
+    ),
+    (
+        39,
+        1,
+        'Staff retrained on entry protocols',
+        'Assigned',
+        '2025-03-07 09:00:00'
+    ),
+    (
+        40,
+        1,
+        'Window repaired and secured',
+        'Resolved',
+        '2025-03-14 11:00:00'
+    ),
+    (
+        42,
+        1,
+        'Electrician fixed lighting issue',
+        'Resolved',
+        '2025-03-24 13:00:00'
+    ),
+    (
+        43,
+        1,
+        'Billing team correcting late fee',
+        'Assigned',
+        '2025-03-27 10:00:00'
+    ),
+    (
+        46,
+        1,
+        'Security warned about noise violations',
+        'Assigned',
+        '2025-04-03 09:00:00'
+    ),
+    (
+        47,
+        1,
+        'Plumber assigned to fix flush valve',
+        'Assigned',
+        '2025-04-09 10:00:00'
+    ),
+    (
+        48,
+        1,
+        'Wardrobe repaired',
+        'Resolved',
+        '2025-04-13 12:00:00'
+    ),
+    (
+        49,
+        1,
+        'No security lapse found; complaint rejected',
+        'Rejected',
+        '2025-04-15 09:00:00'
+    ),
+    (
+        50,
+        1,
+        'Emergency exit cleared and checked',
+        'Resolved',
+        '2025-04-17 10:00:00'
     );
 
 -- these queries displays all the information in the tables created

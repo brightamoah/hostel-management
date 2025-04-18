@@ -11,13 +11,15 @@ class Student
     // Fetch Room Allocation Status
     public function getRoomAllocation($user_id)
     {
+        // First query to get room allocation details
         $query = "
-        SELECT r.room_number, r.room_type, r.capacity, r.amount, r.status 
-        FROM allocations a 
-        JOIN rooms r ON a.room_id = r.room_id 
-        JOIN students s ON a.student_id = s.student_id 
-        WHERE s.user_id = ? AND a.status = 'Active'
-        LIMIT 1";
+    SELECT r.room_id, r.room_number, r.room_type, r.building, r.floor, r.capacity, r.amount, r.status 
+    FROM allocations a 
+    JOIN rooms r ON a.room_id = r.room_id 
+    JOIN students s ON a.student_id = s.student_id 
+    WHERE s.user_id = ? AND a.status = 'Active'
+    LIMIT 1";
+
         $stmt = $this->connection->prepare($query);
         if (!$stmt) {
             throw new Exception("Prepare failed: " . $this->connection->error);
@@ -27,7 +29,53 @@ class Student
         $result = $stmt->get_result();
         $data = $result->fetch_assoc();
         $stmt->close();
-        return $data ?: null;
+
+        // If no room found, return null
+        if (!$data) {
+            return null;
+        }
+
+        // Second query to get other residents in the same room
+        $room_id = $data['room_id'];
+        $current_student_query = "
+    SELECT s.student_id 
+    FROM students s 
+    WHERE s.user_id = ?";
+
+        $stmt = $this->connection->prepare($current_student_query);
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $this->connection->error);
+        }
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $current_student = $result->fetch_assoc();
+        $current_student_id = $current_student['student_id'];
+        $stmt->close();
+
+        // Query to get other residents
+        $residents_query = "
+    SELECT CONCAT(s.first_name, ' ', s.last_name) AS resident_name 
+    FROM allocations a 
+    JOIN students s ON a.student_id = s.student_id 
+    WHERE a.room_id = ? AND a.status = 'Active' AND s.student_id != ?";
+
+        $stmt = $this->connection->prepare($residents_query);
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $this->connection->error);
+        }
+        $stmt->bind_param("ii", $room_id, $current_student_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        // Add other residents to the room data
+        $data['other_residents'] = [];
+        while ($resident = $result->fetch_assoc()) {
+            $data['other_residents'][] = $resident['resident_name'];
+        }
+        $stmt->close();
+
+        return $data;
     }
 
     // Fetch Payment Status (Total Paid)
@@ -278,6 +326,8 @@ class Student
             throw new Exception("Payment confirmation failed: " . $e->getMessage());
         }
     }
+
+
 
     // Summarize payment status
     public function getPaymentStatusSummary($user_id)

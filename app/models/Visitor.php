@@ -78,7 +78,7 @@ class Visitor
                 $visitors[] = $row;
             }
             $stmt->close();
-            return $visitors;
+            return json_encode(['data' => $visitors]);
         } catch (Exception $e) {
             error_log("Error in getVisitorsByStudent: " . $e->getMessage());
             return [];

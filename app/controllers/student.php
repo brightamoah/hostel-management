@@ -1,53 +1,25 @@
 <?php
-require_once "./app/models/Student.php";
 require_once "./database/db.php";
+require_once "./app/models/Student.php";
+require_once "./app/models/Visitor.php";
 
-class StudentController
-{
-    private $studentModel;
-
-    public function __construct()
-    {
-        $db = new Database();
-        $this->studentModel = new Student($db->connect());
-    }
-
-    public function dashboard()
-    {
-        // Ensure the user is logged in and is a student
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Student') {
-            header("Location: /login");
-            exit();
-        }
-
-        $user = $_SESSION['user'];
-        $user_id = $user['user_id'];
-
-        try {
-            // Fetch first name if not in session
-            $first_name = $_SESSION['first_name'] ?? $this->studentModel->getFirstName($user_id);
-
-            // Fetch data using the model
-            $room_data = $this->studentModel->getRoomAllocation($user_id);
-            $total_paid = $this->studentModel->getTotalPaid($user_id);
-            $pending_balance = $this->studentModel->getPendingBalance($user_id);
-            $open_requests = $this->studentModel->getOpenMaintenanceRequests($user_id);
-            $pending_visitors = $this->studentModel->getPendingVisitors($user_id);
-
-            // Pass data to the view
-            $data = [
-                'first_name' => $first_name,
-                'room_data' => $room_data,
-                'total_paid' => $total_paid,
-                'pending_balance' => $pending_balance,
-                'open_requests' => $open_requests,
-                'pending_visitors' => $pending_visitors,
-            ];
-
-           require_once "./pages/student/dashboard.php";
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            die("An error occurred while loading the dashboard. Please try again later.");
-        }
-    }
+// Check if user is authenticated
+if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Student') {
+    header("Location: /login");
+    exit();
 }
+
+$user_id = $_SESSION['user']['user_id']; // Get the logged-in user's ID
+$db = new Database();
+$conn = $db->connect();
+$student = new Student($conn);
+$visitor = new Visitor();
+
+// Fetch student data
+$first_name = $student->getFirstName($user_id);
+$room_allocation = $student->getRoomAllocation($user_id);
+$total_paid = $student->getTotalPaid($user_id);
+$pending_balance = $student->getPendingBalance($user_id);
+$open_requests = $student->getOpenMaintenanceRequests($user_id);
+$total_visitors = $visitor->getVisitorCountByStudent($_SESSION['user']['student_id'] ?? 0);
+$payment_status = $student->getPaymentStatusSummary($user_id);

@@ -25,6 +25,12 @@ get('/announcements', '/app/controllers/announcement.php', ['auth']);
 // Admin Routes
 get('/admin/dashboard', '/pages/admin/admin_dashboard.php', ['auth', 'admin']);
 get('/admin/room-data', '/app/controllers/rooms/GetAllRooms.php', ['auth', 'admin']);
+get('/complaint-data', '/app/controllers/complaints/GetComplaints.php', ['auth']);
+get('/complaint/$c_id', '/app/controllers/complaints/GetComplaintById.php', ['auth']);
+get('/complaint/$c_id/response', '/app/controllers/complaints/GetResponse.php', ['auth']);
+get('/maintenance-data', './api/GetAllMaintenance.php',['auth']);
+get('/maintenance/$r_id', './api/GetSpecificMaintenance.php', ['auth']);
+get('/maintenance/$r_id/response', './api/GetMaintenanceResponse.php', ['auth']);
 
 // Student Routes
 get('/student/dashboard', '/pages/student/dashboard.php', ['auth']);
@@ -52,6 +58,9 @@ post('/student/room/book/$id', '/app/controllers/rooms/BookRoom.php', ['auth']);
 post('/visitor/delete/$id', '/app/controllers/visitors/DeleteVisitor.php', ['auth']);
 post('/visitor/cancel/$id', './app/controllers/visitors/CancelVisitor.php', ['auth']);
 post('/visitor/register', '/app/controllers/visitors/RegisterVisitor.php', ['auth']);
+post('/student/profile/update', '/app/controllers/ProfileController.php', ['auth']);
+post('/complaint/submit', '/app/controllers/complaints/SubmitComplaint.php', ['auth']);
+post('/maintenance/submit', '/api/SubmitMaintenance.php', ['auth']);
 
 // Room Management Routes (Admin)
 post('/admin/room/add', '/app/controllers/rooms/AddRoom.php', ['auth', 'admin']);
