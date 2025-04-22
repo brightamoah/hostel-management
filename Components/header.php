@@ -9,9 +9,15 @@ if (isset($_SESSION['user'])) {
     $phone_number = htmlspecialchars($user['phone_number']);
     $first_name = htmlspecialchars($user['first_name']);
     $last_name = htmlspecialchars($user['last_name']);
-
-    
 }
+
+function getProfileURL($role)
+{
+    if ($role === 'Admin') return "/admin/profile";
+    else return "/student/profile";
+}
+
+$profile_url = getProfileURL($role);
 
 
 
@@ -383,7 +389,7 @@ if (isset($_SESSION['user'])) {
                         <div class="dropdown-divider my-1"></div>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="pages-profile-user.html">
+                        <a class="dropdown-item" href="<?= $profile_url; ?>">
                             <i class="icon-base bx bx-user icon-md me-3"></i><span>My Profile</span>
                         </a>
                     </li>

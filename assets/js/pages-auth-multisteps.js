@@ -221,6 +221,16 @@ document.addEventListener("DOMContentLoaded", function (e) {
                },
             }
          ).on("core.form.valid", function () {
+            // Show spinner
+            const submitBtn = stepsValidationForm.querySelector(".btn-submit");
+            const spinner = document.getElementById("submitSpinner");
+
+            if (submitBtn && spinner) {
+               submitBtn.disabled = true;
+               spinner.classList.remove("d-none");
+            }
+
+            // Submit the form
             stepsValidationForm.submit();
          });
 

@@ -13,11 +13,19 @@ if (!isset($_SESSION['email_to_verify'])) {
 $db = new Database();
 $user = new User($db->connect());
 
+// Track resend attempts and cooldown periods
+if (!isset($_SESSION['resend_count'])) {
+    $_SESSION['resend_count'] = 0;
+    $_SESSION['next_resend_time'] = 0;
+}
 
-if (isset($_GET['resend'])) {
+$current_time = time();
+$can_resend = $current_time >= $_SESSION['next_resend_time'];
+$time_remaining = max(0, $_SESSION['next_resend_time'] - $current_time);
+
+if (isset($_GET['resend']) && $can_resend) {
     $email = $_SESSION['email_to_verify'];
     if ($user->emailExists($email)) {
-
         $query = "SELECT user_id FROM {$user->getConnection()->real_escape_string('users')} WHERE email = ?";
         $stmt = $user->getConnection()->prepare($query);
         $stmt->bind_param("s", $email);
@@ -30,6 +38,24 @@ if (isset($_GET['resend'])) {
         if ($verification_code && sendVerificationEmail($email, '', $verification_code)) {
             $_SESSION['message-verify'] = 'Verification code resent successfully.';
             $_SESSION['message_type'] = 'success';
+
+            // Increment resend count and set next allowed resend time
+            $_SESSION['resend_count']++;
+
+            // Set cooldown period based on number of resends
+            switch ($_SESSION['resend_count']) {
+                case 1:
+                    $cooldown = 60; // 1 minute
+                    break;
+                case 2:
+                    $cooldown = 120; // 2 minutes
+                    break;
+                default:
+                    $cooldown = 300; // 5 minutes
+                    break;
+            }
+
+            $_SESSION['next_resend_time'] = $current_time + $cooldown;
         } else {
             $_SESSION['message-verify'] = 'Failed to resend verification code.';
             $_SESSION['message_type'] = 'danger';
@@ -49,6 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($user->verifyEmail($email, $code)) {
             unset($_SESSION['email_to_verify']);
+            unset($_SESSION['resend_count']);
+            unset($_SESSION['next_resend_time']);
             header('Location: /email-verified');
             exit;
         } else {
@@ -110,11 +138,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <label for="verification_code" class="form-label">Verification Code</label>
                             <input type="text" class="form-control" id="verification_code" name="verification_code" placeholder="Enter 6-digit code" required maxlength="6" />
                         </div>
-                        <button type="submit" class="btn btn-primary d-grid w-100">Verify Email</button>
+                        <button type="submit" class="btn btn-primary d-grid w-100">
+                            <span class="d-flex align-items-center justify-content-center">
+                                <span>Verify Email</span>
+                            </span>
+                        </button>
                     </form>
 
-                    <<p class="text-center mt-3">Didn't receive the code? <a href="/verify-email?resend=1" class="text-primary">Resend</a></p>
-                        <p class="text-center"><a href="/signup" class="text-muted">Back to Sign Up</a></p>
+                    <div class="text-center mt-3">
+                        <?php if ($can_resend): ?>
+                            <p>Didn't receive the code? <a href="/verify-email?resend=1" class="text-primary">Resend</a></p>
+                        <?php else: ?>
+                            <p>
+                                Resend available in <span id="countdown" class="text-danger fw-bold"
+                                    data-time-remaining="<?php echo $time_remaining; ?>">
+                                    <?php echo gmdate("i:s", $time_remaining); ?>
+                                </span>
+                            </p>
+                        <?php endif; ?>
+                        <p><a href="/signup" class="text-muted">Back to Sign Up</a></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -125,6 +168,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="../../assets/vendor/libs/popper/popper.js"></script>
     <script src="../../assets/vendor/js/bootstrap.js"></script>
     <script src="../../assets/js/main.js"></script>
+
+    <script>
+        // Countdown timer for resend cooldown
+        document.addEventListener('DOMContentLoaded', function() {
+            const countdownEl = document.getElementById('countdown');
+            if (countdownEl) {
+                let timeRemaining = parseInt(countdownEl.dataset.timeRemaining, 10);
+
+                const updateCountdown = function() {
+                    if (timeRemaining <= 0) {
+                        // Replace the countdown with the resend link when time is up
+                        const resendContainer = countdownEl.parentElement;
+                        resendContainer.innerHTML = 'Didn\'t receive the code? <a href="/verify-email?resend=1" class="text-primary">Resend</a>';
+                        return;
+                    }
+
+                    // Format the time as mm:ss
+                    const minutes = Math.floor(timeRemaining / 60);
+                    const seconds = timeRemaining % 60;
+                    countdownEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                    timeRemaining--;
+                    setTimeout(updateCountdown, 1000);
+                };
+
+                // Start the countdown
+                updateCountdown();
+            }
+        });
+    </script>
 </body>
 
 </html>

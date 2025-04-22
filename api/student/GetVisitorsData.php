@@ -54,13 +54,4 @@ $conn->close();
 echo json_encode(['data' => $visitors]);
 
 
-// <?php
-// require_once "./app/models/Visitor.php";
 
-// header('Content-Type: application/json');
-
-// $visitor = new Visitor();
-// $student_id = $_SESSION['user']['student_id'];
-// $_SESSION['visitors'] = $visitor->getVisitorsByStudent($student_id);
-
-// echo $_SESSION['visitors'];

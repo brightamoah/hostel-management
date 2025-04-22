@@ -14,19 +14,21 @@ $role = $_SESSION['user']['role'] ?? 'Student';
 $menu_items = [];
 
 $menu_items = ($role === 'Admin') ? [
-    ['route' => '/admin/dashboard', 'label' => 'Dashboards', 'icon' => 'bx-home-smile'],
+    ['route' => '/admin/dashboard', 'label' => 'Dashboards', 'icon' => 'bx-home'],
     ['route' => '/admin/rooms', 'label' => 'Rooms', 'icon' => 'bx-buildings'],
     ['route' => '/admin/visitors', 'label' => 'Visitors', 'icon' => 'bx-group'],
-    ['route' => '/admin/billings', 'label' => 'Billings', 'icon' => 'bx-group'],
+    ['route' => '/admin/users', 'label' => 'Users', 'icon' => 'bx-user'],
     ['route' => '/admin/maintenance', 'label' => 'Maintenance', 'icon' => 'bx-wrench'],
-    ['route' => '/admin/forms', 'label' => 'Forms', 'icon' => 'bx-file'],
-    ['route' => '/admin/messages', 'label' => 'Messages', 'icon' => 'message-square'],
+    ['route' => '/admin/billings', 'label' => 'Billings', 'icon' => 'bx-credit-card'],
+    ['route' => '/admin/complaints', 'label' => 'Complaints', 'icon' => 'bx-message-error'],
+    ['route' => '/admin/announcements', 'label' => 'Announcements', 'icon' => 'bx-file'],
+    ['route' => '/admin/analytics', 'label' => 'Analytics', 'icon' => 'bx-line-chart'],
 ] : [
     ['route' => '/student/dashboard', 'label' => 'Dashboards', 'icon' => 'bx-home'],
     ['route' => '/student/rooms', 'label' => 'Rooms', 'icon' => 'bx-buildings'],
     ['route' => '/student/profile', 'label' => 'Profile', 'icon' => 'bx-user'],
     ['route' => '/student/visitors', 'label' => 'Visitors', 'icon' => 'bx-group'],
-    ['route' => '/student/complaints', 'label' => 'Complaints', 'icon' => 'bx-error-circle'],
+    ['route' => '/student/complaints', 'label' => 'Complaints', 'icon' => 'bx-message-error'],
     ['route' => '/student/maintenance', 'label' => 'Maintenance', 'icon' => 'bx-wrench'],
     ['route' => '/student/billing', 'label' => 'Billings', 'icon' => 'bx-credit-card'],
     ['route' => '/student/announcements', 'label' => 'Announcements', 'icon' => 'bx-file'],

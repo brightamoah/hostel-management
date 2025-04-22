@@ -39,9 +39,7 @@ $rooms = $conn->query("SELECT room_id, room_number, building FROM rooms ORDER BY
 ?>
 
 <!DOCTYPE html>
-<html
-    lang="en"
-    class="layout-navbar-sticky layout-menu-fixed layout-compact"
+<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact"
     dir="ltr"
     data-skin="default"
     data-assets-path="../../assets/"
@@ -94,7 +92,7 @@ $rooms = $conn->query("SELECT room_id, room_number, building FROM rooms ORDER BY
         .timeline-indicator {
             box-shadow: none !important;
             border: none !important;
-          
+
         }
 
         .timeline-indicator i {

@@ -37,16 +37,34 @@ class RoomController
             $floor = $_POST['floor'] ?? 0;
             $room_type = $_POST['room_type'] ?? '';
             $capacity = $_POST['capacity'] ?? 0;
-            $features = $_POST['features'] ?? '';
-            $amount = $_POST['amount'] ?? 0.00; // New field for amount
+            $features = $_POST['features'] ?? ''; // Ensure features is captured
+            $amount = $_POST['amount'] ?? 0.00;
             $status = $_POST['status'] ?? 'Vacant';
 
-            $result = $this->roomModel->addRoom($room_number, $building, $floor, $room_type, $capacity, $features, $amount, $status);
-            header('Content-Type: application/json');
-            if ($result) {
-                echo json_encode(['success' => true, 'message' => 'Room added successfully']);
-            } else {
-                echo json_encode(['success' => false, 'error' => 'Failed to add room']);
+            // Debug: Log received data
+            error_log("Add Room Data: " . json_encode([
+                'room_number' => $room_number,
+                'building' => $building,
+                'floor' => $floor,
+                'room_type' => $room_type,
+                'capacity' => $capacity,
+                'features' => $features,
+                'amount' => $amount,
+                'status' => $status
+            ]));
+
+            try {
+                $result = $this->roomModel->addRoom($room_number, $building, $floor, $room_type, $capacity, $features, $amount, $status);
+                header('Content-Type: application/json');
+                if ($result) {
+                    echo json_encode(['success' => true, 'message' => 'Room added successfully']);
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'Failed to add room']);
+                }
+            } catch (Exception $e) {
+                error_log("Add Room Error: " . $e->getMessage());
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => 'Failed to add room: ' . $e->getMessage()]);
             }
             exit();
         } else {
@@ -66,16 +84,43 @@ class RoomController
             $floor = $_POST['floor'] ?? 0;
             $room_type = $_POST['room_type'] ?? '';
             $capacity = $_POST['capacity'] ?? 0;
+            $current_occupancy = $_POST['current_occupancy'] ?? null; // Check if provided in form
             $features = $_POST['features'] ?? '';
-            $amount = $_POST['amount'] ?? 0.00; // New field for amount
+            $amount = $_POST['amount'] ?? 0.00;
             $status = $_POST['status'] ?? 'Vacant';
 
-            $result = $this->roomModel->updateRoom($room_id, $room_number, $building, $floor, $room_type, $capacity, $features, $amount, $status);
-            header('Content-Type: application/json');
-            if ($result) {
-                echo json_encode(['success' => true, 'message' => 'Room updated successfully']);
-            } else {
-                echo json_encode(['success' => false, 'error' => 'Failed to update room']);
+            // If current_occupancy is not provided, fetch it from the database
+            if ($current_occupancy === null) {
+                $room = $this->roomModel->getRoomById($room_id);
+                $current_occupancy = $room['current_occupancy'] ?? 0;
+            }
+
+            // Debug: Log received data
+            error_log("Update Room Data: " . json_encode([
+                'room_id' => $room_id,
+                'room_number' => $room_number,
+                'building' => $building,
+                'floor' => $floor,
+                'room_type' => $room_type,
+                'capacity' => $capacity,
+                'current_occupancy' => $current_occupancy,
+                'features' => $features,
+                'amount' => $amount,
+                'status' => $status
+            ]));
+
+            try {
+                $result = $this->roomModel->updateRoom($room_id, $room_number, $building, $floor, $room_type, $capacity, $current_occupancy, $features, $amount, $status);
+                header('Content-Type: application/json');
+                if ($result) {
+                    echo json_encode(['success' => true, 'message' => 'Room updated successfully']);
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'Failed to update room']);
+                }
+            } catch (Exception $e) {
+                error_log("Update Room Error: " . $e->getMessage());
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => 'Failed to update room: ' . $e->getMessage()]);
             }
             exit();
         } else {
@@ -106,13 +151,12 @@ class RoomController
     }
 
     // Book a room (student)
-    // Book a room (student)
     public function bookRoom($room_id)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_csrf_valid()) {
-            $student_id = $_SESSION['user']['user_id'] ?? null;
-            $start_date = $_POST['start_date'] ?? date('Y-m-d'); // Default to today
-            $end_date = $_POST['end_date'] ?? null; // Allow null for open-ended bookings
+            $student_id = $_SESSION['user']['student_id'] ?? null;
+            $start_date = $_POST['start_date'] ?? date('Y-m-d');
+            $end_date = $_POST['end_date'] ?? null;
 
             if (!$student_id) {
                 header('Content-Type: application/json');

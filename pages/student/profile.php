@@ -18,14 +18,7 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
 ?>
 
 <!doctype html>
-<html
-    lang="en"
-    class="layout-navbar-sticky layout-menu-fixed layout-compact"
-    dir="ltr"
-    data-skin="default"
-    data-assets-path="../../assets/"
-    data-template="vertical-menu-template"
-    data-bs-theme="light">
+<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
@@ -543,7 +536,7 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
                                 name="email"
                                 class="form-control"
                                 value="<?= htmlspecialchars($student_data['email']); ?>"
-                                required />
+                                readonly />
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="form-label" for="modalEditUserPhone">Phone Number</label>

@@ -34,9 +34,4 @@ class AnnouncementController
     }
 }
 
-$controller = new AnnouncementController();
-// $data = $controller->getAnnouncements();
-header('Content-Type: application/json');
-$data = $controller->getAnnouncements();
-$_SESSION['totalAnnouncements'] = count($data);
-echo json_encode($data);
+

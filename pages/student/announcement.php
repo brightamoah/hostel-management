@@ -7,14 +7,7 @@
 
 <!doctype html>
 
-<html
-    lang="en"
-    class="layout-navbar-sticky layout-menu-fixed layout-compact"
-    dir="ltr"
-    data-skin="default"
-    data-assets-path="../../assets/"
-    data-template="vertical-menu-template"
-    data-bs-theme="light">
+<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
@@ -195,7 +188,7 @@
     $(document).ready(function() {
         // Fetch announcements from the API
         $.ajax({
-            url: '/announcements',
+            url: '/student/announcements-data',
             method: 'GET',
             dataType: 'json',
             success: function(data) {

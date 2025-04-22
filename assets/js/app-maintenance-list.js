@@ -7,7 +7,7 @@
 
    if (dt_maintenance_table) {
       const dt = new DataTable(dt_maintenance_table, {
-         ajax: "/maintenance-data",
+         ajax: "/student/maintenance-data",
          layout: {
             topStart: {
                rowClass: "row mx-3 my-0 justify-content-between",
@@ -194,7 +194,7 @@
                const requestId = $(this).data("request-id");
 
                $.ajax({
-                  url: `/maintenance/${requestId}`,
+                  url: `/student/maintenance/${requestId}`,
                   method: "GET",
                   success: function (data) {
                      // Populate modal fields
@@ -243,7 +243,7 @@
 
                      // Mock responses (implement actual response fetching in production)
                      $.ajax({
-                        url: `/maintenance/${requestId}/response`,
+                        url: `/student/maintenance/${requestId}/response`,
                         method: "GET",
                         success: function (responseData) {
                            const responses = responseData.data || [];

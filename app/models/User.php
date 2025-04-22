@@ -62,7 +62,7 @@ class User
             return ['error' => 'Email not verified'];
         }
 
-        $query = "SELECT user_id, name, email, password, role, is_email_verified FROM {$this->table} WHERE email = ? LIMIT 1";
+        $query = "SELECT user_id, name, email, password, role, is_email_verified, DATE_FORMAT(last_login, '%d-%m-%Y %H:%i:%s') AS last_login FROM {$this->table} WHERE email = ? LIMIT 1";
         $stmt = $this->connection->prepare($query);
         if (!$stmt) return false;
 
@@ -305,6 +305,50 @@ class User
         }
 
         return $success;
+    }
+
+
+
+    // User Creation for Admin Panel
+    public function adminCreateUser($name,$email,$password,$role,){
+        if (!in_array($role, ['Student', 'Admin'])) {
+            throw new Exception("Invalid role specified for admin creation.");
+        }
+
+        if (empty($name) || empty($email) || empty($password)) {
+            throw new Exception("Admin Creation: Name, email, and password cannot be empty.");
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception("Admin Creation: Invalid email format.");
+        }
+
+        $query_user = "INSERT INTO {$this->table} (name, email, password, role, is_email_verified) VALUES (?, ?, ?, ?, 0)";
+
+        $stmt_user = $this->connection->prepare($query_user);
+
+        if (!$stmt_user) {
+            throw new Exception("Admin Creation: Failed to prepare users statement: {$this->connection->error}");
+        }
+
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        $stmt_user->bind_param("ssss", $name, $email, $hashed_password, $role);
+
+        if (!$stmt_user->execute()) {
+            // Check for duplicate email
+            if ($this->connection->errno == 1062) {
+                $stmt_user->close();
+                throw new Exception("Admin Creation: Email address already exists.");
+            }
+            $error = $stmt_user->error;
+            $stmt_user->close();
+            throw new Exception("Admin Creation: Failed to insert into users: {$error}");
+        }
+
+        $user_id = $this->connection->insert_id;
+        $stmt_user->close();
+
+        return $user_id; // Return user ID
     }
 
     public function __destruct()

@@ -23,3 +23,4 @@ $pending_balance = $student->getPendingBalance($user_id);
 $open_requests = $student->getOpenMaintenanceRequests($user_id);
 $total_visitors = $visitor->getVisitorCountByStudent($_SESSION['user']['student_id'] ?? 0);
 $payment_status = $student->getPaymentStatusSummary($user_id);
+

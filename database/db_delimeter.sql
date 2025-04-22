@@ -4,12 +4,14 @@ CREATE TRIGGER update_room_status
 BEFORE UPDATE ON rooms
 FOR EACH ROW
 BEGIN
-    IF NEW.current_occupancy = NEW.capacity THEN
-        SET NEW.status = 'Fully Occupied';
-    ELSEIF NEW.current_occupancy > 0 THEN
-        SET NEW.status = 'Partially Occupied';
-    ELSEIF NEW.current_occupancy = 0 THEN
-        SET NEW.status = 'Vacant';
+    IF NEW.status NOT IN ('Under Maintenance', 'Reserved') THEN
+        IF NEW.current_occupancy >= NEW.capacity THEN
+            SET NEW.status = 'Fully Occupied';
+        ELSEIF NEW.current_occupancy > 0 THEN
+            SET NEW.status = 'Partially Occupied';
+        ELSE
+            SET NEW.status = 'Vacant';
+        END IF;
     END IF;
 END$$
 
@@ -113,3 +115,28 @@ BEGIN
 END$$
 
 DELIMITER;
+
+-- Drop the trigger first if it already exists to avoid errors on re-creation
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS after_allocation_insert_activate_student;
+
+DELIMITER;
+
+DELIMITER $$
+
+CREATE TRIGGER after_allocation_insert_activate_student AFTER
+INSERT
+  ON allocations FOR EACH ROW BEGIN IF NEW.status = 'Active' THEN
+UPDATE students
+SET
+  resident_status = 'Active'
+WHERE
+  student_id = NEW.student_id
+  AND resident_status = 'Inactive';
+
+END IF;
+
+END
+
+$$ DELIMITER;

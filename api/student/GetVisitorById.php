@@ -4,4 +4,3 @@ header('Content-Type: application/json');
 
 $visitor = new VisitorController();
  $visitor->view($id);
-

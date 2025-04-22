@@ -35,7 +35,7 @@ function sendVerificationEmail($email, $name, $code)
         $mail->Password = 'fnuzctkvhqqdafjk';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
         $mail->Port = 465;
-        $mail->setFrom('kingshostelmgt@gmail.com', 'Kings Hostel Management');
+        $mail->setFrom('no-reply@kingshostelmgt.gmail.com', 'Kings Hostel Management');
         $mail->addAddress($email, $name);
 
 

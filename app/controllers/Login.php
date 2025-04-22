@@ -84,6 +84,7 @@ class Login
                             'name' => $user['name'],
                             'email' => $user['email'],
                             'role' => $user['role'],
+                            "last_login" => $user['last_login'],
                             'gender' => $student['gender'],
                             'date_of_birth' => $student['date_of_birth'],
                             'phone_number' => $student['phone_number'],
@@ -99,8 +100,37 @@ class Login
                     } else {
                         error_log("Failed to prepare student query: {$this->user->getConnection()->error}");
                     }
+                } elseif ($user['role'] === 'Admin') {
+                    $admin_query = "SELECT * FROM admins WHERE user_id = ?";
+                    $stmt = $this->user->getConnection()->prepare($admin_query);
+                    if ($stmt) {
+                        $stmt->bind_param("i", $user['user_id']);
+                        $stmt->execute();
+                        $admin = $stmt->get_result()->fetch_assoc();
+                        $stmt->close();
+
+                        $_SESSION['user'] = [
+                            'user_id' => $user['user_id'],
+                            'admin_id' => $admin['admin_id'],
+                            'name' => $user['name'],
+                            'email' => $user['email'],
+                            'role' => $user['role'],
+                            'last_login' => $user['last_login'],
+                            'department' => $admin['department'],
+                            'access_level' => $admin['access_level'],
+                            'is_email_verified' => $user['is_email_verified'],
+                        ];
+                    } else {
+                        error_log("Failed to prepare admin query: {$this->user->getConnection()->error}");
+                    }
                 } else {
-                    $_SESSION['user'] = $user;
+                    $_SESSION['user'] = [
+                        'user_id' => $user['user_id'],
+                        'name' => $user['name'],
+                        'email' => $user['email'],
+                        'role' => $user['role'],
+                        'last_login' => $user['last_login']
+                    ];
                 }
 
                 if ($remember_me) {

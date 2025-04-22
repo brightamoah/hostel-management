@@ -1,8 +1,9 @@
 -- Create a database named 'hostel_management'
-CREATE DATABASE hostel_management;
+CREATE DATABASE IF NOT EXISTS hostel_management CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE hostel_management;
 
+-- Table structure for table `users`
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -11,11 +12,14 @@ CREATE TABLE users (
     role ENUM('Student', 'Admin') NOT NULL DEFAULT 'Student',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_email_verified TINYINT(1) DEFAULT 0,
-    last_login TIMESTAMP NULL
-);
+    last_login TIMESTAMP NULL DEFAULT NULL
+) ENGINE = InnoDB;
 
+-- Indexes for `users`
 CREATE INDEX idx_role ON users (role);
+CREATE INDEX idx_email ON users (email);
 
+-- Table structure for table `students`
 CREATE TABLE students (
     student_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL UNIQUE,
@@ -23,24 +27,28 @@ CREATE TABLE students (
     last_name VARCHAR(50) NOT NULL,
     gender ENUM('Male', 'Female') NOT NULL,
     date_of_birth DATE NOT NULL,
-    phone_number VARCHAR(15) NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
     address VARCHAR(255) NOT NULL,
     emergency_contact_name VARCHAR(100) NOT NULL,
-    emergency_contact_number VARCHAR(15) NOT NULL,
+    emergency_contact_number VARCHAR(20) NOT NULL,
     health_condition TEXT DEFAULT NULL,
     enrollment_date DATE NOT NULL,
     resident_status ENUM(
         'Active',
         'Inactive',
-        'Suspended'
+        'Suspended',
+        'Graduated',
+        'Withdrawn'
     ) DEFAULT 'Inactive',
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-);
+) ENGINE = InnoDB;
 
-ALTER TABLE students
-ADD disciplinary_record_id INT NULL,
-ADD FOREIGN KEY (disciplinary_record_id) REFERENCES disciplinary_records (record_id) ON DELETE SET NULL;
+-- Indexes for `students`
+CREATE INDEX idx_student_user_id ON students (user_id);
+CREATE INDEX idx_student_resident_status ON students (resident_status);
+CREATE INDEX idx_student_last_name ON students (last_name);
 
+-- Table structure for table `admins`
 CREATE TABLE admins (
     admin_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL UNIQUE,
@@ -49,11 +57,18 @@ CREATE TABLE admins (
     department VARCHAR(100) NOT NULL,
     access_level ENUM(
         'Super Admin',
-        'Regular Admin'
+        'Regular Admin',
+        'Support Staff'
     ) NOT NULL DEFAULT 'Regular Admin',
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-);
+) ENGINE = InnoDB;
 
+-- Indexes for `admins`
+CREATE INDEX idx_admin_user_id ON admins (user_id);
+
+CREATE INDEX idx_admin_access_level ON admins (access_level);
+
+-- Table structure for table `rooms`
 CREATE TABLE rooms (
     room_id INT AUTO_INCREMENT PRIMARY KEY,
     room_number VARCHAR(50) NOT NULL,
@@ -73,7 +88,8 @@ CREATE TABLE rooms (
         'Fully Occupied',
         'Partially Occupied',
         'Vacant',
-        'Under Maintenance'
+        'Under Maintenance',
+        'Reserved'
     ) NOT NULL DEFAULT 'Vacant',
     CONSTRAINT chk_capacity CHECK (capacity > 0),
     CONSTRAINT chk_occupancy CHECK (
@@ -81,7 +97,18 @@ CREATE TABLE rooms (
         AND current_occupancy <= capacity
     ),
     CONSTRAINT unique_room UNIQUE (building, room_number)
-);
+) ENGINE = InnoDB;
+
+-- Indexes for `rooms`
+CREATE INDEX idx_building ON rooms (building);
+
+CREATE INDEX idx_floor ON rooms (floor);
+
+CREATE INDEX idx_room_type ON rooms (room_type);
+
+CREATE INDEX idx_room_status ON rooms (status);
+
+CREATE INDEX idx_room_number ON rooms (room_number);
 
 -- ALTER TABLE rooms
 -- ADD COLUMN amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00 AFTER features;
@@ -116,67 +143,67 @@ CREATE TABLE rooms (
 -- WHERE
 --     room_type = 'Quad';
 
+-- Trigger for `rooms`
 DELIMITER $$
 
 CREATE TRIGGER update_room_status
 BEFORE UPDATE ON rooms
 FOR EACH ROW
 BEGIN
-    IF NEW.current_occupancy = NEW.capacity THEN
-        SET NEW.status = 'Fully Occupied';
-    ELSEIF NEW.current_occupancy > 0 THEN
-        SET NEW.status = 'Partially Occupied';
-    ELSEIF NEW.current_occupancy = 0 THEN
-        SET NEW.status = 'Vacant';
+    IF NEW.status NOT IN ('Under Maintenance', 'Reserved') THEN
+        IF NEW.current_occupancy >= NEW.capacity THEN
+            SET NEW.status = 'Fully Occupied';
+        ELSEIF NEW.current_occupancy > 0 THEN
+            SET NEW.status = 'Partially Occupied';
+        ELSE
+            SET NEW.status = 'Vacant';
+        END IF;
     END IF;
-END
-DELIMITER $$
-$$
-$$
-$$
-$$
-$$
-$$
-$$
-$$
-$$
+END$$
 
-CREATE INDEX idx_building ON rooms (building);
+DELIMITER;
 
-CREATE INDEX idx_floor ON rooms (floor);
-
+-- Table structure for table `allocations`
 CREATE TABLE allocations (
     allocation_id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
     room_id INT NOT NULL,
     start_date DATE NOT NULL,
-    end_date DATE,
+    end_date DATE NULL DEFAULT NULL,
     status ENUM(
         'Active',
         'Expired',
         'Canceled',
         'Pending'
-    ) NOT NULL,
+    ) NOT NULL DEFAULT 'Pending',
+    allocated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,
     FOREIGN KEY (room_id) REFERENCES rooms (room_id) ON DELETE CASCADE,
-    CONSTRAINT chk_unique_allocation UNIQUE (student_id, room_id),
     CONSTRAINT chk_dates CHECK (
         end_date IS NULL
         OR end_date >= start_date
     ),
     CONSTRAINT unique_active_allocation UNIQUE (student_id, status)
-);
+) ENGINE = InnoDB;
+
+-- Indexes for `allocations`
+CREATE INDEX idx_allocation_student_id ON allocations (student_id);
+
+CREATE INDEX idx_allocation_room_id ON allocations (room_id);
+
+CREATE INDEX idx_allocation_status ON allocations (status);
 
 CREATE INDEX idx_allocation_dates ON allocations (start_date, end_date);
 
+-- Table structure for table `visitors`
 CREATE TABLE visitors (
     visitor_id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
     visitor_name VARCHAR(100) NOT NULL,
     relation VARCHAR(50) NOT NULL,
-    phone_number VARCHAR(15) NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
     visit_date DATE NOT NULL,
-    check_in_time TIMESTAMP NULL DEFAULT NULL, -- Explicitly set default to NULL
+    check_in_time TIMESTAMP NULL DEFAULT NULL,
     check_out_time TIMESTAMP NULL DEFAULT NULL,
     status ENUM(
         'Pending',
@@ -187,13 +214,23 @@ CREATE TABLE visitors (
         'Denied'
     ) NOT NULL DEFAULT 'Pending',
     purpose TEXT NOT NULL,
+    registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE
-);
+) ENGINE = InnoDB;
 
+-- Indexes for `visitors`
+CREATE INDEX idx_visitor_student_id ON visitors (student_id);
+CREATE INDEX idx_visitor_status ON visitors (status);
+CREATE INDEX idx_visitor_visit_date ON visitors (visit_date);
+CREATE INDEX idx_visitor_phone ON visitors (phone_number);
+
+
+
+-- Table structure for table `announcements`
 CREATE TABLE announcements (
     announcement_id INT AUTO_INCREMENT PRIMARY KEY,
     posted_by INT NOT NULL,
-    title VARCHAR(100) NOT NULL,
+    title VARCHAR(150) NOT NULL,
     content TEXT NOT NULL,
     date_posted TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     priority ENUM(
@@ -208,9 +245,20 @@ CREATE TABLE announcements (
         'All',
         'Specific'
     ) NOT NULL DEFAULT 'All',
+    is_read TINYINT(1) DEFAULT 0,
     FOREIGN KEY (posted_by) REFERENCES admins (admin_id) ON DELETE CASCADE
-);
+) ENGINE = InnoDB;
 
+-- Indexes for `announcements`
+CREATE INDEX idx_announcement_posted_by ON announcements (posted_by);
+CREATE INDEX idx_announcement_date_posted ON announcements (date_posted);
+CREATE INDEX idx_announcement_target_audience ON announcements (target_audience);
+CREATE INDEX idx_announcement_is_active ON announcements (is_read);
+
+
+
+
+-- Table structure for table `maintenance_requests`
 CREATE TABLE maintenance_requests (
     request_id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
@@ -221,6 +269,8 @@ CREATE TABLE maintenance_requests (
         'Furniture',
         'Appliance',
         'Structural',
+        'Pest Control',
+        'Internet/Wi-Fi',
         'Other'
     ) NOT NULL,
     description TEXT NOT NULL,
@@ -239,11 +289,23 @@ CREATE TABLE maintenance_requests (
         'Rejected'
     ) NOT NULL DEFAULT 'Pending',
     completion_date TIMESTAMP NULL,
+    assigned_to INT NULL DEFAULT NULL,
     FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,
     FOREIGN KEY (room_id) REFERENCES rooms (room_id) ON DELETE CASCADE
-);
+) ENGINE = InnoDB;
+
+-- Indexes for `maintenance_requests`
+CREATE INDEX idx_maint_student_id ON maintenance_requests (student_id);
+CREATE INDEX idx_maint_room_id ON maintenance_requests (room_id);
+CREATE INDEX idx_maint_status ON maintenance_requests (status);
+CREATE INDEX idx_maint_priority ON maintenance_requests (priority);
+CREATE INDEX idx_maint_issue_type ON maintenance_requests (issue_type);
+CREATE INDEX idx_maint_request_date ON maintenance_requests (request_date);
 
 
+
+
+-- Table structure for table `maintenance_responses`
 CREATE TABLE maintenance_responses (
     response_id INT AUTO_INCREMENT PRIMARY KEY,
     request_id INT NOT NULL,
@@ -253,11 +315,20 @@ CREATE TABLE maintenance_responses (
     FOREIGN KEY (request_id) REFERENCES maintenance_requests (request_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
     CONSTRAINT chk_response_text CHECK (TRIM(response_text) != '')
-);
+)ENGINE = InnoDB;
 
+
+-- Indexes for `maintenance_responses`
+CREATE INDEX idx_maint_resp_request_id ON maintenance_responses (request_id);
+CREATE INDEX idx_maint_resp_user_id ON maintenance_responses (user_id);
+
+
+
+-- Table structure for table `payments`
 CREATE TABLE payments (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
+    billing_id INT NULL DEFAULT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     transaction_reference VARCHAR(100) NOT NULL,
@@ -271,6 +342,7 @@ CREATE TABLE payments (
         'Hostel Fee',
         'Penalty',
         'Security Deposit',
+        'Maintenance Charge',
         'Other'
     ) NOT NULL,
     status ENUM(
@@ -280,16 +352,27 @@ CREATE TABLE payments (
         'Refunded'
     ) NOT NULL DEFAULT 'Pending',
     FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE
-);
+)ENGINE = InnoDB;
 
+
+-- Indexes for `payments`
+CREATE INDEX idx_payment_student_id ON payments (student_id);
+CREATE INDEX idx_payment_billing_id ON payments (billing_id);
+CREATE INDEX idx_payment_status ON payments (status);
+CREATE INDEX idx_payment_purpose ON payments (purpose);
+CREATE INDEX idx_payment_transaction_reference ON payments (transaction_reference);
+CREATE INDEX idx_payment_date ON payments (payment_date);
+
+
+-- Table structure for table `billing`
 CREATE TABLE billing (
     billing_id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
-    payment_id INT NULL,
+    allocation_id INT NULL DEFAULT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     description VARCHAR(255) NOT NULL,
     date_issued TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    date_due DATETIME NOT NULL,
+    date_due DATE NOT NULL,
     status ENUM(
         'Unpaid',
         'Fully Paid',
@@ -298,23 +381,40 @@ CREATE TABLE billing (
         'Cancelled'
     ) NOT NULL DEFAULT 'Unpaid',
     late_fee DECIMAL(10, 2) DEFAULT 0.00,
+    paid_amount DECIMAL(10, 2) DEFAULT 0.00,
     FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,
-    FOREIGN KEY (payment_id) REFERENCES payments (payment_id) ON DELETE CASCADE
+    FOREIGN KEY (allocation_id) REFERENCES allocations (allocation_id) ON DELETE SET NULL,
+    CONSTRAINT chk_paid_amount CHECK (paid_amount >= 0)
 );
 
+-- Add the foreign key constraint from payments to billing
+ALTER TABLE payments
+ADD CONSTRAINT fk_payment_billing FOREIGN KEY (billing_id) REFERENCES billing (billing_id) ON DELETE SET NULL;
+
+-- Indexes for `billing`
+CREATE INDEX idx_billing_student_id ON billing (student_id);
+CREATE INDEX idx_billing_allocation_id ON billing (allocation_id);
+CREATE INDEX idx_billing_status ON billing (status);
+CREATE INDEX idx_billing_date_due ON billing (date_due);
+
+
+-- Table structure for table `disciplinary_records`
 CREATE TABLE disciplinary_records (
     record_id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
+    reported_by INT NULL DEFAULT NULL,
     violation_type ENUM(
         'Noise Complaint',
         'Curfew Violation',
         'Substance Abuse',
         'Vandalism',
         'Theft',
+        'Unauthorized Guest',
         'Other'
     ) NOT NULL,
     description TEXT NOT NULL,
     date_reported TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    date_occurred DATETIME NULL DEFAULT NULL,
     severity ENUM('Minor', 'Moderate', 'Severe') NOT NULL,
     action_taken TEXT NOT NULL,
     status ENUM(
@@ -324,48 +424,32 @@ CREATE TABLE disciplinary_records (
         'Rejected'
     ) NOT NULL DEFAULT 'Pending',
     resolution_date TIMESTAMP NULL,
-    FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE
-)
+    FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,
+    FOREIGN KEY (reported_by) REFERENCES users (user_id) ON DELETE SET NULL
+)ENGINE = InnoDB;
 
-CREATE TABLE remember_tokens (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    token VARCHAR(255) NOT NULL,
-    expires_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-);
 
-CREATE TABLE verification_codes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    code VARCHAR(6) NOT NULL,
-    expires_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-);
-
-CREATE TABLE password_reset_tokens (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    token VARCHAR(64) NOT NULL,
-    expires_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    UNIQUE KEY (token)
-);
+-- Indexes for `disciplinary_records`
+CREATE INDEX idx_disc_student_id ON disciplinary_records (student_id);
+CREATE INDEX idx_disc_status ON disciplinary_records (status);
+CREATE INDEX idx_disc_violation_type ON disciplinary_records (violation_type);
+CREATE INDEX idx_disc_severity ON disciplinary_records (severity);
+CREATE INDEX idx_disc_date_reported ON disciplinary_records (date_reported);
 
 
 
--- Complaints table to store student-submitted complaints
+-- Table structure for table `complaints`
 CREATE TABLE complaints (
     complaint_id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
-    room_id INT NULL, -- Optional, for room-specific complaints
+    room_id INT NULL DEFAULT NULL, -- Optional, for room-specific complaints
     complaint_type ENUM(
         'Room Condition',
         'Staff Behavior',
         'Amenities',
         'Noise',
         'Security',
-        'Billing',
+        'Billing Issue',
         'Other'
     ) NOT NULL,
     description TEXT NOT NULL,
@@ -382,18 +466,60 @@ CREATE TABLE complaints (
         'Rejected'
     ) NOT NULL DEFAULT 'Pending',
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    resolved_at TIMESTAMP NULL,
+    resolved_at TIMESTAMP NULL DEFAULT NULL,
+    resolved_by INT NULL DEFAULT NULL,
     FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,
     FOREIGN KEY (room_id) REFERENCES rooms (room_id) ON DELETE SET NULL,
+    FOREIGN KEY (resolved_by) REFERENCES admins (admin_id) ON DELETE SET NULL,
     CONSTRAINT chk_description CHECK (TRIM(description) != '')
-);
+) ENGINE = InnoDB;
 
--- Indexes for performance
-CREATE INDEX idx_complaint_student ON complaints (student_id);
 
+-- Indexes for `complaints`
+CREATE INDEX idx_complaint_student_id ON complaints (student_id);
+CREATE INDEX idx_complaint_room_id ON complaints (room_id);
 CREATE INDEX idx_complaint_status ON complaints (status);
-
 CREATE INDEX idx_complaint_priority ON complaints (priority);
+CREATE INDEX idx_complaint_type ON complaints (complaint_type);
+CREATE INDEX idx_complaint_submitted_at ON complaints (submitted_at);
+
+
+
+
+-- Table structure for table `remember_tokens`
+CREATE TABLE remember_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+
+
+
+
+CREATE TABLE verification_codes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    code VARCHAR(6) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+CREATE TABLE password_reset_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(64) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    UNIQUE KEY (token)
+) ENGINE = InnoDB;
+
+
 
 -- Complaint Responses table to store admin actions and notes
 CREATE TABLE complaint_responses (
@@ -414,7 +540,9 @@ CREATE TABLE complaint_responses (
 );
 
 -- Index for complaint responses
-CREATE INDEX idx_response_complaint ON complaint_responses (complaint_id);
+CREATE INDEX idx_compl_resp_complaint_id ON complaint_responses (complaint_id);
+CREATE INDEX idx_compl_resp_user_id ON complaint_responses (admin_id);
+
 
 
 
@@ -728,6 +856,30 @@ VALUES (
         100.00,
         'Vacant'
     );
+
+    UPDATE rooms
+SET
+    amount = 5000.00
+WHERE
+    room_type = 'Single';
+
+       UPDATE rooms
+SET
+    amount = 2500.00
+WHERE
+    room_type = 'Triple';
+
+       UPDATE rooms
+SET
+    amount = 3500.00
+WHERE
+    room_type = 'Double';
+
+       UPDATE rooms
+SET
+    amount = 1000.00
+WHERE
+    room_type = 'Quad';
 
 SELECT * FROM rooms;
 
@@ -1896,27 +2048,26 @@ VALUES (
     (
         'Holiday Visiting Hours',
         'The visiting hours for holidays are being adjusted from 8 AM - 6 PM to 7AM - 9PM. Please inform your visitors accordingly.',
-        3,
+        1,
         'Medium',
         'Students'
     ),
     (
         'New Room Availability',
         'We have added a new room in Hostel B on the 3rd floor. The room has a capacity of 2 and is available for students to use on weekdays from 10th April 2025.',
-        3,
+        1,
         'Low',
         'Students'
     ),
     (
         'Fire Drill',
         'A mandatory fire drill will take place on November 15th at 3pm. All residents must participate.',
-        2,
+        1,
         'urgent',
         'students'
     );
 
 SELECT * FROM announcements;
-
 
 -- Insert new maintenance requests
 INSERT INTO
@@ -2016,9 +2167,7 @@ INSERT INTO
         request_date,
         completion_date
     )
-VALUES
-
-    (
+VALUES (
         1,
         1,
         'Structural',
@@ -2038,7 +2187,6 @@ VALUES
         '2025-04-16 14:00:00',
         NULL
     ),
-   
     (
         2,
         5,
@@ -2059,7 +2207,6 @@ VALUES
         '2025-04-17 10:00:00',
         NULL
     ),
-    
     (
         2,
         6,
@@ -2091,7 +2238,6 @@ VALUES
         '2025-04-09 10:00:00'
     );
 
-
 -- Insert maintenance responses
 INSERT INTO
     maintenance_responses (
@@ -2107,62 +2253,61 @@ VALUES (
         '2025-04-06 09:00:00'
     ),
     (
-        16,
+        2,
         3,
         'Thanks, when will the electrician arrive?',
         '2025-04-06 12:00:00'
     ),
     (
-        28,
+        5,
         2,
         'Hinge replaced; wardrobe fully functional.',
         '2025-03-21 14:30:00'
     ),
     (
-        29,
+        6,
         1,
         'Rejected: Construction noise is outside hostel control.',
         '2025-04-10 10:00:00'
     ),
     (
-        15,
+        8,
         2,
         'Technician scheduled to check AC on April 18.',
         '2025-04-16 08:00:00'
     ),
     (
-        16,
+        3,
         1,
         'Structural engineer assigned to assess the crack.',
         '2025-04-13 10:00:00'
     ),
     (
-        17,
+        10,
         1,
         'Plumber dispatched to fix the showerhead.',
         '2025-04-15 09:00:00'
     ),
     (
-        29,
+        12,
         2,
         'Please confirm the repair time.',
         '2025-04-15 11:00:00'
     ),
     (
-        15,
+        13,
         1,
         'AC repaired and tested.',
         '2025-04-11 15:00:00'
     ),
     (
-        30,
+        9,
         2,
         'Rejected: Tiles deemed safe; no immediate risk.',
         '2025-04-09 10:00:00'
     );
 
-
-    -- Insert sample complaints
+-- Insert sample complaints
 INSERT INTO
     complaints (
         student_id,
@@ -2636,14 +2781,13 @@ VALUES (
         '2025-04-16 08:00:00'
     );
 
-    UPDATE complaints
+UPDATE complaints
 SET
     resolved_at = DATE_ADD(submitted_at, INTERVAL 2 DAY)
 WHERE
     status IN ('Resolved', 'Rejected');
 
-
-    INSERT INTO
+INSERT INTO
     complaint_responses (
         complaint_id,
         admin_id,
@@ -3058,30 +3202,84 @@ WHERE
     a.posted_by = 1;
 
 -- Ensure proper order of dropping tables to avoid foreign key constraint errors
-DROP TABLE IF EXISTS remember_tokens;
+-- DROP TABLE IF EXISTS complaint_responses;
+-- DROP TABLE IF EXISTS complaints;
+-- DROP TABLE IF EXISTS remember_tokens;
+-- DROP TABLE IF EXISTS verification_codes;
+-- DROP TABLE IF EXISTS billing;
+-- DROP TABLE IF EXISTS payments;
+-- DROP TABLE IF EXISTS disciplinary_records;
+-- DROP TABLE IF EXISTS maintenance_requests;
+-- DROP TABLE IF EXISTS announcements;
+-- DROP TABLE IF EXISTS visitors;
+-- DROP TABLE IF EXISTS allocations;
+-- DROP TABLE IF EXISTS rooms;
+-- DROP TABLE IF EXISTS admins;
+-- DROP TABLE IF EXISTS students;
+-- DROP TABLE IF EXISTS users;
+-- DROP DATABASE IF EXISTS hostel_management;
 
-DROP TABLE IF EXISTS verification_codes;
 
-DROP TABLE IF EXISTS billing;
 
-DROP TABLE IF EXISTS payments;
+CREATE TABLE visitor_logs (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    visitor_id INT NOT NULL,
+    check_in_time DATETIME NOT NULL,
+    check_out_time DATETIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (visitor_id) REFERENCES visitors (visitor_id) ON DELETE CASCADE
+);
 
-DROP TABLE IF EXISTS disciplinary_records;
+INSERT INTO
+    visitor_logs (
+        visitor_id,
+        check_in_time,
+        check_out_time
+    )
+SELECT
+    visitor_id,
+    check_in_time,
+    check_out_time
+FROM visitors
+WHERE
+    check_in_time IS NOT NULL
+    OR check_out_time IS NOT NULL;
 
-DROP TABLE IF EXISTS maintenance_requests;
+ALTER TABLE visitors
+DROP COLUMN check_in_time,
+DROP COLUMN check_out_time;
 
-DROP TABLE IF EXISTS announcements;
-
-DROP TABLE IF EXISTS visitors;
-
-DROP TABLE IF EXISTS allocations;
-
-DROP TABLE IF EXISTS rooms;
-
-DROP TABLE IF EXISTS admins;
-
-DROP TABLE IF EXISTS students;
-
-DROP TABLE IF EXISTS users;
-
-DROP DATABASE IF EXISTS hostel_management;
+SELECT
+    v.visitor_id,
+    v.visitor_name,
+    v.relation,
+    v.phone_number,
+    v.visit_date,
+    v.purpose,
+    v.status,
+    vl.check_in_time,
+    vl.check_out_time,
+    CONCAT(
+        s.first_name,
+        ' ',
+        s.last_name
+    ) AS student_name,
+    r.building,
+    r.room_number
+FROM
+    visitors v
+    LEFT JOIN visitor_logs vl ON v.visitor_id = vl.visitor_id
+    JOIN students s ON v.student_id = s.student_id
+    LEFT JOIN allocations a ON s.student_id = a.student_id
+    AND a.status = 'Active'
+    LEFT JOIN rooms r ON a.room_id = r.room_id
+WHERE
+    v.status IN (
+        'Pending',
+        'Approved',
+        'Checked-In',
+        'Checked-Out',
+        'Denied',
+        'Cancelled'
+    )
+ORDER BY v.visit_date ASC;

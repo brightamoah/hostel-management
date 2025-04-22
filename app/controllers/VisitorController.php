@@ -71,24 +71,32 @@ class VisitorController
         exit();
     }
 
-
     // Edit visitor details (student action)
     public function edit($id)
     {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $visitor_id = $id;
-            $visitor_name = $_POST['visitor_name'];
-            $relation = $_POST['relation'];
-            $phone_number = $_POST['phone_number'];
-            $visit_date = $_POST['visit_date'];
-            $purpose = $_POST['purpose'];
+            $visitor_name = $_POST['visitor_name'] ?? '';
+            $relation = $_POST['relation'] ?? '';
+            $phone_number = $_POST['phone_number'] ?? '';
+            $visit_date = $_POST['visit_date'] ?? '';
+            $purpose = $_POST['purpose'] ?? '';
+
+            if (empty($visitor_name) || empty($relation) || empty($phone_number) || empty($visit_date) || empty($purpose)) {
+                echo json_encode(['success' => false, 'message' => 'All fields are required']);
+                exit();
+            }
 
             if ($this->visitorModel->update($visitor_id, $visitor_name, $relation, $phone_number, $visit_date, $purpose)) {
                 echo json_encode(['success' => true, 'message' => 'Visitor updated successfully']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to update visitor']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
         }
+        exit();
     }
 
     // Cancel visitor request (student action)
@@ -138,55 +146,103 @@ class VisitorController
     }
 
     // Approve visitor request (admin action)
-    public function approve()
+    public function approve($id)
     {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $visitor_id = $_POST['visitor_id'];
+            if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: Admin access required']);
+                exit();
+            }
+            $visitor_id = $id ?? '';
+            if (empty($visitor_id)) {
+                echo json_encode(['success' => false, 'message' => 'Visitor ID is required']);
+                exit();
+            }
             if ($this->visitorModel->approve($visitor_id)) {
                 echo json_encode(['success' => true, 'message' => 'Visitor request approved']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to approve visitor request']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
         }
+        exit();
     }
 
     // Deny visitor request (admin action)
-    public function deny()
+    public function deny($id)
     {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $visitor_id = $_POST['visitor_id'];
+            if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: Admin access required']);
+                exit();
+            }
+            $visitor_id = $id ?? '';
+            if (empty($visitor_id)) {
+                echo json_encode(['success' => false, 'message' => 'Visitor ID is required']);
+                exit();
+            }
             if ($this->visitorModel->deny($visitor_id)) {
                 echo json_encode(['success' => true, 'message' => 'Visitor request denied']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to deny visitor request']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
         }
+        exit();
     }
 
     // Check-in visitor (admin action)
-    public function checkIn()
+    public function checkIn($id)
     {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $visitor_id = $_POST['visitor_id'];
+            if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: Admin access required']);
+                exit();
+            }
+            $visitor_id = $id ?? '';
+            if (empty($visitor_id)) {
+                echo json_encode(['success' => false, 'message' => 'Visitor ID is required']);
+                exit();
+            }
             if ($this->visitorModel->checkIn($visitor_id)) {
                 echo json_encode(['success' => true, 'message' => 'Visitor checked in']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to check in visitor']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
         }
+        exit();
     }
 
     // Check-out visitor (admin action)
-    public function checkOut()
+    public function checkOut($id)
     {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $visitor_id = $_POST['visitor_id'];
+            if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: Admin access required']);
+                exit();
+            }
+            $visitor_id = $id ?? '';
+            if (empty($visitor_id)) {
+                echo json_encode(['success' => false, 'message' => 'Visitor ID is required']);
+                exit();
+            }
             if ($this->visitorModel->checkOut($visitor_id)) {
                 echo json_encode(['success' => true, 'message' => 'Visitor checked out']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to check out visitor']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
         }
+        exit();
     }
 
     // Delete visitor (admin/student action)
@@ -200,6 +256,37 @@ class VisitorController
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to delete visitor']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+        exit();
+    }
+
+    // Get all visitors for admin DataTable
+    public function getAllVisitors()
+    {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: Admin access required']);
+                exit();
+            }
+            $visitors = $this->visitorModel->getAllVisitors();
+            echo json_encode(['data' => $visitors]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+        exit();
+    }
+
+    // Get visitor logs (admin/student action)
+    public function getVisitorLogs($id)
+    {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $visitor_id = $id;
+            $logs = $this->visitorModel->getVisitorLogs($visitor_id);
+            echo json_encode(['success' => true, 'data' => $logs]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
         }

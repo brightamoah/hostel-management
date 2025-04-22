@@ -24,7 +24,11 @@ class Database
             error_log($e->getMessage());
             die("Database connection failed. Please try again later.");
         }
-        return $this->connection;
+
+        $conn = $this->connection;
+        
+        return $conn;
+        
     }
 
     public function close()

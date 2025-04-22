@@ -10,7 +10,7 @@
     //         ?.getAttribute("content") || "";
 
       const dt = new DataTable(dt_complaints_table, {
-         ajax: "/complaint-data",
+         ajax: "/student/complaint-data",
          layout: {
             topStart: {
                rowClass: "row mx-3 my-0 justify-content-between",
@@ -193,7 +193,7 @@
                const complaintId = $(this).data("complaint-id");
 
                $.ajax({
-                  url: `/complaint/${complaintId}`,
+                  url: `/student/complaint/${complaintId}`,
                   method: "GET",
                   success: function (data) {
                      // Populate modal fields
@@ -244,7 +244,7 @@
 
                      // Fetch responses
                      $.ajax({
-                        url: `/complaint/${complaintId}/response`,
+                        url: `/student/complaint/${complaintId}/response`,
                         method: "GET",
                         success: function (responseData) {
                            const responses = responseData.data || [];
@@ -314,7 +314,7 @@
                $.ajax({
                   url: "/complaint/submit",
                   method: "POST",
-                //   data: $(this).serialize() + "&csrf=" + csrfToken,
+                  //   data: $(this).serialize() + "&csrf=" + csrfToken,
                   data: $(this).serialize(),
                   success: function (response) {
                      if (response.success) {

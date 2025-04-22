@@ -5,7 +5,7 @@
 
    if (dt_visitor_table) {
       const dt = new DataTable(dt_visitor_table, {
-         ajax: "/visitors-data",
+         ajax: "/student/visitors-data",
          layout: {
             topStart: {
                rowClass: "row mx-3 my-0 justify-content-between",
@@ -387,7 +387,7 @@
                .getAttribute("data-id");
 
             // Fetch visitor details via AJAX
-            fetch(`/visitor/view/${visitorId}`, {
+            fetch(`/student/visitor/${visitorId}`, {
                method: "GET",
                headers: { "Content-Type": "application/json" },
             })
@@ -602,7 +602,7 @@
             const visitorId = e.target
                .closest(".edit-visitor")
                .getAttribute("data-id");
-            window.location.href = `/visitor/edit/${visitorId}`;
+            window.location.href = `/student/visitor/edit/${visitorId}`;
          }
       });
 

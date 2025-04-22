@@ -97,12 +97,24 @@ require_once "./app/controllers/Login.php";
                   <p class="mb-6 text-center">Please sign-in to your account and start the adventure</p>
 
                   <!-- Display the message -->
-                  <?php
-                  if (isset($_SESSION['message'])) {
-                     echo "<div class='text-center text-sm fw-bold alert alert-{$_SESSION['message_type']}' role='alert'>{$_SESSION['message']}</div>";
-                     unset($_SESSION['message'], $_SESSION['message_type']); // Clear the message after displaying
-                  }
-                  ?>
+                    <?php
+                    if (isset($_SESSION['message'])) {
+                      echo "<div id='flash-message' class='text-center text-sm fw-bold alert alert-{$_SESSION['message_type']}' role='alert'>{$_SESSION['message']}</div>";
+                      unset($_SESSION['message'], $_SESSION['message_type']); // Clear the message after displaying
+                    }
+                    ?>
+                    <script>
+                      document.addEventListener('DOMContentLoaded', function () {
+                        const flashMessage = document.getElementById('flash-message');
+                        if (flashMessage) {
+                           setTimeout(() => {
+                             flashMessage.style.transition = 'opacity 0.5s';
+                             flashMessage.style.opacity = '0';
+                             setTimeout(() => flashMessage.remove(), 500); // Remove after fade-out
+                           }, 6000); // 6 seconds
+                        }
+                      });
+                    </script>
 
                   <form id="formAuthentication" class="mb-6" action="login" method="post">
                      <?= set_csrf();  ?>

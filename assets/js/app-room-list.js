@@ -10,7 +10,7 @@
             ?.getAttribute("content") || "";
 
       const dt = new DataTable(dt_rooms_table, {
-         ajax: "/room-data",
+         ajax: "/student/rooms-data",
 
          layout: {
             topStart: {

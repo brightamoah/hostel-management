@@ -143,6 +143,24 @@
                         }
                         ?>
 
+                        <?php
+                        if (isset($_SESSION['message-signup'])) {
+                            echo "<div id='flash-message' class='text-center text-sm fw-bold alert alert-{$_SESSION['message_type_signup']}' role='alert'>{$_SESSION['message-signup']}</div>";
+                            unset($_SESSION['message-signup'], $_SESSION['message_type_signup']); // Clear the message after displaying
+                        }
+                        ?>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const flashMessage = document.getElementById('flash-message');
+                                if (flashMessage) {
+                                    setTimeout(() => {
+                                        flashMessage.style.transition = 'opacity 0.5s';
+                                        flashMessage.style.opacity = '0';
+                                        setTimeout(() => flashMessage.remove(), 500); // Remove after fade-out
+                                    }, 6000); // 6 seconds
+                                }
+                            });
+                        </script>
 
 
                         <div class="bs-stepper-content px-0">
@@ -277,7 +295,12 @@
                                                 <i class="icon-base bx bx-left-arrow-alt icon-sm ms-sm-n2 me-sm-2"></i>
                                                 <span class="align-middle d-sm-inline-block d-none">Previous</span>
                                             </button>
-                                            <input type="submit" value="Sign Up" class="btn btn-primary btn-next btn-submit">
+                                            <button type="submit" class="btn btn-primary btn-next btn-submit">
+                                                <span class="d-flex align-items-center">
+                                                    <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true" id="submitSpinner"></span>
+                                                    <span>Sign Up</span>
+                                                </span>
+                                            </button>
                                         </div>
                                     </div>
                                     <!--/ Credit Card Details -->
