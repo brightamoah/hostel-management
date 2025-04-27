@@ -161,7 +161,6 @@ $room = $student->getRoomAllocation($user_id);
                                                 <span class="avatar-initial rounded bg-label-info"><i class="bx bx-loader-circle icon-lg"></i></span>
                                             </div>
                                             <h4 class="mb-0"><?= $in_progress_requests ?></h4>
-                                            <?php echo $student_id ?>
                                         </div>
                                         <p class="mb-0">In-Progress</p>
                                     </div>
