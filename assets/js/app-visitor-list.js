@@ -3,9 +3,21 @@
 
    const dt_visitor_table = document.querySelector(".datatables-visitors");
 
+   // Retrieve CSRF token
+   const csrfToken =
+      document
+         .querySelector('meta[name="csrf-token"]')
+         ?.getAttribute("content") || "";
+
    if (dt_visitor_table) {
       const dt = new DataTable(dt_visitor_table, {
-         ajax: "/student/visitors-data",
+         ajax: {
+            url: "/student/visitors-data",
+            data: function (d) {
+               // Add date filter to AJAX request
+               d.dateFilter = $("#dateFilter").val();
+            },
+         },
          layout: {
             topStart: {
                rowClass: "row mx-3 my-0 justify-content-between",
@@ -13,12 +25,11 @@
                   {
                      pageLength: {
                         menu: [7, 10, 25, 50, 100],
-                        text: "Show_MENU_entries",
+                        text: "Show _MENU_ entries",
                      },
                   },
                ],
             },
-
             bottomStart: {
                rowClass: "row mx-3 justify-content-between",
                features: ["info"],
@@ -29,7 +40,6 @@
                },
             },
          },
-
          columns: [
             { data: null, defaultContent: "" },
             { data: "id", orderable: false },
@@ -166,7 +176,6 @@
             },
          ],
          order: [[4, "desc"]],
-
          buttons: [
             {
                extend: "collection",
@@ -177,32 +186,7 @@
                      extend: "print",
                      text: `<span class="d-flex align-items-center"><i class="icon-base bx bx-printer me-2"></i>Print</span>`,
                      className: "dropdown-item",
-                     exportOptions: {
-                        columns: [3, 4, 5, 6, 7],
-                        format: {
-                           body: function (inner, coldex, rowdex) {
-                              if (inner.length <= 0) return inner;
-                              const el = new DOMParser().parseFromString(
-                                 inner,
-                                 "text/html"
-                              ).body.childNodes;
-                              let result = "";
-                              el.forEach((item) => {
-                                 if (
-                                    item.classList &&
-                                    item.classList.contains("user-name")
-                                 ) {
-                                    result +=
-                                       item.lastChild.firstChild.textContent;
-                                 } else {
-                                    result +=
-                                       item.textContent || item.innerText || "";
-                                 }
-                              });
-                              return result;
-                           },
-                        },
-                     },
+                     exportOptions: { columns: [3, 4, 5, 6, 7] },
                      customize: function (win) {
                         win.document.body.style.color =
                            config.colors.headingColor;
@@ -221,135 +205,27 @@
                      extend: "csv",
                      text: `<span class="d-flex align-items-center"><i class="icon-base bx bx-file me-2"></i>Csv</span>`,
                      className: "dropdown-item",
-                     exportOptions: {
-                        columns: [3, 4, 5, 6, 7],
-                        format: {
-                           body: function (inner, coldex, rowdex) {
-                              if (inner.length <= 0) return inner;
-                              const el = new DOMParser().parseFromString(
-                                 inner,
-                                 "text/html"
-                              ).body.childNodes;
-                              let result = "";
-                              el.forEach((item) => {
-                                 if (
-                                    item.classList &&
-                                    item.classList.contains("user-name")
-                                 ) {
-                                    result +=
-                                       item.lastChild.firstChild.textContent;
-                                 } else {
-                                    result +=
-                                       item.textContent || item.innerText || "";
-                                 }
-                              });
-                              return result;
-                           },
-                        },
-                     },
+                     exportOptions: { columns: [3, 4, 5, 6, 7] },
                   },
                   {
                      extend: "excel",
                      text: `<span class="d-flex align-items-center"><i class="icon-base bx bxs-file-export me-2"></i>Excel</span>`,
                      className: "dropdown-item",
-                     exportOptions: {
-                        columns: [3, 4, 5, 6, 7],
-                        format: {
-                           body: function (inner, coldex, rowdex) {
-                              if (inner.length <= 0) return inner;
-                              const el = new DOMParser().parseFromString(
-                                 inner,
-                                 "text/html"
-                              ).body.childNodes;
-                              let result = "";
-                              el.forEach((item) => {
-                                 if (
-                                    item.classList &&
-                                    item.classList.contains("user-name")
-                                 ) {
-                                    result +=
-                                       item.lastChild.firstChild.textContent;
-                                 } else {
-                                    result +=
-                                       item.textContent || item.innerText || "";
-                                 }
-                              });
-                              return result;
-                           },
-                        },
-                     },
+                     exportOptions: { columns: [3, 4, 5, 6, 7] },
                   },
                   {
                      extend: "pdf",
                      text: `<span class="d-flex align-items-center"><i class="icon-base bx bxs-file-pdf me-2"></i>Pdf</span>`,
                      className: "dropdown-item",
-                     exportOptions: {
-                        columns: [3, 4, 5, 6, 7],
-                        format: {
-                           body: function (inner, coldex, rowdex) {
-                              if (inner.length <= 0) return inner;
-                              const el = new DOMParser().parseFromString(
-                                 inner,
-                                 "text/html"
-                              ).body.childNodes;
-                              let result = "";
-                              el.forEach((item) => {
-                                 if (
-                                    item.classList &&
-                                    item.classList.contains("user-name")
-                                 ) {
-                                    result +=
-                                       item.lastChild.firstChild.textContent;
-                                 } else {
-                                    result +=
-                                       item.textContent || item.innerText || "";
-                                 }
-                              });
-                              return result;
-                           },
-                        },
-                     },
+                     exportOptions: { columns: [3, 4, 5, 6, 7] },
                   },
                   {
                      extend: "copy",
                      text: `<i class="icon-base bx bx-copy me-1"></i>Copy`,
                      className: "dropdown-item",
-                     exportOptions: {
-                        columns: [3, 4, 5, 6, 7],
-                        format: {
-                           body: function (inner, coldex, rowdex) {
-                              if (inner.length <= 0) return inner;
-                              const el = new DOMParser().parseFromString(
-                                 inner,
-                                 "text/html"
-                              ).body.childNodes;
-                              let result = "";
-                              el.forEach((item) => {
-                                 if (
-                                    item.classList &&
-                                    item.classList.contains("user-name")
-                                 ) {
-                                    result +=
-                                       item.lastChild.firstChild.textContent;
-                                 } else {
-                                    result +=
-                                       item.textContent || item.innerText || "";
-                                 }
-                              });
-                              return result;
-                           },
-                        },
-                     },
+                     exportOptions: { columns: [3, 4, 5, 6, 7] },
                   },
                ],
-            },
-            {
-               text: '<i class="icon-base bx bx-plus icon-sm me-0 me-sm-2"></i><span class="d-none d-sm-inline-block">Add New User</span>',
-               className: "add-new btn btn-primary",
-               attr: {
-                  "data-bs-toggle": "offcanvas",
-                  "data-bs-target": "#offcanvasAddUser",
-               },
             },
          ],
          responsive: true,
@@ -375,7 +251,9 @@
                   .draw();
             });
 
-            $(".dt-buttons > .btn-group > button").removeClass("btn-secondary");
+            $("#dateFilter").on("change", function () {
+               dt.ajax.reload(); // Fixed syntax error
+            });
          },
       });
 
@@ -458,6 +336,7 @@
                            break;
                         case "Approved":
                            actionsDiv.innerHTML = `
+                                    <a href="javascript:;" class="btn btn-primary me-4 edit-visitor" data-id="${visitor.visitor_id}">Edit</a>
                                     <a href="javascript:;" class="btn btn-label-danger cancel-visitor" data-id="${visitor.visitor_id}">Cancel</a>
                                 `;
                            break;
@@ -500,6 +379,21 @@
             e.preventDefault();
             const formData = new FormData(this);
 
+            // Client-side validation for phone number
+            const phoneNumber = formData.get("phone_number");
+            if (!/^(\+233|0)\d{9}$/.test(phoneNumber)) {
+               Swal.fire({
+                  icon: "error",
+                  title: "Invalid Phone Number",
+                  text: "Phone number must be in +233XXXXXXXXX or 0XXXXXXXXX format",
+                  confirmButtonColor: "#3085d6",
+               });
+               return;
+            }
+
+            // Add CSRF token to form data
+            formData.append("csrf", csrfToken);
+
             fetch("/visitor/register", {
                method: "POST",
                body: formData,
@@ -515,8 +409,7 @@
                      }).then(() => {
                         $("#registerVisitorModal").modal("hide");
                         registerVisitorForm.reset();
-                        dt.ajax.reload(); // Refresh DataTable
-                        location.reload();
+                        dt.ajax.reload();
                      });
                   } else {
                      Swal.fire({
@@ -538,12 +431,84 @@
          });
       }
 
+      // Handle edit visitor form submission
+      const editVisitorForm = document.getElementById("editVisitorForm");
+      if (editVisitorForm) {
+         editVisitorForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const visitorId = formData.get("visitor_id");
+
+            // Client-side validation for phone number
+            const phoneNumber = formData.get("phone_number");
+            if (!/^(\+233|0)\d{9}$/.test(phoneNumber)) {
+               Swal.fire({
+                  icon: "error",
+                  title: "Invalid Phone Number",
+                  text: "Phone number must be in +233XXXXXXXXX or 0XXXXXXXXX format",
+                  confirmButtonColor: "#3085d6",
+               });
+               return;
+            }
+
+            // Validate visit date (today or future)
+            const visitDate = formData.get("visit_date");
+            const today = new Date().toISOString().split("T")[0];
+            if (visitDate < today) {
+               Swal.fire({
+                  icon: "error",
+                  title: "Invalid Visit Date",
+                  text: "Visit date must be today or in the future",
+                  confirmButtonColor: "#3085d6",
+               });
+               return;
+            }
+
+            // Add CSRF token to form data
+            formData.append("csrf", csrfToken);
+
+            fetch(`/visitor/edit/${visitorId}`, {
+               method: "POST",
+               body: formData,
+            })
+               .then((response) => response.json())
+               .then((data) => {
+                  if (data.success) {
+                     Swal.fire({
+                        icon: "success",
+                        title: "Success",
+                        text: data.message,
+                        confirmButtonColor: "#3085d6",
+                     }).then(() => {
+                        $("#editVisitorModal").modal("hide");
+                        editVisitorForm.reset();
+                        dt.ajax.reload();
+                        $("#visitorModal").modal("hide");
+                     });
+                  } else {
+                     Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: data.message || "Failed to update visitor",
+                        confirmButtonColor: "#3085d6",
+                     });
+                  }
+               })
+               .catch((error) => {
+                  Swal.fire({
+                     icon: "error",
+                     title: "Error",
+                     text: "Error: " + error.message,
+                     confirmButtonColor: "#3085d6",
+                  });
+               });
+         });
+      }
+
       // Use event delegation on the document for dynamically added buttons in the modal
       document.addEventListener("click", function (e) {
          // Cancel visitor action
          if (e.target.closest(".cancel-visitor")) {
-            console.log("Cancel visitor clicked");
-
             const visitorId = e.target
                .closest(".cancel-visitor")
                .getAttribute("data-id");
@@ -560,12 +525,15 @@
                   fetch(`/visitor/cancel/${visitorId}`, {
                      method: "POST",
                      headers: { "Content-Type": "application/json" },
-                     body: JSON.stringify({ visitor_id: visitorId }),
+                     body: JSON.stringify({
+                        visitor_id: visitorId,
+                        csrf: csrfToken,
+                     }),
                   })
                      .then((response) => response.json())
                      .then((data) => {
                         if (data.success) {
-                           dt.ajax.reload(); // Refresh DataTable
+                           dt.ajax.reload();
                            Swal.fire({
                               icon: "success",
                               title: "Cancelled",
@@ -602,7 +570,51 @@
             const visitorId = e.target
                .closest(".edit-visitor")
                .getAttribute("data-id");
-            window.location.href = `/student/visitor/edit/${visitorId}`;
+
+            // Fetch visitor details to populate edit form
+            fetch(`/student/visitor/${visitorId}`, {
+               method: "GET",
+               headers: { "Content-Type": "application/json" },
+            })
+               .then((response) => response.json())
+               .then((data) => {
+                  if (data.success) {
+                     const visitor = data.data;
+
+                     // Populate edit form fields
+                     document.getElementById("editVisitorId").value =
+                        visitor.visitor_id;
+                     document.getElementById("editVisitorName").value =
+                        visitor.visitor_name;
+                     document.getElementById("editRelation").value =
+                        visitor.relation;
+                     document.getElementById("editPhoneNumber").value =
+                        visitor.phone_number;
+                     document.getElementById("editVisitDate").value =
+                        visitor.visit_date;
+                     document.getElementById("editPurpose").value =
+                        visitor.purpose;
+
+                     // Show the edit modal and hide the view modal
+                     $("#visitorModal").modal("hide");
+                     $("#editVisitorModal").modal("show");
+                  } else {
+                     Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: data.message || "Failed to fetch visitor details",
+                        confirmButtonColor: "#3085d6",
+                     });
+                  }
+               })
+               .catch((error) => {
+                  Swal.fire({
+                     icon: "error",
+                     title: "Error",
+                     text: "Error: " + error.message,
+                     confirmButtonColor: "#3085d6",
+                  });
+               });
          }
       });
 
@@ -625,7 +637,10 @@
                   fetch(`/visitor/delete/${visitorId}`, {
                      method: "POST",
                      headers: { "Content-Type": "application/json" },
-                     body: JSON.stringify({ visitor_id: visitorId }),
+                     body: JSON.stringify({
+                        visitor_id: visitorId,
+                        csrf: csrfToken,
+                     }),
                   })
                      .then((response) => response.json())
                      .then((data) => {
@@ -637,7 +652,6 @@
                               text: "Visitor deleted successfully!",
                               confirmButtonColor: "#3085d6",
                            });
-                           // location.reload();
                            dt.ajax.reload();
                         } else {
                            Swal.fire({

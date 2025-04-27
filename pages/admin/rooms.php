@@ -152,12 +152,12 @@ require_once "./app/controllers/RoomController.php";
 
                         <!-- Rooms DataTable -->
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
+                            <!-- <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="card-title mb-0">All Rooms</h5>
                                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoomModal">
                                     <i class="bx bx-plus me-1"></i>Add New Room
                                 </button>
-                            </div>
+                            </div> -->
                             <div class="card-body">
                                 <!-- Filters -->
                                 <div class="row mb-4">

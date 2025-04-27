@@ -34,6 +34,144 @@
                   firstLast: false,
                },
             },
+            topEnd: {
+               rowClass: "row mx-3 my-0 justify-content-between",
+               features: [
+                  {
+                     search: {
+                        placeholder: "Search Room",
+                        text: "_INPUT_",
+                     },
+                  },
+                  {
+                     buttons: [
+                        {
+                           extend: "collection",
+                           className:
+                              "btn btn-label-secondary dropdown-toggle ms-4",
+                           text: '<span class="d-flex align-items-center gap-2"><i class="icon-base bx bx-export icon-sm"></i> <span class="d-none d-sm-inline-block">Export</span></span>',
+                           buttons: [
+                              {
+                                 extend: "csv",
+                                 text: '<span class="d-flex align-items-center"><i class="icon-base bx bx-file me-2"></i>Csv</span>',
+                                 className: "dropdown-item",
+                                 exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6, 7],
+                                    format: {
+                                       body: function (
+                                          data,
+                                          row,
+                                          column,
+                                          node
+                                       ) {
+                                          if (column === 4) {
+                                             // Capacity column (index 5 in table, 4 in export)
+                                             const full = dt.row(row).data();
+                                             const available =
+                                                full.capacity -
+                                                full.current_occupancy;
+                                             return `${available} / ${full.capacity}`;
+                                          }
+                                          if (column === 6) {
+                                             // Amount column (index 7 in table, 6 in export)
+                                             return `GH₵${Number(data).toFixed(
+                                                2
+                                             )}`;
+                                          }
+                                          return data;
+                                       },
+                                    },
+                                 },
+                              },
+                              {
+                                 extend: "excel",
+                                 text: '<span class="d-flex align-items-center"><i class="icon-base bx bxs-file-export me-2"></i>Excel</span>',
+                                 className: "dropdown-item",
+                                 exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6, 7],
+                                    format: {
+                                       body: function (
+                                          data,
+                                          row,
+                                          column,
+                                          node
+                                       ) {
+                                          if (column === 4) {
+                                             const full = dt.row(row).data();
+                                             const available =
+                                                full.capacity -
+                                                full.current_occupancy;
+                                             return `${available} / ${full.capacity}`;
+                                          }
+                                          if (column === 6) {
+                                             return `GH₵${Number(data).toFixed(
+                                                2
+                                             )}`;
+                                          }
+                                          return data;
+                                       },
+                                    },
+                                 },
+                              },
+                              {
+                                 extend: "pdf",
+                                 text: '<span class="d-flex align-items-center"><i class="icon-base bx bxs-file-pdf me-2"></i>Pdf</span>',
+                                 className: "dropdown-item",
+                                 exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6, 7],
+                                    format: {
+                                       body: function (
+                                          data,
+                                          row,
+                                          column,
+                                          node
+                                       ) {
+                                          if (column === 4) {
+                                             const full = dt.row(row).data();
+                                             const available =
+                                                full.capacity -
+                                                full.current_occupancy;
+                                             return `${available} / ${full.capacity}`;
+                                          }
+                                          if (column === 6) {
+                                             return `GH₵${Number(data).toFixed(
+                                                2
+                                             )}`;
+                                          }
+                                          return data;
+                                       },
+                                    },
+                                 },
+                                 customize: function (doc) {
+                                    doc.content[1].table.widths = [
+                                       "15%",
+                                       "15%",
+                                       "10%",
+                                       "15%",
+                                       "15%",
+                                       "15%",
+                                       "15%",
+                                    ];
+                                    doc.styles.tableHeader.fontSize = 10;
+                                    doc.styles.tableBodyOdd.fontSize = 9;
+                                    doc.styles.tableBodyEven.fontSize = 9;
+                                    doc.defaultStyle.alignment = "left";
+                                 },
+                              },
+                           ],
+                        },
+                        {
+                           text: '<i class="icon-base bx bx-plus icon-sm me-0 me-sm-2"></i><span class="d-none d-sm-inline-block">Add New Room</span>',
+                           className: "add-new btn bg-primary ms-4",
+                           attr: {
+                              "data-bs-toggle": "modal",
+                              "data-bs-target": "#addRoomModal",
+                           },
+                        },
+                     ],
+                  },
+               ],
+            },
          },
          columns: [
             { data: null, defaultContent: "" },
@@ -501,7 +639,7 @@
                                  timer: 2000,
                               }).then(() => {
                                  dt.ajax.reload();
-                                 location.reload();   
+                                 location.reload();
                               });
                            } else {
                               Swal.fire({

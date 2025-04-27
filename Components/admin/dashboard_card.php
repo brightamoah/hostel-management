@@ -46,10 +46,10 @@
                 <div class="col-sm-5 text-center">
                     <div class="card-body p-4">
                         <div class="position-relative">
-                            <div class="rounded-circle bg-white bg-opacity-25 p-4 position-absolute bottom-0 end-0 transform-zoom"></div>
+                            <div class="rounded-circle bg-white bg-opacity-25 p-4 position-absolute bottom-0 end-0 "></div>
                             <img
-                                src="../../assets/img/illustrations/man-with-laptop.png"
-                                height="220"
+                                src="../../assets/img/illustrations/dash.png"
+                                height="150"
                                 class="img-fluid drop-shadow"
                                 alt="Admin Dashboard" />
                         </div>

@@ -14,8 +14,6 @@ CREATE TABLE users (
     last_login TIMESTAMP NULL DEFAULT NULL
 ) ENGINE = InnoDB;
 
-
-
 -- Table structure for table `students`
 CREATE TABLE students (
     student_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -40,7 +38,6 @@ CREATE TABLE students (
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
-
 -- Table structure for table `admins`
 CREATE TABLE admins (
     admin_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -55,7 +52,6 @@ CREATE TABLE admins (
     ) NOT NULL DEFAULT 'Regular Admin',
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
-
 
 -- Table structure for table `rooms`
 CREATE TABLE rooms (
@@ -90,7 +86,6 @@ CREATE TABLE rooms (
 
 -- I
 
-
 -- Table structure for table `allocations`
 CREATE TABLE allocations (
     allocation_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -113,8 +108,6 @@ CREATE TABLE allocations (
     ),
     CONSTRAINT unique_active_allocation UNIQUE (student_id, status)
 ) ENGINE = InnoDB;
-
-
 
 -- Table structure for table `visitors`
 CREATE TABLE visitors (
@@ -139,8 +132,6 @@ CREATE TABLE visitors (
     FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
-
-
 -- Table structure for table `announcements`
 CREATE TABLE announcements (
     announcement_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -164,6 +155,18 @@ CREATE TABLE announcements (
     FOREIGN KEY (posted_by) REFERENCES admins (admin_id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
+
+-- Table structure for table `announcement_reads`
+-- This table tracks which students have read which announcements
+CREATE TABLE announcement_reads (
+    read_id INT AUTO_INCREMENT PRIMARY KEY,
+    announcement_id INT NOT NULL,
+    student_id INT NOT NULL,
+    read_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (announcement_id) REFERENCES announcements (announcement_id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,
+    UNIQUE KEY (announcement_id, student_id)
+) ENGINE = InnoDB;
 
 -- Table structure for table `maintenance_requests`
 CREATE TABLE maintenance_requests (
@@ -201,7 +204,6 @@ CREATE TABLE maintenance_requests (
     FOREIGN KEY (room_id) REFERENCES rooms (room_id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
-
 -- Table structure for table `maintenance_responses`
 CREATE TABLE maintenance_responses (
     response_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -213,8 +215,6 @@ CREATE TABLE maintenance_responses (
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
     CONSTRAINT chk_response_text CHECK (TRIM(response_text) != '')
 ) ENGINE = InnoDB;
-
-
 
 -- Table structure for table `payments`
 CREATE TABLE payments (
@@ -246,7 +246,6 @@ CREATE TABLE payments (
     FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
-
 -- Table structure for table `billing`
 CREATE TABLE billing (
     billing_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -269,8 +268,6 @@ CREATE TABLE billing (
     FOREIGN KEY (allocation_id) REFERENCES allocations (allocation_id) ON DELETE SET NULL,
     CONSTRAINT chk_paid_amount CHECK (paid_amount >= 0)
 );
-
-
 
 -- Table structure for table `disciplinary_records`
 CREATE TABLE disciplinary_records (
@@ -301,8 +298,6 @@ CREATE TABLE disciplinary_records (
     FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,
     FOREIGN KEY (reported_by) REFERENCES users (user_id) ON DELETE SET NULL
 ) ENGINE = InnoDB;
-
-
 
 -- Table structure for table `complaints`
 CREATE TABLE complaints (
@@ -339,8 +334,6 @@ CREATE TABLE complaints (
     FOREIGN KEY (resolved_by) REFERENCES admins (admin_id) ON DELETE SET NULL,
     CONSTRAINT chk_description CHECK (TRIM(description) != '')
 ) ENGINE = InnoDB;
-
-
 
 -- Table structure for table `remember_tokens`
 CREATE TABLE remember_tokens (
@@ -389,7 +382,6 @@ CREATE TABLE complaint_responses (
     CONSTRAINT chk_response_text CHECK (TRIM(response_text) != '')
 );
 
-
 CREATE TABLE visitor_logs (
     log_id INT AUTO_INCREMENT PRIMARY KEY,
     visitor_id INT NOT NULL,
@@ -413,3 +405,41 @@ FROM visitors
 WHERE
     check_in_time IS NOT NULL
     OR check_out_time IS NOT NULL;
+
+
+    -- //alter the visitors table to remove checkintime and checkouttime columns 
+ALTER TABLE visitors
+    DROP COLUMN check_in_time,
+    DROP COLUMN check_out_time;
+
+
+SHOW COLUMNS FROM visitors LIKE 'visit_date';
+
+INSERT INTO
+    visitors (
+        student_id,
+        visitor_name,
+        relation,
+        phone_number,
+        visit_date,
+        purpose,
+        status
+    )
+VALUES (
+        1,
+        'John Doe',
+        'Friend',
+        '+233123456789',
+        CURDATE(),
+        'Meeting',
+        'Pending'
+    ),
+    (
+        1,
+        'Jane Smith',
+        'Family',
+        '+233987654321',
+        DATE_ADD(CURDATE(), INTERVAL 1 DAY),
+        'Visit',
+        'Approved'
+    );

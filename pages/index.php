@@ -92,8 +92,8 @@ function getRoute()
 
 
 <body>
-    <script src="../assets/vendor/js/dropdown-hover.js"></script>
-    <script src="../assets/vendor/js/mega-dropdown.js"></script>
+    <!-- <script src="../assets/vendor/js/dropdown-hover.js"></script>
+    <script src="../assets/vendor/js/mega-dropdown.js"></script> -->
 
     <!-- Navbar -->
     <nav class="layout-navbar shadow-none py-0">

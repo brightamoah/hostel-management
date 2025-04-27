@@ -203,6 +203,19 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                         </select>
                                     </div>
                                     <div class="col-md-4">
+                                        <select id="dateFilter" class="form-select">
+                                            <option value="">All Dates</option>
+                                            <option value="today">Today</option>
+                                            <option value="tomorrow">Tomorrow</option>
+                                            <option value="this_week">This Week</option>
+                                            <option value="next_week">Next Week</option>
+                                            <option value="this_month">This Month</option>
+                                            <option value="next_month">Next Month</option>
+                                            <option value="past">Past Visits</option>
+                                            <option value="future">Future Visits</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
                                         <input type="text" id="searchInput" class="form-control" placeholder="Search Visitor..." />
                                     </div>
                                     <div class="col-md-4 text-end">
@@ -220,8 +233,8 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                             <th>Student</th>
                                             <th>Relationship</th>
                                             <th>Visit Date</th>
-                                            <th>Latest Check-In</th>
-                                            <th>Latest Check-Out</th>
+                                            <th>Last Check-In</th>
+                                            <th>Last Check-Out</th>
                                             <th>Status</th>
                                             <th>Actions</th>
                                         </tr>

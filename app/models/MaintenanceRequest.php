@@ -12,6 +12,21 @@ class MaintenanceRequest
         $this->conn = $this->db->connect();
     }
 
+
+    // Get all maintenance requests (Admin only)
+    public function getAllRequests()
+    {
+        $query = "SELECT mr.*, r.room_number, r.building, CONCAT(s.first_name, ' ', s.last_name) AS student_name 
+                 FROM maintenance_requests mr
+                 LEFT JOIN rooms r ON mr.room_id = r.room_id
+                 LEFT JOIN students s ON mr.student_id = s.student_id
+                 ORDER BY mr.request_date DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return ['data' => $result->fetch_all(MYSQLI_ASSOC)];
+    }
+
     // Get all maintenance requests by student ID
     public function getRequestsByStudent($student_id)
     {
@@ -28,39 +43,71 @@ class MaintenanceRequest
     }
 
     // Get pending maintenance requests count
-    public function getPendingRequest($student_id)
+    public function getPendingRequest($student_id = 0)
     {
         $query = "SELECT COUNT(*) as count 
                  FROM maintenance_requests 
-                 WHERE student_id = ? AND status = 'Pending'";
+                 WHERE status = 'Pending'";
+        if ($student_id > 0) {
+            $query .= " AND student_id = ?";
+        }
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("i", $student_id);
+        if ($student_id > 0) {
+            $stmt->bind_param("i", $student_id);
+        }
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
         return $result['count'];
     }
-
     // Get in-progress maintenance requests count
-    public function getInProgressRequest($student_id)
+    public function getInProgressRequest($student_id = 0)
     {
         $query = "SELECT COUNT(*) as count 
                  FROM maintenance_requests 
-                 WHERE student_id = ? AND status = 'In-Progress'";
+                 WHERE status = 'In-Progress'";
+        if ($student_id > 0) {
+            $query .= " AND student_id = ?";
+        }
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("i", $student_id);
+        if ($student_id > 0) {
+            $stmt->bind_param("i", $student_id);
+        }
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
         return $result['count'];
     }
 
     // Get resolved maintenance requests count
-    public function getResolvedRequest($student_id)
+    public function getResolvedRequest($student_id = 0)
     {
         $query = "SELECT COUNT(*) as count 
                  FROM maintenance_requests 
-                 WHERE student_id = ? AND status = 'Completed'";
+                 WHERE status = 'Completed'";
+        if ($student_id > 0) {
+            $query .= " AND student_id = ?";
+        }
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("i", $student_id);
+        if ($student_id > 0) {
+            $stmt->bind_param("i", $student_id);
+        }
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        return $result['count'];
+    }
+
+    // Get rejected maintenance requests count
+    public function getRejectedRequest($student_id = 0)
+    {
+        $query = "SELECT COUNT(*) as count 
+                 FROM maintenance_requests 
+                 WHERE status = 'Rejected'";
+        if ($student_id > 0) {
+            $query .= " AND student_id = ?";
+        }
+        $stmt = $this->conn->prepare($query);
+        if ($student_id > 0) {
+            $stmt->bind_param("i", $student_id);
+        }
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
         return $result['count'];
@@ -72,7 +119,7 @@ class MaintenanceRequest
         $query = "INSERT INTO maintenance_requests (student_id, room_id, issue_type, description, priority, status) 
                  VALUES (?, ?, ?, ?, ?, 'Pending')";
         $stmt = $this->conn->prepare($query);
-        $room_id = $data['room_id'] ? $data['room_id'] : null;
+        $room_id = $data['room_id'] ?: null;
         $stmt->bind_param("iisss", $data['student_id'], $room_id, $data['issue_type'], $data['description'], $data['priority']);
         return $stmt->execute();
     }
@@ -80,9 +127,10 @@ class MaintenanceRequest
     // Get maintenance request details by ID
     public function getRequestById($request_id)
     {
-        $query = "SELECT mr.*, r.room_number, r.building 
+        $query = "SELECT mr.*, r.room_number, r.building, CONCAT(s.first_name, ' ', s.last_name) AS student_name 
                  FROM maintenance_requests mr 
                  LEFT JOIN rooms r ON mr.room_id = r.room_id 
+                 LEFT JOIN students s ON mr.student_id = s.student_id 
                  WHERE mr.request_id = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("i", $request_id);
@@ -118,11 +166,6 @@ class MaintenanceRequest
     }
 
     // Get responses for a maintenance request
-    /**
-     * Summary of getRequestResponses
-     * @param mixed $request_id
-     * @return array
-     */
     public function getRequestResponses($request_id)
     {
         $query = "SELECT mr.*, u.name, u.role 
@@ -134,12 +177,10 @@ class MaintenanceRequest
         $stmt->bind_param("i", $request_id);
         $stmt->execute();
         $result = $stmt->get_result();
-        $response = $result->fetch_all(MYSQLI_ASSOC);
-        return $response;
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 
-
-    //validate $data
+    // Validate $data
     public function validateMaintenanceRequest($data)
     {
         $errors = [];
@@ -147,7 +188,7 @@ class MaintenanceRequest
         // Required fields validation
         if (empty($data['issue_type'])) {
             $errors['issue_type'] = 'Issue type is required';
-        } elseif (!in_array($data['issue_type'], ['Plumbing', 'Electrical', 'Furniture', 'Appliance', 'Structural', 'Cleaning', 'Other'])) {
+        } elseif (!in_array($data['issue_type'], ['Plumbing', 'Electrical', 'Furniture', 'Appliance', 'Structural', 'Pest Control', 'Internet/Wi-Fi', 'Other'])) {
             $errors['issue_type'] = 'Invalid issue type';
         }
 
@@ -161,7 +202,7 @@ class MaintenanceRequest
 
         if (empty($data['priority'])) {
             $errors['priority'] = 'Priority is required';
-        } elseif (!in_array($data['priority'], ['Low', 'Medium', 'High', 'Critical'])) {
+        } elseif (!in_array($data['priority'], ['Low', 'Medium', 'High', 'Emergency'])) {
             $errors['priority'] = 'Invalid priority level';
         }
 

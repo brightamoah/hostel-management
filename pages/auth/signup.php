@@ -136,12 +136,12 @@
 
                         </div>
 
-                        <?php
+                        <!-- <?php
                         if (isset($_SESSION['message-signup'])) {
                             echo "<div class='text-center fw-bold alert alert-{$_SESSION['message_type_signup']} mt-3' role='alert'>{$_SESSION['message-signup']}</div>";
                             unset($_SESSION['message-signup'], $_SESSION['message_type_signup']);
                         }
-                        ?>
+                        ?> -->
 
                         <?php
                         if (isset($_SESSION['message-signup'])) {

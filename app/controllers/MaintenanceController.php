@@ -1,6 +1,7 @@
 <?php
-require_once "./database/db.php";
-require_once "./app/models/MaintenanceRequest.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../../app/models/MaintenanceRequest.php";
+require_once __DIR__ . "/../../utils/functions.php";
 
 class MaintenanceController
 {
@@ -42,16 +43,27 @@ class MaintenanceController
         }
 
         $result = $this->model->submitRequest($data);
-        return $result;
+        $this->sendJsonResponse(['success' => $result, 'message' => $result ? 'Request submitted successfully' : 'Failed to submit request']);
     }
 
-    // Handle AJAX request to fetch maintenance request data
+    // Handle AJAX request to fetch maintenance request data(Student only)
     public function getRequestData()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $student_id = $_SESSION['user']['student_id'];
             $result = $this->model->getRequestsByStudent($student_id);
             echo json_encode($result);
+        }
+    }
+
+    // Handle AJAX request to fetch maintenance request data (Admin)
+    public function getAdminRequestData()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET' && $_SESSION['user']['role'] === 'Admin') {
+            $result = $this->model->getAllRequests();
+            echo json_encode($result);
+        } else {
+            echo json_encode(['error' => 'Unauthorized']);
         }
     }
 
@@ -63,10 +75,19 @@ class MaintenanceController
             if ($details) {
                 $responses = $this->model->getRequestResponses($request_id);
                 $details['responses'] = $responses;
-                echo json_encode($details);
+                echo json_encode(['details' => $details]);
             } else {
                 echo json_encode(['error' => 'Maintenance request not found']);
             }
+        }
+    }
+
+    // Handle AJAX request to fetch maintenance request responses
+    public function getRequestResponses($request_id)
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $responses = $this->model->getRequestResponses($request_id);
+            echo json_encode($responses);
         }
     }
 
@@ -91,16 +112,29 @@ class MaintenanceController
     // Handle AJAX request to add a follow-up response (Student or Admin)
     public function addResponse()
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $request_id = $_POST['request_id'];
-            $response_text = $_POST['response_text'];
-            $user_id = $_SESSION['user']['user_id'];
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->sendJsonResponse(['success' => false, 'error' => 'Method not allowed']);
+            return;
+        }
 
-            if ($this->model->addResponse($request_id, $user_id, $response_text)) {
-                echo json_encode(['success' => true, 'message' => 'Response added successfully']);
-            } else {
-                echo json_encode(['success' => false, 'error' => 'Failed to add response']);
-            }
+        $request_id = isset($_POST['request_id']) ? intval($_POST['request_id']) : 0;
+        $response_text = isset($_POST['response_text']) ? sanitizeInput($_POST['response_text']) : '';
+        $user_id = $_SESSION['user']['user_id'];
+
+        if ($request_id <= 0) {
+            $this->sendJsonResponse(['success' => false, 'error' => 'Invalid or missing request ID']);
+            return;
+        }
+
+        if (empty($response_text)) {
+            $this->sendJsonResponse(['success' => false, 'error' => 'Response text is required']);
+            return;
+        }
+
+        if ($this->model->addResponse($request_id, $user_id, $response_text)) {
+            $this->sendJsonResponse(['success' => true, 'message' => 'Response added successfully']);
+        } else {
+            $this->sendJsonResponse(['success' => false, 'error' => 'Failed to add response']);
         }
     }
 

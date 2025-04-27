@@ -62,7 +62,7 @@ class VisitorController
             if ($this->visitorModel->register($student_id, $visitor_name, $relation, $phone_number, $visit_date, $purpose)) {
                 echo json_encode(['success' => true, 'message' => 'Visitor registered successfully']);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to register visitor']);
+                echo json_encode(['success' => false, 'message' => 'Failed to register the visitor. Please try again']);
             }
         } catch (Exception $e) {
             error_log("Error registering visitor: " . $e->getMessage());
@@ -91,7 +91,7 @@ class VisitorController
             if ($this->visitorModel->update($visitor_id, $visitor_name, $relation, $phone_number, $visit_date, $purpose)) {
                 echo json_encode(['success' => true, 'message' => 'Visitor updated successfully']);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to update visitor']);
+                echo json_encode(['success' => false, 'message' => 'Failed to update visitor details. The visitor may not be in Pending or Approved status.']);
             }
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
@@ -113,7 +113,7 @@ class VisitorController
             if ($this->visitorModel->cancel($visitor_id)) {
                 echo json_encode(['success' => true, 'message' => 'Visitor request cancelled']);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to cancel visitor request']);
+                echo json_encode(['success' => false, 'message' => 'Failed to cancel the visitor request. The visitor may not be in a cancellable status.']);
             }
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
@@ -136,7 +136,7 @@ class VisitorController
             if ($visitor) {
                 echo json_encode(['success' => true, 'data' => $visitor]);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Visitor not found']);
+                echo json_encode(['success' => false, 'message' => 'No visitor found with this ID.']);
             }
         } else {
             header('Content-Type: application/json');
@@ -209,8 +209,16 @@ class VisitorController
                 echo json_encode(['success' => false, 'message' => 'Visitor ID is required']);
                 exit();
             }
-            if ($this->visitorModel->checkIn($visitor_id)) {
-                echo json_encode(['success' => true, 'message' => 'Visitor checked in']);
+            $result = $this->visitorModel->checkIn(
+                $visitor_id
+            );
+
+
+            // Check if the result is an array with success/message keys (error case)
+            if (is_array($result) && isset($result['success']) && $result['success'] === false) {
+                echo json_encode($result); // Return the error message from the model
+            } else if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Visitor checked in successfully']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to check in visitor']);
             }
@@ -234,8 +242,13 @@ class VisitorController
                 echo json_encode(['success' => false, 'message' => 'Visitor ID is required']);
                 exit();
             }
-            if ($this->visitorModel->checkOut($visitor_id)) {
-                echo json_encode(['success' => true, 'message' => 'Visitor checked out']);
+            $result = $this->visitorModel->checkOut($visitor_id);
+
+            // Check if the result is an array with success/message keys (error case)
+            if (is_array($result) && isset($result['success']) && $result['success'] === false) {
+                echo json_encode($result); // Return the error message from the model
+            } else if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Visitor checked out successfully']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to check out visitor']);
             }
@@ -271,7 +284,8 @@ class VisitorController
                 echo json_encode(['success' => false, 'message' => 'Unauthorized: Admin access required']);
                 exit();
             }
-            $visitors = $this->visitorModel->getAllVisitors();
+            $dateFilter = $_GET['dateFilter'] ?? '';
+            $visitors = $this->visitorModel->getAllVisitors($dateFilter);
             echo json_encode(['data' => $visitors]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);

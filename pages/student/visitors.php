@@ -1,6 +1,5 @@
 <?php
 require_once "./app/controllers/visitors/visitor_stats.php";
-
 ?>
 
 <!doctype html>
@@ -16,6 +15,7 @@ require_once "./app/controllers/visitors/visitor_stats.php";
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <title>Kings Hostel - Visitor</title>
     <meta name="description" content="" />
+    <meta name="csrf-token" content="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>" />
 
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/favicon_io/apple-touch-icon.png">
@@ -42,7 +42,6 @@ require_once "./app/controllers/visitors/visitor_stats.php";
     <link rel="stylesheet" href="../../assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/select2/select2.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/@form-validation/form-validation.css" />
-
 
     <link rel="stylesheet" href="../../assets/vendor/libs/animate-css/animate.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/sweetalert2/sweetalert2.css" />
@@ -179,6 +178,19 @@ require_once "./app/controllers/visitors/visitor_stats.php";
                                             <option value="Denied">Denied</option>
                                         </select>
                                     </div>
+                                    <div class="col-md-4">
+                                        <select id="dateFilter" class="form-select">
+                                            <option value="">All Dates</option>
+                                            <option value="today">Today</option>
+                                            <option value="tomorrow">Tomorrow</option>
+                                            <option value="this_week">This Week</option>
+                                            <option value="next_week">Next Week</option>
+                                            <option value="this_month">This Month</option>
+                                            <option value="next_month">Next Month</option>
+                                            <option value="past">Past Visits</option>
+                                            <option value="future">Future Visits</option>
+                                        </select>
+                                    </div>
                                     <div class="col-md-4 text-end">
                                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerVisitorModal">
                                             <i class="bx bx-plus icon-base me-1"></i> Register Visitor
@@ -236,6 +248,44 @@ require_once "./app/controllers/visitors/visitor_stats.php";
                                                 <textarea class="form-control" id="purpose" name="purpose" rows="3" required></textarea>
                                             </div>
                                             <button type="submit" class="btn btn-primary">Register Visitor</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Edit Visitor Modal -->
+                        <div class="modal fade" id="editVisitorModal" tabindex="-1" aria-labelledby="editVisitorModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="editVisitorModalLabel">Edit Visitor Details</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="editVisitorForm">
+                                            <input type="hidden" id="editVisitorId" name="visitor_id">
+                                            <div class="mb-3">
+                                                <label for="editVisitorName" class="form-label">Visitor Name</label>
+                                                <input type="text" class="form-control" id="editVisitorName" name="visitor_name" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="editRelation" class="form-label">Relationship</label>
+                                                <input type="text" class="form-control" id="editRelation" name="relation" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="editPhoneNumber" class="form-label">Phone Number</label>
+                                                <input type="text" class="form-control" id="editPhoneNumber" name="phone_number" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="editVisitDate" class="form-label">Visit Date</label>
+                                                <input type="date" class="form-control" id="editVisitDate" name="visit_date" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="editPurpose" class="form-label">Purpose of Visit</label>
+                                                <textarea class="form-control" id="editPurpose" name="purpose" rows="3" required></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Update Visitor</button>
                                         </form>
                                     </div>
                                 </div>
@@ -377,7 +427,6 @@ require_once "./app/controllers/visitors/visitor_stats.php";
 
     <!-- Main JS -->
     <script src="../../assets/js/main.js"></script>
-
 
     <script src="../../assets/js/extended-ui-sweetalert2.js"></script>
     <!-- Page JS -->

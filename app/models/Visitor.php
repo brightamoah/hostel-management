@@ -41,15 +41,30 @@ class Visitor
     public function getVisitorById($visitor_id)
     {
         try {
-            $query = "SELECT v.*, vl.check_in_time, vl.check_out_time 
-                      FROM visitors v 
-                      LEFT JOIN visitor_logs vl ON v.visitor_id = vl.visitor_id 
-                      AND vl.log_id = (
-                          SELECT MAX(log_id) 
-                          FROM visitor_logs 
-                          WHERE visitor_id = v.visitor_id
-                      )
-                      WHERE v.visitor_id = ?";
+            $query = "SELECT 
+                    v.*, 
+                    vl.check_in_time, 
+                    vl.check_out_time,
+                    s.first_name,
+                    s.last_name,
+                    s.phone_number AS student_phone,
+                    u.email AS student_email,
+                    CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+                    r.building,
+                    r.room_number,
+                    r.room_type
+                  FROM visitors v 
+                  LEFT JOIN visitor_logs vl ON v.visitor_id = vl.visitor_id 
+                  AND vl.log_id = (
+                      SELECT MAX(log_id) 
+                      FROM visitor_logs 
+                      WHERE visitor_id = v.visitor_id
+                  )
+                  JOIN students s ON v.student_id = s.student_id
+                  LEFT JOIN users u ON s.user_id = u.user_id
+                  LEFT JOIN allocations a ON s.student_id = a.student_id AND a.status = 'Active'
+                  LEFT JOIN rooms r ON a.room_id = r.room_id
+                  WHERE v.visitor_id = ?";
             $stmt = $this->conn->prepare($query);
             if (!$stmt) {
                 throw new Exception("Prepare failed: " . $this->conn->error);
@@ -68,84 +83,264 @@ class Visitor
         }
     }
 
+
     // Get all visitors for a student (for the DataTable)
-    public function getVisitorsByStudent($student_id)
+    public function getVisitorsByStudent($student_id, $dateFilter = '')
     {
         try {
-            $query = "SELECT v.*, vl.check_in_time, vl.check_out_time 
-                      FROM visitors v 
-                      LEFT JOIN visitor_logs vl ON v.visitor_id = vl.visitor_id 
-                      AND vl.log_id = (
-                          SELECT MAX(log_id) 
-                          FROM visitor_logs 
-                          WHERE visitor_id = v.visitor_id
-                      )
-                      WHERE v.student_id = ? 
-                      ORDER BY v.visit_date DESC";
+            $query = "SELECT 
+                    v.visitor_id, 
+                    v.visitor_name, 
+                    v.relation, 
+                    v.phone_number, 
+                    v.visit_date,
+                    v.purpose, 
+                    v.status, 
+                    v.registered_at,
+                    vl.check_in_time, 
+                    vl.check_out_time 
+                  FROM visitors v 
+                  LEFT JOIN visitor_logs vl ON v.visitor_id = vl.visitor_id 
+                  AND vl.log_id = (
+                      SELECT MAX(log_id) 
+                      FROM visitor_logs 
+                      WHERE visitor_id = v.visitor_id
+                  )
+                  WHERE v.student_id = ?";
+
+            // Add date filter conditions
+            $params = [$student_id];
+            $types = "i";
+            if ($dateFilter) {
+                $today = date('Y-m-d');
+                switch ($dateFilter) {
+                    case 'today':
+                        $query .= " AND v.visit_date = ?";
+                        $params[] = $today;
+                        $types .= "s";
+                        break;
+                    case 'tomorrow':
+                        $tomorrow = date('Y-m-d', strtotime('+1 day'));
+                        $query .= " AND v.visit_date = ?";
+                        $params[] = $tomorrow;
+                        $types .= "s";
+                        break;
+                    case 'this_week':
+                        $startOfWeek = date('Y-m-d', strtotime('monday this week'));
+                        $endOfWeek = date('Y-m-d', strtotime('sunday this week'));
+                        $query .= " AND v.visit_date BETWEEN ? AND ?";
+                        $params[] = $startOfWeek;
+                        $params[] = $endOfWeek;
+                        $types .= "ss";
+                        break;
+                    case 'next_week':
+                        $startOfNextWeek = date('Y-m-d', strtotime('monday next week'));
+                        $endOfNextWeek = date('Y-m-d', strtotime('sunday next week'));
+                        $query .= " AND v.visit_date BETWEEN ? AND ?";
+                        $params[] = $startOfNextWeek;
+                        $params[] = $endOfNextWeek;
+                        $types .= "ss";
+                        break;
+                    case 'this_month':
+                        $startOfMonth = date('Y-m-01');
+                        $endOfMonth = date('Y-m-t');
+                        $query .= " AND v.visit_date BETWEEN ? AND ?";
+                        $params[] = $startOfMonth;
+                        $params[] = $endOfMonth;
+                        $types .= "ss";
+                        break;
+                    case 'next_month':
+                        $startOfNextMonth = date('Y-m-01', strtotime('+1 month'));
+                        $endOfNextMonth = date('Y-m-t', strtotime('+1 month'));
+                        $query .= " AND v.visit_date BETWEEN ? AND ?";
+                        $params[] = $startOfNextMonth;
+                        $params[] = $endOfNextMonth;
+                        $types .= "ss";
+                        break;
+                    case 'past':
+                        $query .= " AND v.visit_date < ?";
+                        $params[] = $today;
+                        $types .= "s";
+                        break;
+                    case 'future':
+                        $query .= " AND v.visit_date > ?";
+                        $params[] = $today;
+                        $types .= "s";
+                        break;
+                    default:
+                        // No filter applied
+                        break;
+                }
+            }
+
+            $query .= " ORDER BY v.visit_date DESC";
+
             $stmt = $this->conn->prepare($query);
             if (!$stmt) {
                 throw new Exception("Prepare failed: " . $this->conn->error);
             }
-            $stmt->bind_param("i", $student_id);
+
+            $stmt->bind_param($types, ...$params);
             if (!$stmt->execute()) {
                 throw new Exception("Execute failed: {$stmt->error}");
             }
             $result = $stmt->get_result();
             $visitors = [];
             while ($row = $result->fetch_assoc()) {
-                $visitors[] = $row;
+                // Map database field names to what DataTable expects
+                $visitors[] = [
+                    'id' => $row['visitor_id'],
+                    'full_name' => $row['visitor_name'],
+                    'role' => $row['relation'],
+                    'visit_date' => $row['visit_date'],
+                    'check_in' => $row['check_in_time'],
+                    'check_out' => $row['check_out_time'],
+                    'status' => $row['status'],
+                    'email' => $row['phone_number'], // Used in the name display
+                    'purpose' => $row['purpose'],
+                    // Include original fields too for the modal
+                    'visitor_id' => $row['visitor_id'],
+                    'visitor_name' => $row['visitor_name'],
+                    'phone_number' => $row['phone_number'],
+                    'registered_at' => $row['registered_at'],
+                    'student_id' => $student_id
+                ];
             }
             $stmt->close();
             return json_encode(['data' => $visitors]);
         } catch (Exception $e) {
             error_log("Error in getVisitorsByStudent: " . $e->getMessage());
-            return [];
+            return json_encode(['data' => []]);
         }
     }
 
     // Get all visitors for admin (for the DataTable)
-    public function getAllVisitors()
+    public function getAllVisitors($dateFilter = '')
     {
         try {
             $query = "SELECT
-    v.visitor_id,
-    v.visitor_name,
-    v.relation,
-    v.phone_number,
-    v.visit_date,
-    v.purpose,
-    v.status,
-    vl.check_in_time,
-    vl.check_out_time,
-    CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-    r.building,
-    r.room_number
-FROM
-    visitors v
-    LEFT JOIN visitor_logs vl ON v.visitor_id = vl.visitor_id
-    JOIN students s ON v.student_id = s.student_id
-    LEFT JOIN allocations a ON s.student_id = a.student_id AND a.status = 'Active'
-    LEFT JOIN rooms r ON a.room_id = r.room_id
-ORDER BY
-    v.visit_date DESC";
+                v.visitor_id,
+                v.visitor_name,
+                v.relation,
+                v.phone_number,
+                v.visit_date,
+                v.purpose,
+                v.status,
+                vl.check_in_time,
+                vl.check_out_time,
+                CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+                s.student_id,
+                u.email AS student_email,
+                s.phone_number AS student_phone,
+                r.building,
+                r.room_number,
+                r.room_type
+            FROM
+                visitors v
+                LEFT JOIN visitor_logs vl ON v.visitor_id = vl.visitor_id
+                AND vl.log_id = (
+                    SELECT MAX(log_id)
+                    FROM visitor_logs
+                    WHERE visitor_id = v.visitor_id
+                )
+                JOIN students s ON v.student_id = s.student_id
+                LEFT JOIN users u ON s.user_id = u.user_id
+                LEFT JOIN allocations a ON s.student_id = a.student_id AND a.status = 'Active'
+                LEFT JOIN rooms r ON a.room_id = r.room_id
+            WHERE 1=1";
+
+            // Add date filter conditions
+            $params = [];
+            $types = "";
+            if ($dateFilter) {
+                $today = date('Y-m-d');
+                switch ($dateFilter) {
+                    case 'today':
+                        $query .= " AND v.visit_date = ?";
+                        $params[] = $today;
+                        $types .= "s";
+                        break;
+                    case 'tomorrow':
+                        $tomorrow = date('Y-m-d', strtotime('+1 day'));
+                        $query .= " AND v.visit_date = ?";
+                        $params[] = $tomorrow;
+                        $types .= "s";
+                        break;
+                    case 'this_week':
+                        $startOfWeek = date('Y-m-d', strtotime('monday this week'));
+                        $endOfWeek = date('Y-m-d', strtotime('sunday this week'));
+                        $query .= " AND v.visit_date BETWEEN ? AND ?";
+                        $params[] = $startOfWeek;
+                        $params[] = $endOfWeek;
+                        $types .= "ss";
+                        break;
+                    case 'next_week':
+                        $startOfNextWeek = date('Y-m-d', strtotime('monday next week'));
+                        $endOfNextWeek = date('Y-m-d', strtotime('sunday next week'));
+                        $query .= " AND v.visit_date BETWEEN ? AND ?";
+                        $params[] = $startOfNextWeek;
+                        $params[] = $endOfNextWeek;
+                        $types .= "ss";
+                        break;
+                    case 'this_month':
+                        $startOfMonth = date('Y-m-01');
+                        $endOfMonth = date('Y-m-t');
+                        $query .= " AND v.visit_date BETWEEN ? AND ?";
+                        $params[] = $startOfMonth;
+                        $params[] = $endOfMonth;
+                        $types .= "ss";
+                        break;
+                    case 'next_month':
+                        $startOfNextMonth = date('Y-m-01', strtotime('+1 month'));
+                        $endOfNextMonth = date('Y-m-t', strtotime('+1 month'));
+                        $query .= " AND v.visit_date BETWEEN ? AND ?";
+                        $params[] = $startOfNextMonth;
+                        $params[] = $endOfNextMonth;
+                        $types .= "ss";
+                        break;
+                    case 'past':
+                        $query .= " AND v.visit_date < ?";
+                        $params[] = $today;
+                        $types .= "s";
+                        break;
+                    case 'future':
+                        $query .= " AND v.visit_date > ?";
+                        $params[] = $today;
+                        $types .= "s";
+                        break;
+                    default:
+                        // No filter applied
+                        break;
+                }
+            }
+
+            $query .= " ORDER BY v.visit_date DESC";
+
             $stmt = $this->conn->prepare($query);
             if (!$stmt) {
                 throw new Exception("Prepare failed: " . $this->conn->error);
             }
+
+            if (!empty($params)) {
+                $stmt->bind_param($types, ...$params);
+            }
+
             if (!$stmt->execute()) {
                 throw new Exception("Execute failed: {$stmt->error}");
             }
+
             $result = $stmt->get_result();
             $visitors = [];
             while ($row = $result->fetch_assoc()) {
-                // $row['student_name'] = $row['first_name'] . ' ' . $row['last_name'];
                 $visitors[] = $row;
             }
             $stmt->close();
+
+            // Return in DataTable-compatible format
             return $visitors;
         } catch (Exception $e) {
             error_log("Error in getAllVisitors: " . $e->getMessage());
-            return [];
+            return json_encode(['data' => []]);
         }
     }
 
@@ -297,15 +492,56 @@ ORDER BY
         }
     }
 
-    // Check-in visitor (admin action)
-    // Check-in visitor (admin action)
+      // Check-in visitor (admin action)
     public function checkIn($visitor_id)
     {
         try {
             $check_in_time = date('Y-m-d H:i:s');
+            $today = date('Y-m-d');
             $this->conn->begin_transaction();
-            // Update visitor status
-            $query = "UPDATE visitors SET status = 'Checked-In' WHERE visitor_id = ? AND status = 'Approved'";
+    
+            // Check if the visitor exists and has a valid visit_date
+            $query = "SELECT visit_date, status FROM visitors WHERE visitor_id = ?";
+            $stmt = $this->conn->prepare($query);
+            if (!$stmt) {
+                throw new Exception("Prepare failed: " . $this->conn->error);
+            }
+            $stmt->bind_param("i", $visitor_id);
+            if (!$stmt->execute()) {
+                throw new Exception("Execute failed: {$stmt->error}");
+            }
+            $result = $stmt->get_result();
+            $visitor = $result->num_rows > 0 ? $result->fetch_assoc() : null;
+            $stmt->close();
+    
+            if (!$visitor) {
+                return ['success' => false, 'message' => 'No visitor found with this ID'];
+            }
+    
+            // Fix: First check the status, then check the date
+            // Allow check-in if status is Approved or Checked-Out
+            switch ($visitor['status']) {
+                case 'Checked-In':
+                    return ['success' => false, 'message' => 'Visitor is already checked in.'];
+                case 'Denied':
+                    return ['success' => false, 'message' => 'Visitor request has been denied.'];
+                case 'Pending':
+                    return ['success' => false, 'message' => 'Visitor request is still pending approval.'];
+                case 'Cancelled':
+                    return ['success' => false, 'message' => 'Visitor request has been cancelled.'];
+                default:
+                    if (!in_array($visitor['status'], ['Approved', 'Checked-Out'])) {
+                        return ['success' => false, 'message' => 'Visitor cannot be checked in. Current status: ' . $visitor['status']];
+                    }
+            }
+    
+            // Validate visit_date (e.g., allow check-in only on the visit_date)
+            if ($visitor['visit_date'] != $today) {
+                return ['success' => false, 'message' => 'Check-in is only allowed on the visit date: ' . $visitor['visit_date']];
+            }
+    
+            // Update visitor status to Checked-In
+            $query = "UPDATE visitors SET status = 'Checked-In' WHERE visitor_id = ?";
             $stmt = $this->conn->prepare($query);
             if (!$stmt) {
                 throw new Exception("Prepare failed: " . $this->conn->error);
@@ -313,7 +549,7 @@ ORDER BY
             $stmt->bind_param("i", $visitor_id);
             $result = $stmt->execute();
             $stmt->close();
-
+    
             // Insert new log entry
             if ($result) {
                 $query = "INSERT INTO visitor_logs (visitor_id, check_in_time) VALUES (?, ?)";
@@ -325,7 +561,7 @@ ORDER BY
                 $result = $stmt->execute();
                 $stmt->close();
             }
-
+    
             if ($result) {
                 $this->conn->commit();
             } else {
@@ -335,18 +571,61 @@ ORDER BY
         } catch (Exception $e) {
             $this->conn->rollback();
             error_log("Error in checkIn: " . $e->getMessage());
-            return false;
+            return ['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()];
         }
     }
 
+ 
     // Check-out visitor (admin action)
     public function checkOut($visitor_id)
     {
         try {
             $check_out_time = date('Y-m-d H:i:s');
+            $today = date('Y-m-d');
             $this->conn->begin_transaction();
-            // Update visitor status
-            $query = "UPDATE visitors SET status = 'Checked-Out' WHERE visitor_id = ? AND status = 'Checked-In'";
+
+            // Check if the visitor exists and has a valid visit_date
+            $query = "SELECT visit_date, status FROM visitors WHERE visitor_id = ?";
+            $stmt = $this->conn->prepare($query);
+            if (!$stmt) {
+                throw new Exception("Prepare failed: " . $this->conn->error);
+            }
+            $stmt->bind_param("i", $visitor_id);
+            if (!$stmt->execute()) {
+                throw new Exception("Execute failed: {$stmt->error}");
+            }
+            $result = $stmt->get_result();
+            $visitor = $result->num_rows > 0 ? $result->fetch_assoc() : null;
+            $stmt->close();
+
+            if (!$visitor) {
+                return ['success' => false, 'message' => 'No visitor found with this ID'];
+            }
+
+            // Fix: First check the status, then check the date
+            // Allow check-out only if status is Checked-In
+            switch ($visitor['status']) {
+                case 'Checked-Out':
+                    return ['success' => false, 'message' => 'Visitor is already checked out.'];
+                case 'Denied':
+                    return ['success' => false, 'message' => 'Visitor request has been denied.'];
+                case 'Pending':
+                    return ['success' => false, 'message' => 'Visitor request is still pending approval.'];
+                case 'Cancelled':
+                    return ['success' => false, 'message' => 'Visitor request has been cancelled.'];
+                default:
+                    if ($visitor['status'] !== 'Checked-In') {
+                        return ['success' => false, 'message' => 'Visitor cannot be checked out. Current status: ' . $visitor['status']];
+                    }
+            }
+
+            // Validate visit_date (e.g., allow check-out only on the visit_date)
+            if ($visitor['visit_date'] != $today) {
+                return ['success' => false, 'message' => 'Check-out is only allowed on the visit date: ' . $visitor['visit_date']];
+            }
+
+            // Update visitor status to Checked-Out
+            $query = "UPDATE visitors SET status = 'Checked-Out' WHERE visitor_id = ?";
             $stmt = $this->conn->prepare($query);
             if (!$stmt) {
                 throw new Exception("Prepare failed: " . $this->conn->error);
@@ -365,18 +644,23 @@ ORDER BY
                 $stmt->bind_param("si", $check_out_time, $visitor_id);
                 $result = $stmt->execute();
                 $stmt->close();
+
+                if (!$result) {
+                    throw new Exception("No open check-in record found for this visitor. Please check in first.");
+                }
             }
 
             if ($result) {
                 $this->conn->commit();
+                return ['success' => true, 'message' => 'Visitor checked out successfully.'];
             } else {
                 $this->conn->rollback();
+                return ['success' => false, 'message' => 'Failed to check out the visitor. Please try again.'];
             }
-            return $result;
         } catch (Exception $e) {
             $this->conn->rollback();
             error_log("Error in checkOut: " . $e->getMessage());
-            return false;
+            return ['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()];
         }
     }
 
