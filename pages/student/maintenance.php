@@ -13,7 +13,7 @@ $maintenanceModel = new MaintenanceRequest();
 $controller = new MaintenanceController();
 
 $user_id = $_SESSION['user']['user_id'];
-$student_id = $_SESSION['user']['student_id'] ?? 0;
+$student_id = $_SESSION['user']['student_id'];
 $db = new Database();
 $conn = $db->connect();
 $student = new Student($conn);
@@ -28,7 +28,7 @@ $in_progress_requests = $maintenanceModel->getInProgressRequest($student_id);
 $resolved_requests = $maintenanceModel->getResolvedRequest($student_id);
 
 // Fetch users room
-$room = $student->getRoomAllocation($student_id);
+$room = $student->getRoomAllocation($user_id);
 // echo "<pre>";
 // print_r($room);
 // echo "</pre>";
@@ -161,6 +161,7 @@ $room = $student->getRoomAllocation($student_id);
                                                 <span class="avatar-initial rounded bg-label-info"><i class="bx bx-loader-circle icon-lg"></i></span>
                                             </div>
                                             <h4 class="mb-0"><?= $in_progress_requests ?></h4>
+                                            <?php echo $student_id ?>
                                         </div>
                                         <p class="mb-0">In-Progress</p>
                                     </div>
