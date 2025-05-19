@@ -1,19 +1,19 @@
 <section id="Features" class="section-py landing-features">
     <div class="container">
         <div class="text-center mb-4">
-            <span class="badge bg-label-primary">Useful Features</span>
+            <span class="badge bg-label-primary">Hostel Management Features</span>
         </div>
         <h4 class="text-center mb-1">
             <span class="position-relative fw-extrabold z-1">Everything you need
                 <img
                     src="../assets/img/front-pages/icons/section-title-icon.png"
-                    alt="laptop charging"
+                    alt="hostel management"
                     class="section-title-img position-absolute object-fit-contain bottom-0 z-n1" />
             </span>
-            to start your next project
+            for efficient hostel administration
         </h4>
         <p class="text-center mb-12">
-            Not just a set of tools, the package includes ready-to-deploy conceptual application.
+            Our comprehensive hostel management system streamlines operations for both administrators and residents.
         </p>
         <div class="features-icon-wrapper row gx-0 gy-6 g-sm-12">
             <div class="col-lg-4 col-sm-6 text-center features-icon-box">
@@ -31,9 +31,9 @@
                             stroke-linejoin="round" />
                     </svg>
                 </div>
-                <h5 class="mb-2">Quality Code</h5>
+                <h5 class="mb-2">Room Management</h5>
                 <p class="features-icon-description">
-                    Code structure that all developers will easily understand and fall in love with.
+                    Efficiently manage room allocations, track availability, and maintain occupancy records in real-time.
                 </p>
             </div>
             <div class="col-lg-4 col-sm-6 text-center features-icon-box">
@@ -52,9 +52,9 @@
                             fill="currentColor" />
                     </svg>
                 </div>
-                <h5 class="mb-2">Continuous Updates</h5>
+                <h5 class="mb-2">Student Portal</h5>
                 <p class="features-icon-description">
-                    Free updates for the next 12 months, including new demos and features.
+                    Dedicated portal for students to make maintenance requests, view announcements, and manage their accommodation.
                 </p>
             </div>
             <div class="col-lg-4 col-sm-6 text-center features-icon-box">
@@ -71,9 +71,9 @@
                             fill="currentColor" />
                     </svg>
                 </div>
-                <h5 class="mb-2">Starter-Kit</h5>
+                <h5 class="mb-2">Payment Processing</h5>
                 <p class="features-icon-description">
-                    Start your project quickly without having to remove unnecessary features.
+                    Secure online payment system for hostel fees with automatic receipts and payment history tracking.
                 </p>
             </div>
             <div class="col-lg-4 col-sm-6 text-center features-icon-box">
@@ -91,9 +91,9 @@
                             stroke-linejoin="round" />
                     </svg>
                 </div>
-                <h5 class="mb-2">API Ready</h5>
+                <h5 class="mb-2">Maintenance Tracking</h5>
                 <p class="features-icon-description">
-                    Just change the endpoint and see your own data loaded within seconds.
+                    Submit and track maintenance requests with real-time status updates and automated notifications.
                 </p>
             </div>
             <div class="col-lg-4 col-sm-6 text-center features-icon-box">
@@ -111,8 +111,8 @@
                             stroke-linejoin="round" />
                     </svg>
                 </div>
-                <h5 class="mb-2">Excellent Support</h5>
-                <p class="features-icon-description">An easy-to-follow doc with lots of references and code examples.</p>
+                <h5 class="mb-2">Visitor Management</h5>
+                <p class="features-icon-description">Register and monitor visitor access with automated check-in/check-out and security alerts.</p>
             </div>
             <div class="col-lg-4 col-sm-6 text-center features-icon-box">
                 <div class="text-center mb-4 text-primary">
@@ -128,8 +128,8 @@
                             fill="currentColor" />
                     </svg>
                 </div>
-                <h5 class="mb-2">Well Documented</h5>
-                <p class="features-icon-description">An easy-to-follow doc with lots of references and code examples.</p>
+                <h5 class="mb-2">Announcement System</h5>
+                <p class="features-icon-description">Broadcast important notices to all residents or targeted groups with read tracking.</p>
             </div>
         </div>
     </div>

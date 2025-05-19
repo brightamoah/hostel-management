@@ -6,7 +6,7 @@
 
 <html
     lang="en"
-    class="layout-wide customizer-hide"
+    class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact"
     dir="ltr"
     data-skin="default"
     data-assets-path="../../assets/"
@@ -90,11 +90,12 @@
 
 
         <div class="authentication-inner row m-0">
+
             <!-- Left Text -->
             <div class="d-none d-lg-flex col-lg-4 align-items-center justify-content-end p-5 pe-0">
                 <div class="w-px-400">
                     <img
-                        src="../../assets/img/illustrations/create-account-light.png"
+                        src="../../assets/img/illustrations/create-account.png"
                         class="img-fluid"
                         alt="multi-steps"
                         width="600"
@@ -137,11 +138,11 @@
                         </div>
 
                         <!-- <?php
-                        if (isset($_SESSION['message-signup'])) {
-                            echo "<div class='text-center fw-bold alert alert-{$_SESSION['message_type_signup']} mt-3' role='alert'>{$_SESSION['message-signup']}</div>";
-                            unset($_SESSION['message-signup'], $_SESSION['message_type_signup']);
-                        }
-                        ?> -->
+                                if (isset($_SESSION['message-signup'])) {
+                                    echo "<div class='text-center fw-bold alert alert-{$_SESSION['message_type_signup']} mt-3' role='alert'>{$_SESSION['message-signup']}</div>";
+                                    unset($_SESSION['message-signup'], $_SESSION['message_type_signup']);
+                                }
+                                ?> -->
 
                         <?php
                         if (isset($_SESSION['message-signup'])) {
@@ -240,7 +241,7 @@
                                         <div class="col-sm-6 form-control-validation">
                                             <label class="form-label" for="gender">Select Your Gender</label>
                                             <select class="form-select" id="gender" name="gender" data-allow-clear="true">
-                                                <option value="" selected>Select Gender</option>
+                                                <option value="" selected disabled>Select Gender</option>
                                                 <option value="Male">Male</option>
                                                 <option value="Female">Female</option>
                                             </select>
@@ -361,6 +362,12 @@
 
     <!-- Page JS -->
     <script src="../../assets/js/pages-auth-multisteps.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#gender').select2();
+        });
+    </script>
 </body>
 
 </html>

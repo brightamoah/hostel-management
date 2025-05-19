@@ -55,10 +55,11 @@ class Login
 
             if (is_array($user) && isset($user['error'])) {
                 if ($user['error'] === 'Email not verified') {
-                    $_SESSION['message'] = 'Please verify your email before logging in.';
-                    $_SESSION['message_type'] = 'danger';
+                    // $_SESSION['message'] = 'Please verify your email before logging in.';
+                    // $_SESSION['message_type'] = 'danger';
                     $_SESSION['email_to_verify'] = $email;
                     header('Location: /verify-email');
+
                     exit;
                 } elseif ($user['error'] === 'Email does not exist') {
                     $_SESSION['message'] = 'No account found with this email. Please sign up.';

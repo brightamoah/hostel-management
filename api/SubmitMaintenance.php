@@ -8,7 +8,9 @@ $m_controller = new MaintenanceController();
 $result = $m_controller->submitMaintenanceRequest();
 
 if ($result) {
-    echo json_encode(['success' => true, 'message' => 'Maintenance request submitted successfully']);
+    $response = json_encode(['success' => true, 'message' => 'Maintenance request submitted successfully']);
+    out($response);
 } else {
-    echo json_encode(['success' => false, 'error' => 'Failed to submit maintenance request']);
-}
+   $response = json_encode(['success' => false, 'error' => 'Failed to submit maintenance request']);
+    out($response);
+}   

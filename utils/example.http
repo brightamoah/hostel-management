@@ -1,0 +1,5 @@
+
+GET http://localhost/admin/announcements/fetch-targets/admin
+Cookie: 5115j7ufe8ono9odj9gi33nn58
+Content-Type: application/x-www-form-urlencoded
+

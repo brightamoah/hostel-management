@@ -391,6 +391,20 @@ CREATE TABLE visitor_logs (
     FOREIGN KEY (visitor_id) REFERENCES visitors (visitor_id) ON DELETE CASCADE
 );
 
+-- Table structure for table `announcement_specific_targets`
+CREATE TABLE announcement_specific_targets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    announcement_id INT NOT NULL,
+    target_type ENUM(
+        'student',
+        'admin',
+        'building',
+        'room'
+    ) NOT NULL,
+    target_id INT NOT NULL,
+    FOREIGN KEY (announcement_id) REFERENCES announcements (announcement_id) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
 INSERT INTO
     visitor_logs (
         visitor_id,
