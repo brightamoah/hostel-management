@@ -4,7 +4,6 @@ require_once "./app/models/User.php";
 require_once "./utils/functions.php";
 require_once "./vendor/autoload.php";
 
-
 if (!isset($_SESSION['email_to_verify'])) {
     header('Location: /signup');
     exit;
@@ -115,6 +114,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="../../assets/vendor/js/helpers.js"></script>
     <script src="../../assets/vendor/js/template-customizer.js"></script>
     <script src="../../assets/js/config.js"></script>
+
+    <!-- Custom CSS for Spinner Alignment -->
+    <style>
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            vertical-align: middle;
+        }
+
+        .resend-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
 </head>
 
 <body>
@@ -132,26 +146,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php unset($_SESSION['message-verify'], $_SESSION['message_type']); ?>
                     <?php endif; ?>
 
-                    <form method="post" action="/verify-email">
+                    <form id="verifyEmailForm" method="post" action="/verify-email">
                         <?php set_csrf(); ?>
                         <div class="mb-3">
                             <label for="verification_code" class="form-label">Verification Code</label>
                             <input type="text" class="form-control" id="verification_code" name="verification_code" placeholder="Enter 6-digit code" required maxlength="6" />
                         </div>
-                        <button type="submit" class="btn btn-primary d-grid w-100">
-                            <span class="d-flex align-items-center justify-content-center">
-                                <span>Verify Email</span>
-                            </span>
+                        <button type="submit" class="btn btn-primary d-grid w-100" id="verifyButton">
+                            <span class="button-content">Verify Email</span>
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         </button>
                     </form>
 
                     <div class="text-center mt-3">
                         <?php if ($can_resend): ?>
-                            <p>Didn't receive the code? <a href="/verify-email?resend=1" class="text-primary">Resend</a></p>
+                            <p class="resend-container">
+                                Didn't receive the code?
+                                <a href="/verify-email?resend=1" class="text-primary" id="resendLink">
+                                    <span class="resend-text">Resend</span>
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </a>
+                            </p>
                         <?php else: ?>
                             <p>
-                                Resend available in <span id="countdown" class="text-danger fw-bold"
-                                    data-time-remaining="<?php echo $time_remaining; ?>">
+                                Resend available in
+                                <span id="countdown" class="text-danger fw-bold" data-time-remaining="<?php echo $time_remaining; ?>">
                                     <?php echo gmdate("i:s", $time_remaining); ?>
                                 </span>
                             </p>
@@ -170,8 +189,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="../../assets/js/main.js"></script>
 
     <script>
-        // Countdown timer for resend cooldown
         document.addEventListener('DOMContentLoaded', function() {
+            // Handle form submission with spinner and 2-second delay
+            const verifyForm = document.getElementById('verifyEmailForm');
+            const verifyButton = document.getElementById('verifyButton');
+            const buttonContent = verifyButton.querySelector('.button-content');
+            const buttonSpinner = verifyButton.querySelector('.spinner-border');
+
+            if (verifyForm) {
+                verifyForm.addEventListener('submit', function(e) {
+                    e.preventDefault(); // Prevent immediate form submission
+                    // Show spinner and disable button
+                    buttonContent.classList.add('d-none');
+                    buttonSpinner.classList.remove('d-none');
+                    verifyButton.disabled = true;
+
+                    // Delay form submission by 2 seconds
+                    setTimeout(function() {
+                        verifyForm.submit(); // Programmatically submit the form
+                    }, 2000);
+                });
+            }
+
+            // Handle resend link click with spinner
+            const resendLink = document.getElementById('resendLink');
+            if (resendLink) {
+                resendLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const resendText = resendLink.querySelector('.resend-text');
+                    const resendSpinner = resendLink.querySelector('.spinner-border');
+
+                    // Show spinner and disable link
+                    resendText.classList.add('d-none');
+                    resendSpinner.classList.remove('d-none');
+                    resendLink.style.pointerEvents = 'none';
+
+                    // Navigate to resend URL
+                    window.location.href = resendLink.href;
+                });
+            }
+
+            // Countdown timer for resend cooldown
             const countdownEl = document.getElementById('countdown');
             if (countdownEl) {
                 let timeRemaining = parseInt(countdownEl.dataset.timeRemaining, 10);
@@ -180,7 +238,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (timeRemaining <= 0) {
                         // Replace the countdown with the resend link when time is up
                         const resendContainer = countdownEl.parentElement;
-                        resendContainer.innerHTML = 'Didn\'t receive the code? <a href="/verify-email?resend=1" class="text-primary">Resend</a>';
+                        resendContainer.innerHTML = `
+                            <span class="resend-container">
+                                Didn't receive the code?
+                                <a href="/verify-email?resend=1" class="text-primary" id="resendLink">
+                                    <span class="resend-text">Resend</span>
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </a>
+                            </span>
+                        `;
+
+                        // Re-attach event listener to the new resend link
+                        const newResendLink = document.getElementById('resendLink');
+                        if (newResendLink) {
+                            newResendLink.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                const resendText = newResendLink.querySelector('.resend-text');
+                                const resendSpinner = newResendLink.querySelector('.spinner-border');
+
+                                // Show spinner and disable link
+                                resendText.classList.add('d-none');
+                                resendSpinner.classList.remove('d-none');
+                                newResendLink.style.pointerEvents = 'none';
+
+                                // Navigate to resend URL
+                                window.location.href = newResendLink.href;
+                            });
+                        }
                         return;
                     }
 

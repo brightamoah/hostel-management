@@ -53,6 +53,8 @@ get('/admin/visitor/$id', 'api/admin/GetVisitorById.php', ['auth', 'admin']);
 get('/visitor/logs/$id', 'api/admin/GetVisitorLogs.php', ['auth', 'admin']);
 get('/admin/maintenance-data', 'api/admin/GetAllMaintenanceRequest.php', ['auth', 'admin']);
 get('/admin/maintenance/$r_id', 'api/admin/GetMaintenanceById.php', ['auth', 'admin']);
+get('/admin/announcement/submit-edit', 'api/admin/announcement/EditAnnouncement.php', ['auth', 'admin']);
+
 
 
 // Admin Routes
@@ -60,6 +62,10 @@ get('/admin/dashboard', '/pages/admin/admin_dashboard.php', ['auth', 'admin']);
 get('/admin/profile', './pages/admin/profile.php', ['auth', 'admin']);
 get('/admin/analytics', 'pages/admin/analytics.php', ['auth', 'admin']);
 get('/admin/announcements', 'pages/admin/announcements.php', ['auth', 'admin']);
+get('/admin/announcements/create', 'pages/admin/create_announcements.php', ['auth', 'admin']);
+get('/admin/announcements/edit/$a_id', 'pages/admin/edit_announcement.php', ['auth', 'admin']);
+get('/admin/announcements/fetch-targets/$type', 'api/admin/announcement/fetchTargets.php', ['auth', 'admin']);
+
 get('/admin/billings', 'pages/admin/billings.php', ['auth', 'admin']);
 get('/admin/complaints', 'pages/admin/complaints.php', ['auth', 'admin']);
 get('/admin/maintenance', 'pages/admin/maintenance.php', ['auth', 'admin']);
@@ -106,6 +112,9 @@ post('/admin/visitor/$id/check_in', 'api/admin/CheckInVisitor.php', ['auth', 'ad
 post('/admin/visitor/$id/check_out', 'api/admin/CheckOutVisitor.php', ['auth', 'admin']);
 post('/admin/maintenance/add-response', 'api/admin/AddNewResponse.php', ['auth', 'admin']);
 post('/admin/maintenance/update-status', 'api/admin/UpdateMaintenanceStatus.php', ['auth', 'admin']);
+post('/admin/announcements/action', 'app/admin/announcements_logic.php', ['admin']);
+post("/admin/announcements/create", "pages/admin/create_announcements.php", ['auth', 'admin']);
+// post('/api/admin/fetch-targets', 'api/admin/announcement/fetchTargets.php', ['auth', 'admin']);
 
 // Room Management Routes (Admin)
 post('/admin/room/add', '/app/controllers/rooms/AddRoom.php', ['auth', 'admin']);

@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../utils/active_route.php";
+
 // Ensure session is started (already done in router.php)
 if (!isset($_SESSION['user'])) {
     header('Location: /login');
@@ -36,6 +38,8 @@ $menu_items = ($role === 'Admin') ? [
 
 // Define logout item separately
 $logout_item = ['route' => '/logout', 'label' => 'Logout', 'icon' => 'bx-log-out'];
+
+
 ?>
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu">
@@ -55,7 +59,7 @@ $logout_item = ['route' => '/logout', 'label' => 'Logout', 'icon' => 'bx-log-out
 
     <ul class="menu-inner py-1 gap-5">
         <?php foreach ($menu_items as $item): ?>
-            <li class="menu-item <?php echo ($current_route === $item['route']) ? 'active' : ''; ?>">
+            <li class="menu-item <?php echo isRouteActive($item['route'], $current_route) ? 'active' : ''; ?>">
                 <a href="<?php echo htmlspecialchars($item['route']); ?>" class="menu-link">
                     <i class="menu-icon icon-lg bx <?php echo htmlspecialchars($item['icon']); ?>"></i>
                     <div data-i18n="<?php echo htmlspecialchars($item['label']); ?>">
@@ -69,7 +73,7 @@ $logout_item = ['route' => '/logout', 'label' => 'Logout', 'icon' => 'bx-log-out
     <!-- Footer section for logout -->
     <div class="menu-footer mt-auto py-3">
         <ul class="menu-inner">
-            <li class="menu-item <?php echo ($current_route === $logout_item['route']) ? 'active' : ''; ?>">
+            <li class="menu-item <?php echo isRouteActive($logout_item['route'], $current_route) ? 'active' : ''; ?>">
                 <a href="<?php echo htmlspecialchars($logout_item['route']); ?>" class="menu-link">
                     <i class="menu-icon icon-lg bx <?php echo htmlspecialchars($logout_item['icon']); ?>"></i>
                     <div data-i18n="<?php echo htmlspecialchars($logout_item['label']); ?>">

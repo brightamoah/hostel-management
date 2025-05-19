@@ -5,3 +5,4 @@ $visitor_id = $id;
 
 $controller = new VisitorController();
 $controller->getVisitorLogs($visitor_id);
+     
