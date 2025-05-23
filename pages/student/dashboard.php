@@ -119,7 +119,7 @@ require_once "./app/controllers/student.php";
                                                     </p>
                                                 </div>
                                                 <small class="mb-0">
-                                                    <?= $room_allocation ? "Cost: $" . number_format($room_allocation['amount'], 2) : "No room allocated" ?>
+                                                    <?= $room_allocation ? "Cost: GH₵" . number_format($room_allocation['amount'], 2) : "No room allocated" ?>
                                                 </small>
                                             </div>
                                             <div class="avatar">
@@ -152,7 +152,7 @@ require_once "./app/controllers/student.php";
                                             </div>
                                             <div class="avatar">
                                                 <span class="avatar-initial rounded bg-label-danger">
-                                                    <i class="icon-base bx bx-dollar icon-lg"></i>
+                                                    <i class="icon-base bx bx-money icon-lg"></i>
                                                 </span>
                                             </div>
                                         </div>

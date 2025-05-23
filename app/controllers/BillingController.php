@@ -1,16 +1,19 @@
 <?php
-require_once "./app/models/Student.php";
-require_once "./database/db.php";
+// require_once "./app/models/Student.php";
+require_once __DIR__ . "/../models/Student.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../models/Billing.php";
+
 
 class BillingController
 {
     private $studentModel;
+    private $billingModel;
 
     public function __construct()
     {
-        $db = new Database();
-        $conn = $db->connect();
-        $this->studentModel = new Student($conn);
+        $this->studentModel = new Student(getDb());
+        $this->billingModel = new Billing();
     }
 
     public function getBillings()
@@ -57,5 +60,25 @@ class BillingController
             echo json_encode(['success' => false, 'error' => 'Invalid request or CSRF token']);
             exit();
         }
+    }
+
+    public function getBillingData()
+    {
+        // header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            echo json_encode(['error' => 'Invalid request method'], JSON_PRETTY_PRINT);
+            http_response_code(405);
+            exit;
+        }
+
+        try {
+            $billings = $this->billingModel->getBillings($_GET);
+            // echo json_encode(['data' => $billings]);
+            // echo json_encode($billings, JSON_PRETTY_PRINT);
+            return $billings;
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit();
     }
 }

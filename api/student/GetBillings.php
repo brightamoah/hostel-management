@@ -1,5 +1,5 @@
 <?php
-require_once "./app/controllers/BillingController.php";
+require_once __DIR__. "/../../app/controllers/BillingController.php";
 
 $controller = new BillingController();
 $controller->getBillings();

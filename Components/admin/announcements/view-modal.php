@@ -27,15 +27,16 @@
                         <div class="avatar avatar-sm me-3 bg-label-primary rounded-circle">
                             <span class="avatar-initial rounded-circle"><i class="bx bx-user"></i></span>
                         </div>
-                        <div>
+                        <div id="view_posted_by">
                             <span class="text-muted small">Posted by</span>
                             <h6 class="mb-0" id="view_posted_by">Admin</h6>
                         </div>
                     </div>
                     <div class="d-flex align-items-center">
-                        <span class="text-muted small me-2">Read Status:</span>
-                        <div class="badge bg-success d-flex align-items-center">
-                            <i class="bx bx-check-circle me-1"></i> 235 reads
+                        <span class="text-muted small me-2">Read By:</span>
+                        <div class="badge bg-success d-flex align-items-center" id="view_read_stats">
+                            <!-- <i class="bx bx-check-circle me-1"></i> 235 reads -->
+
                         </div>
                     </div>
                 </div>

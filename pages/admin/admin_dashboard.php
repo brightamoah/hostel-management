@@ -1,7 +1,8 @@
 <?php
-require_once "./database/db.php";
-require_once "./app/admin/dashboard_data.php";
-require_once "./app/controllers/Login.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ .  "/../../app/admin/dashboard_data.php";
+require_once __DIR__ . "/../../app/controllers/Login.php";
+
 ?>
 
 <!DOCTYPE html>
@@ -436,7 +437,7 @@ require_once "./app/controllers/Login.php";
                                         <h5 class="card-title mb-0">Recent Payments</h5>
                                         <div class="d-flex justify-content-between align-items-center row pt-4 gap-md-0 g-6">
                                             <div class="col-md-4">
-                                                <select id="statusFilter" class="form-select">
+                                                <select id="paymentStatusFilter" class="form-select">
                                                     <option value="">All Statuses</option>
                                                     <option value="Completed">Completed</option>
                                                     <option value="Pending">Pending</option>
@@ -462,7 +463,41 @@ require_once "./app/controllers/Login.php";
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <!-- Data will be populated via AJAX -->
+                                                    <?php foreach ($recent_payments as $payment): ?>
+                                                        <tr data-payment-id="<?= $payment['payment_id'] ?>"
+                                                            data-student-name="<?= htmlspecialchars($payment['student_name']) ?>"
+                                                            data-student-id="<?= $payment['student_id'] ?>"
+                                                            data-amount="<?= htmlspecialchars($payment['amount']) ?>"
+                                                            data-purpose="<?= htmlspecialchars($payment['purpose']) ?>"
+                                                            data-date="<?= htmlspecialchars($payment['payment_date']) ?>"
+                                                            data-status="<?= htmlspecialchars($payment['status']) ?>">
+                                                            <td data-bs-toggle="tooltip" title="<?= htmlspecialchars($payment['student_name']) ?>">
+                                                                <?= htmlspecialchars($payment['student_name']) ?>
+                                                            </td>
+                                                            <td>GH₵ <?= number_format($payment['amount'], 2) ?></td>
+                                                            <td><?= htmlspecialchars($payment['purpose']) ?></td>
+                                                            <td><?= date('d M Y', strtotime($payment['payment_date'])) ?></td>
+                                                            <td>
+                                                                <span class="badge bg-label-<?=
+                                                                                            $payment['status'] == 'Completed' ? 'success' : ($payment['status'] == 'Pending' ? 'warning' : 'danger') ?>">
+                                                                    <?= htmlspecialchars($payment['status']) ?>
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <div class="d-flex gap-2">
+                                                                    <button type="button" class="btn btn-sm btn-icon view-payment-details"
+                                                                        data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                                                        <i class="bx bx-show icon-md"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                    <?php if (empty($recent_payments)): ?>
+                                                        <tr>
+                                                            <td colspan="6" class="text-center">No recent payments</td>
+                                                        </tr>
+                                                    <?php endif; ?>
                                                 </tbody>
                                             </table>
                                         </div>

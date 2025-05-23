@@ -140,3 +140,80 @@ END IF;
 END
 
 $$ DELIMITER;
+
+
+-- Trigger to update the status of billings depending on the paid amount, due date, start date, and cancellation
+DELIMITER / /
+
+-- Drop existing triggers if they exist
+DROP TRIGGER IF EXISTS update_billing_status_before_insert;
+
+DROP TRIGGER IF EXISTS update_billing_status_before_update;
+
+-- BEFORE INSERT trigger
+CREATE TRIGGER update_billing_status_before_insert
+BEFORE INSERT ON billing
+FOR EACH ROW
+BEGIN
+    IF NEW.status = 'Cancelled' THEN
+        -- Retain Cancelled status
+        SET NEW.status = 'Cancelled';
+    ELSEIF NEW.date_due < NOW() AND NEW.paid_amount < NEW.amount THEN
+        -- Set to Overdue if due date has passed and not fully paid
+        SET NEW.status = 'Overdue';
+    ELSEIF NEW.paid_amount >= NEW.amount THEN
+        -- Set to Fully Paid if payment covers the full amount
+        SET NEW.status = 'Fully Paid';
+    ELSEIF NEW.paid_amount > 0 AND NEW.paid_amount < NEW.amount THEN
+        -- Set to Partially Paid if partial payment has been made
+        SET NEW.status = 'Partially Paid';
+    ELSE
+        -- Set to Unpaid if no payment has been made
+        SET NEW.status = 'Unpaid';
+    END IF;
+END//
+
+-- BEFORE UPDATE trigger
+CREATE TRIGGER update_billing_status_before_update
+BEFORE UPDATE ON billing
+FOR EACH ROW
+BEGIN
+    IF NEW.status = 'Cancelled' THEN
+        -- Retain Cancelled status
+        SET NEW.status = 'Cancelled';
+    ELSEIF NEW.date_due < NOW() AND NEW.paid_amount < NEW.amount THEN
+        -- Set to Overdue if due date has passed and not fully paid
+        SET NEW.status = 'Overdue';
+    ELSEIF NEW.paid_amount >= NEW.amount THEN
+        -- Set to Fully Paid if payment covers the full amount
+        SET NEW.status = 'Fully Paid';
+    ELSEIF NEW.paid_amount > 0 AND NEW.paid_amount < NEW.amount THEN
+        -- Set to Partially Paid if partial payment has been made
+        SET NEW.status = 'Partially Paid';
+    ELSE
+        -- Set to Unpaid if no payment has been made
+        SET NEW.status = 'Unpaid';
+    END IF;
+END//
+
+DELIMITER;
+
+CREATE EVENT IF NOT EXISTS check_overdue_bills
+ON SCHEDULE EVERY 1 DAY
+STARTS CURRENT_DATE + INTERVAL 1 DAY
+DO
+BEGIN
+    UPDATE billing
+    SET 
+        status = 'Overdue',
+        late_fee = CASE 
+            WHEN late_fee = 0 OR late_fee IS NULL THEN amount * 0.05
+            ELSE late_fee
+        END
+    WHERE 
+        status IN ('Unpaid', 'Partially Paid') 
+        AND date_due < NOW() 
+        AND status != 'Cancelled';
+END
+/
+/

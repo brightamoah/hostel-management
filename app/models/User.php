@@ -94,7 +94,7 @@ class User
         $stmt->bind_param("iss", $user_id, $token, $expires_at);
         $success = $stmt->execute();
         if (!$success) {
-            error_log("Failed to insert remember token for user_id: $user_id - " . $stmt->error);
+            error_log("Failed to insert remember token for user_id: $user_id - {$stmt->error}");
         }
         $stmt->close();
         return $success ? $token : false;
@@ -310,7 +310,8 @@ class User
 
 
     // User Creation for Admin Panel
-    public function adminCreateUser($name,$email,$password,$role,){
+    public function adminCreateUser($name, $email, $password, $role,)
+    {
         if (!in_array($role, ['Student', 'Admin'])) {
             throw new Exception("Invalid role specified for admin creation.");
         }
@@ -350,6 +351,42 @@ class User
 
         return $user_id; // Return user ID
     }
+
+    public function getAdminById($admin_id)
+    {
+        $query = "SELECT * FROM admins WHERE admin_id = ?";
+        $stmt = $this->connection->prepare($query);
+        if (!$stmt) {
+            throw new Exception("Failed to prepare statement: {$this->connection->error}");
+        }
+
+        $stmt->bind_param("i", $admin_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        $stmt->close();
+
+        return $user;
+    }
+
+    public function getUserById($user_id)
+    {
+        $query = "SELECT * FROM {$this->table} WHERE user_id = ?";
+        $stmt = $this->connection->prepare($query);
+        if (!$stmt) {
+            throw new Exception("Failed to prepare statement: {$this->connection->error}");
+        }
+
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        $stmt->close();
+
+        return $user;
+    }
+
+
 
     public function __destruct()
     {
