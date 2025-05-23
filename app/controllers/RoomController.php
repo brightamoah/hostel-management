@@ -15,7 +15,7 @@ class RoomController
     {
         header('Content-Type: application/json');
         $rooms = $this->roomModel->getAvailableRooms();
-        out(json_encode(['data' => $rooms]));
+        echo json_encode(['data' => $rooms]);
         exit();
     }
 

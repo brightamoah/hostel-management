@@ -1,5 +1,5 @@
 <?php
-require_once "./database/db.php";
+require_once __DIR__. "/../../database/db.php";
 
 class MaintenanceRequest
 {
@@ -8,8 +8,8 @@ class MaintenanceRequest
 
     public function __construct()
     {
-        $this->db = new Database();
-        $this->conn = $this->db->connect();
+
+        $this->conn = getDb();
     }
 
 
@@ -241,6 +241,6 @@ class MaintenanceRequest
 
     public function __destruct()
     {
-        $this->db->close();
+        $this->conn->close();
     }
 }

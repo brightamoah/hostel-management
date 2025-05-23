@@ -241,10 +241,10 @@ class Rooms
     }
 
     // Book a room
-    // Book a room
-    public function bookRoom($student_id, $room_id, $start_date, $end_date = null) // Allow null end_date
+
+    public function bookRoom($student_id, $room_id, $start_date, $end_date = null)
     {
-        // Validate inputs (using previous refined version's validation)
+        // Validate inputs
         if (!filter_var($student_id, FILTER_VALIDATE_INT) || $student_id <= 0) {
             throw new Exception("Invalid Student ID.");
         }
@@ -261,20 +261,24 @@ class Rooms
             throw new Exception("End date cannot be before start date.");
         }
 
-        // Format dates for DB (Assuming DATE type for start/end/due based on schema)
-        $start_date_db = date('Y-m-d', $start_timestamp);
-        $end_date_db = ($end_date === null) ? null : date('Y-m-d', $end_timestamp);
+        // Format dates for DB
+        $start_date_db = date('Y-m-d H:i:s', $start_timestamp);
+        $end_date_db = ($end_date === null) ? null : date('Y-m-d H:i:s', $end_timestamp);
 
         $this->conn->begin_transaction();
         try {
             // Step 1: Check room availability and get details, lock the row
             $room_query = "
-                SELECT room_id, room_number, capacity, current_occupancy, amount
-                FROM rooms
-                WHERE room_id = ? AND status IN ('Vacant', 'Partially Occupied')
+                SELECT r.room_id, r.room_number, r.building, r.room_type, r.capacity, 
+                       r.current_occupancy, r.amount
+                FROM rooms r
+                WHERE r.room_id = ? AND r.status IN ('Vacant', 'Partially Occupied')
                 FOR UPDATE";
             $stmt_room = $this->conn->prepare($room_query);
-            if (!$stmt_room) throw new Exception("Prepare failed (room_query): " . $this->conn->error);
+            if (!$stmt_room) {
+                throw new Exception("Prepare failed (room_query): " . $this->conn->error);
+            }
+
             $stmt_room->bind_param("i", $room_id);
             $stmt_room->execute();
             $result_room = $stmt_room->get_result();
@@ -299,7 +303,10 @@ class Rooms
                 INSERT INTO allocations (student_id, room_id, start_date, end_date, status)
                 VALUES (?, ?, ?, ?, ?)";
             $stmt_alloc = $this->conn->prepare($query_alloc);
-            if (!$stmt_alloc) throw new Exception("Prepare failed (alloc_query): " . $this->conn->error);
+            if (!$stmt_alloc) {
+                throw new Exception("Prepare failed (alloc_query): " . $this->conn->error);
+            }
+
             $stmt_alloc->bind_param("iisss", $student_id, $room_id, $start_date_db, $end_date_db, $alloc_status);
             if (!$stmt_alloc->execute()) {
                 if ($this->conn->errno == 1062) {
@@ -313,55 +320,54 @@ class Rooms
             // Step 4: Update rooms.current_occupancy
             $query_update_room = "
                 UPDATE rooms
-                SET current_occupancy = current_occupancy + 1
+                SET current_occupancy = current_occupancy + 1,
+                    status = CASE 
+                        WHEN current_occupancy + 1 >= capacity THEN 'Fully Occupied'
+                        WHEN current_occupancy + 1 > 0 THEN 'Partially Occupied'
+                        ELSE status
+                    END
                 WHERE room_id = ?";
             $stmt_update_room = $this->conn->prepare($query_update_room);
-            if (!$stmt_update_room) throw new Exception("Prepare failed (update_room_query): " . $this->conn->error);
+            if (!$stmt_update_room) {
+                throw new Exception("Prepare failed (update_room_query): " . $this->conn->error);
+            }
+
             $stmt_update_room->bind_param("i", $room_id);
             if (!$stmt_update_room->execute()) {
-                throw new Exception("Failed to update room occupancy: " . $stmt_update_room->error);
+                throw new Exception("Failed to update room occupancy: {$stmt_update_room->error}");
             }
             $stmt_update_room->close();
 
-            // Step 5: Insert into billing
-            $billing_query = "
-                INSERT INTO billing (student_id, allocation_id, amount, description, date_due, status)
-                VALUES (?, ?, ?, ?, ?, 'Unpaid')"; // 5 placeholders
-            $stmt_billing = $this->conn->prepare($billing_query);
-            if (!$stmt_billing) throw new Exception("Prepare failed (billing_query): " . $this->conn->error);
+            // Step 5: Create billing record for the room booking
+            $description = "Room fee for {$room['room_number']} - {$room['room_type']} in {$room['building']}";
+            $date_due = date('Y-m-d H:i:s', strtotime('+30 days')); // Due in 30 days
+            $billing_status = 'Unpaid';
+            $amount = $room['amount'];
+            $paid_amount = 0.00;
 
-            // Use room_number fetched earlier
-            $description = "Room " . $room['room_number'] . " allocation fee starting " . $start_date_db;
-            // Calculate due date (e.g., 30 days from start date, format as DATE)
-            $date_due_timestamp = strtotime("$start_date_db +30 days");
-            $date_due_db = date('Y-m-d', $date_due_timestamp); // Format as DATE
-
-            // ***** CORRECTED LINE *****
-            $stmt_billing->bind_param(
-                "iidss", // Correct type string: i, i, d, s, s
-                $student_id,        // i
-                $allocation_id,     // i
-                $room['amount'],    // d
-                $description,       // s
-                $date_due_db        // s (DATE is bound as string)
-            );
-            // ***** END CORRECTION *****
-
-            if (!$stmt_billing->execute()) {
-                throw new Exception("Failed to create billing record: " . $stmt_billing->error);
+            $query_billing = "
+                INSERT INTO billing (student_id, allocation_id, amount, description, date_due, status, paid_amount)
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $stmt_billing = $this->conn->prepare($query_billing);
+            if (!$stmt_billing) {
+                throw new Exception("Prepare failed (billing_query): " . $this->conn->error);
             }
+
+            $stmt_billing->bind_param("iidsssd", $student_id, $allocation_id, $amount, $description, $date_due, $billing_status, $paid_amount);
+            if (!$stmt_billing->execute()) {
+                throw new Exception("Failed to create billing record: {$stmt_billing->error}");
+            }
+            $billing_id = $this->conn->insert_id;
             $stmt_billing->close();
 
             // If all steps succeeded
             $this->conn->commit();
-            error_log("Room booking successful for student $student_id, room $room_id, allocation $allocation_id.");
+            error_log("Room booking successful for student $student_id, room $room_id, allocation $allocation_id, billing $billing_id");
             return true;
         } catch (Exception $e) {
             $this->conn->rollback();
-            // Log the specific error message from the exception
             error_log("Booking failed for student_id $student_id, room_id $room_id: " . $e->getMessage());
-            // Re-throw the exception for the controller to handle
-            throw $e; // Keep original exception message for clarity
+            throw $e; // Re-throw the exception for the controller to handle
         }
     }
 

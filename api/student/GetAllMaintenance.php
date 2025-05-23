@@ -1,5 +1,5 @@
 <?php
-require_once "./app/controllers/MaintenanceController.php";
+require_once __DIR__. "/../../app/controllers/MaintenanceController.php";
 
 header("Content-Type: application/json");
 

@@ -53,7 +53,13 @@ get('/admin/visitor/$id', 'api/admin/GetVisitorById.php', ['auth', 'admin']);
 get('/visitor/logs/$id', 'api/admin/GetVisitorLogs.php', ['auth', 'admin']);
 get('/admin/maintenance-data', 'api/admin/GetAllMaintenanceRequest.php', ['auth', 'admin']);
 get('/admin/maintenance/$r_id', 'api/admin/GetMaintenanceById.php', ['auth', 'admin']);
-get('/admin/announcement/submit-edit', 'api/admin/announcement/EditAnnouncement.php', ['auth', 'admin']);
+get('/admin/announcements-data', 'api/admin/announcement/GetAnnouncements.php', ['auth', 'admin']);
+get('/admin/announcements/$a_id', 'api/admin/announcement/GetAnnouncementById.php', ['auth', 'admin']);
+get('/admin/billing-data', 'api/admin/billings/GetBillingData.php', ['auth', 'admin']);
+get('/admin/billing/$bill_id', 'api/admin/billings/GetBillingById.php', ['auth', 'admin']);
+get('/admin/building-data', 'api/admin/billings/GetBuilding.php', ['auth', 'admin']);
+get('/admin/students-data', 'api/admin/billings/GetStudents.php', ['auth', 'admin']);
+
 
 
 
@@ -62,7 +68,7 @@ get('/admin/dashboard', '/pages/admin/admin_dashboard.php', ['auth', 'admin']);
 get('/admin/profile', './pages/admin/profile.php', ['auth', 'admin']);
 get('/admin/analytics', 'pages/admin/analytics.php', ['auth', 'admin']);
 get('/admin/announcements', 'pages/admin/announcements.php', ['auth', 'admin']);
-get('/admin/announcements/create', 'pages/admin/create_announcements.php', ['auth', 'admin']);
+get('/admin/create-announcements', 'pages/admin/create_announcements.php', ['auth', 'admin']);
 get('/admin/announcements/edit/$a_id', 'pages/admin/edit_announcement.php', ['auth', 'admin']);
 get('/admin/announcements/fetch-targets/$type', 'api/admin/announcement/fetchTargets.php', ['auth', 'admin']);
 
@@ -72,6 +78,7 @@ get('/admin/maintenance', 'pages/admin/maintenance.php', ['auth', 'admin']);
 get('/admin/rooms', 'pages/admin/rooms.php', ['auth', 'admin']);
 get('/admin/users', 'pages/admin/users.php', ['auth', 'admin']);
 get('/admin/visitors', 'pages/admin/visitors.php', ['auth', 'admin']);
+
 
 
 // Student Routes
@@ -114,6 +121,7 @@ post('/admin/maintenance/add-response', 'api/admin/AddNewResponse.php', ['auth',
 post('/admin/maintenance/update-status', 'api/admin/UpdateMaintenanceStatus.php', ['auth', 'admin']);
 post('/admin/announcements/action', 'app/admin/announcements_logic.php', ['admin']);
 post("/admin/announcements/create", "pages/admin/create_announcements.php", ['auth', 'admin']);
+post('/admin/announcements/edit/$a_id', 'pages/admin/edit_announcement.php', ['auth', 'admin']);
 // post('/api/admin/fetch-targets', 'api/admin/announcement/fetchTargets.php', ['auth', 'admin']);
 
 // Room Management Routes (Admin)

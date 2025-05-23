@@ -1,0 +1,766 @@
+// File: assets/js/admin-billing-list.js
+(function () {
+   ("use strict");
+
+   const dt_billing_table = document.querySelector(".datatables-billings");
+
+   const formatCurrency = (amount) => {
+      return new Intl.NumberFormat("en-GH", {
+         style: "currency",
+         currency: "GHS",
+         minimumFractionDigits: 2,
+      }).format(amount);
+   };
+
+   const formatDate = (date) => {
+      //use intl
+      return new Intl.DateTimeFormat("en-US", {
+         year: "numeric",
+         month: "long",
+         day: "numeric",
+      }).format(new Date(date));
+   };
+
+   if (dt_billing_table) {
+      const csrfToken =
+         document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content") || "";
+      let dt;
+
+      dt = new DataTable(dt_billing_table, {
+         ajax: "/admin/billing-data",
+         processing: true,
+         serverSide: false,
+         layout: {
+            topStart: {
+               rowClass: "row mx-3 my-0 justify-content-between",
+               features: [
+                  {
+                     pageLength: {
+                        menu: [5, 10, 25, 50],
+                        text: "Show _MENU_ entries",
+                     },
+                  },
+               ],
+            },
+            bottomStart: {
+               rowClass: "row mx-3 justify-content-between",
+               features: ["info"],
+            },
+            bottomEnd: {
+               paging: {
+                  firstLast: false,
+               },
+            },
+            topEnd: {
+               rowClass: "row mx-3 my-0 justify-content-between",
+               features: [
+                  {
+                     search: {
+                        placeholder: "Search Billing",
+                        text: "_INPUT_",
+                     },
+                  },
+                  {
+                     buttons: [
+                        {
+                           extend: "collection",
+                           className:
+                              "btn btn-label-secondary dropdown-toggle ms-4",
+                           text: '<span class="d-flex align-items-center gap-2"><i class="icon-base bx bx-export icon-sm"></i> <span class="d-none d-sm-inline-block">Export</span></span>',
+                           buttons: [
+                              {
+                                 extend: "csv",
+                                 text: '<span class="d-flex align-items-center"><i class="icon-base bx bx-file me-2"></i>Csv</span>',
+                                 className: "dropdown-item",
+                                 exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6, 7],
+                                    format: {
+                                       body: function (
+                                          data,
+                                          row,
+                                          column,
+                                          node
+                                       ) {
+                                          return data.replace(/<[^>]+>/g, "");
+                                       },
+                                    },
+                                 },
+                              },
+                              {
+                                 extend: "excel",
+                                 text: '<span class="d-flex align-items-center"><i class="icon-base bx bxs-file-export me-2"></i>Excel</span>',
+                                 className: "dropdown-item",
+                                 exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6, 7],
+                                    format: {
+                                       body: function (
+                                          data,
+                                          row,
+                                          column,
+                                          node
+                                       ) {
+                                          return data.replace(/<[^>]+>/g, "");
+                                       },
+                                    },
+                                 },
+                              },
+                              {
+                                 extend: "pdf",
+                                 text: '<span class="d-flex align-items-center"><i class="icon-base bx bxs-file-pdf me-2"></i>Pdf</span>',
+                                 className: "dropdown-item",
+                                 exportOptions: {
+                                    columns: [1, 2, 3, 4, 5, 6, 7],
+                                    format: {
+                                       body: function (
+                                          data,
+                                          row,
+                                          column,
+                                          node
+                                       ) {
+                                          let cleanData = data.replace(
+                                             /<[^>]+>/g,
+                                             ""
+                                          );
+                                          return cleanData;
+                                       },
+                                    },
+                                 },
+                                 customize: function (doc) {
+                                    if (
+                                       !doc ||
+                                       !doc.content ||
+                                       doc.content.length < 2 ||
+                                       !doc.content[1].table
+                                    ) {
+                                       console.warn(
+                                          "PDF structure not as expected:",
+                                          doc
+                                       );
+                                       return;
+                                    }
+
+                                    doc.styles = doc.styles || {};
+                                    doc.styles.tableHeader =
+                                       doc.styles.tableHeader || {};
+                                    doc.styles.tableBodyOdd =
+                                       doc.styles.tableBodyOdd || {};
+                                    doc.styles.tableBodyEven =
+                                       doc.styles.tableBodyEven || {};
+                                    doc.defaultStyle = doc.defaultStyle || {};
+
+                                    try {
+                                       doc.content[1].table.widths = [
+                                          "10%", // Invoice ID
+                                          "20%", // Student
+                                          "15%", // Amount
+                                          "15%", // Date Issued
+                                          "15%", // Due Date
+                                          "10%", // Status
+                                          "15%", // Paid Amount
+                                       ];
+
+                                       doc.content[1].table.layout = {
+                                          hLineWidth: function () {
+                                             return 0.5;
+                                          },
+                                          vLineWidth: function () {
+                                             return 0.5;
+                                          },
+                                          hLineColor: function () {
+                                             return "#666";
+                                          },
+                                          vLineColor: function () {
+                                             return "#666";
+                                          },
+                                          paddingLeft: function () {
+                                             return 4;
+                                          },
+                                          paddingRight: function () {
+                                             return 4;
+                                          },
+                                          paddingTop: function () {
+                                             return 2;
+                                          },
+                                          paddingBottom: function () {
+                                             return 2;
+                                          },
+                                       };
+
+                                       doc.styles.tableHeader.fontSize = 10;
+                                       doc.styles.tableHeader.fillColor =
+                                          "#f3f3f3";
+                                       doc.styles.tableHeader.alignment =
+                                          "left";
+                                       doc.styles.tableBodyOdd.fontSize = 9;
+                                       doc.styles.tableBodyEven.fontSize = 9;
+                                       doc.defaultStyle.alignment = "left";
+
+                                       doc.styles.title = {
+                                          fontSize: 14,
+                                          bold: true,
+                                          alignment: "center",
+                                       };
+                                       doc.styles.subtitle = {
+                                          fontSize: 9,
+                                          italics: true,
+                                          alignment: "center",
+                                       };
+
+                                       doc.content.splice(0, 0, {
+                                          text: [
+                                             {
+                                                text: "Kings Hostel - Billing Report\n",
+                                                style: "title",
+                                             },
+                                             {
+                                                text: `Generated on: ${new Date().toLocaleString()}`,
+                                                style: "subtitle",
+                                             },
+                                          ],
+                                          margin: [0, 0, 0, 10],
+                                       });
+
+                                       if (
+                                          doc.content[1] &&
+                                          doc.content[1].table &&
+                                          doc.content[1].table.body &&
+                                          doc.content[1].table.body.length > 0
+                                       ) {
+                                          doc.content[1].table.headerRows = 1;
+                                       }
+
+                                       doc.footer = function (
+                                          currentPage,
+                                          pageCount
+                                       ) {
+                                          return {
+                                             text: `Page ${currentPage} of ${pageCount}`,
+                                             alignment: "center",
+                                             fontSize: 8,
+                                             margin: [0, 10, 0, 0],
+                                          };
+                                       };
+                                    } catch (e) {
+                                       console.error(
+                                          "Error customizing PDF:",
+                                          e
+                                       );
+                                    }
+                                 },
+                              },
+                           ],
+                        },
+                     ],
+                  },
+               ],
+            },
+         },
+         columns: [
+            { data: "billing_id" },
+            { data: "student_name" },
+            { data: "amount" },
+            { data: "date_issued" },
+            { data: "date_due" },
+            { data: "status" },
+            { data: "paid_amount" },
+            { data: "building", visible: false }, // Building
+            { data: null, defaultContent: "" }, // Actions
+         ],
+         columnDefs: [
+            {
+               targets: 0, // Invoice ID
+               render: function (data) {
+                  // Custom formatting: prefix with "INV-" and pad to 6 digits
+                  const formattedId = `INV-${String(data).padStart(6, "0")}`;
+                  return `<span class="fw-medium ">${formattedId}</span>`;
+               },
+            },
+            {
+               targets: 1, // Student
+               render: function (data) {
+                  return `<span>${data}</span>`;
+               },
+            },
+            {
+               targets: 2, // Amount
+               render: function (data) {
+                  return formatCurrency(parseFloat(data).toFixed(2));
+               },
+            },
+            {
+               targets: 3, // Date Issued
+               render: function (data) {
+                  return formatDate(data);
+               },
+            },
+            {
+               targets: 4, // Due Date
+               render: function (data) {
+                  return formatDate(data);
+               },
+            },
+            {
+               targets: 5, // Status
+               render: function (data) {
+                  const statusObj = {
+                     Unpaid: { class: "bg-label-warning", title: "Unpaid" },
+                     "Fully Paid": {
+                        class: "bg-label-success",
+                        title: "Fully Paid",
+                     },
+                     "Partially Paid": {
+                        class: "bg-label-info",
+                        title: "Partially Paid",
+                     },
+                     Overdue: { class: "bg-label-danger", title: "Overdue" },
+                     Cancelled: {
+                        class: "bg-label-secondary",
+                        title: "Cancelled",
+                     },
+                  };
+                  const statusInfo = statusObj[data] || {
+                     class: "bg-label-secondary",
+                     title: data,
+                  };
+                  return `<span class="badge ${statusInfo.class}">${statusInfo.title}</span>`;
+               },
+            },
+            {
+               targets: 6, // Paid Amount
+               render: function (data) {
+                  return formatCurrency(parseFloat(data));
+               },
+            },
+            {
+               targets: 8, // Actions
+               searchable: false,
+               orderable: false,
+               render: function (data, type, full) {
+                  return `
+                           <div class="d-flex align-items-center gap-2">
+                               <a href="javascript:;" class="btn btn-sm btn-icon view-billing-details" 
+                                  data-billing-id="${full.billing_id}"
+                                  data-bs-toggle="tooltip" 
+                                  title="View details">
+                                  <i class="bx bx-show icon-md"></i>
+                               </a>
+                               <a href="javascript:;" class="btn btn-sm btn-icon record-payment" 
+                                  data-billing-id="${full.billing_id}"
+                                  data-bs-toggle="modal" 
+                                  data-bs-target="#recordPaymentModal"
+                                  title="Record payment">
+                                  <i class="bx bx-dollar-circle icon-md text-success"></i>
+                               </a>
+                               <a href="javascript:;" class="btn btn-sm btn-icon send-reminder" 
+                                  data-billing-id="${full.billing_id}"
+                                  data-bs-toggle="modal" 
+                                  data-bs-target="#sendReminderModal"
+                                  title="Send reminder">
+                                  <i class="bx bx-envelope icon-md text-info"></i>
+                               </a>
+                           </div>
+                       `;
+               },
+            },
+         ],
+         order: [[1, "desc"]],
+         responsive: {
+            details: {
+               display: DataTable.Responsive.display.modal({
+                  header: function (row) {
+                     const data = row.data();
+                     return `Billing #${data.billing_id} Details`;
+                  },
+               }),
+               renderer: function (api, rowIdx, columns) {
+                  const data = columns
+                     .map(function (col) {
+                        return col.title !== "Actions" && col.title !== ""
+                           ? `<tr><td>${col.title}:</td><td>${col.data}</td></tr>`
+                           : "";
+                     })
+                     .join("");
+                  return data ? `<table class="table">${data}</table>` : false;
+               },
+            },
+         },
+         language: {
+            paginate: {
+               next: '<i class="bx bx-chevron-right icon-18px"></i>',
+               previous: '<i class="bx bx-chevron-left icon-18px"></i>',
+            },
+         },
+         initComplete: function () {
+            const api = this.api();
+
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(
+               document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            );
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+               return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Search box
+            $("#billingSearch").on("keyup", function () {
+               api.search(this.value).draw();
+            });
+
+            // Status filter
+            $("#statusFilter").on("change", function () {
+               const val = $(this).val();
+               if (val) {
+                  // Use exact match for status values
+                  api.column(5)
+                     .search("^" + val + "$", true, false)
+                     .draw();
+               } else {
+                  // Clear the filter when "All Statuses" is selected
+                  api.column(5).search("").draw();
+               }
+            });
+
+            // Building filter
+            $("#filterBuilding").on("change", function () {
+               const val = $(this).val();
+               if (val) {
+                  api.column(7) // Building column (index 7)
+                     .search(val)
+                     .draw();
+               } else {
+                  api.column(7).search("").draw();
+               }
+            });
+
+            // Refresh table
+            $(".refresh-table").on("click", function () {
+               api.ajax.reload();
+            });
+
+            // View details
+            $(document).on("click", ".view-billing-details", function (e) {
+               e.preventDefault();
+               const billingId = $(this).data("billing-id");
+
+               $.ajax({
+                  url: `/admin/billing/${billingId}`,
+                  method: "GET",
+                  success: function (response) {
+                     if (data.error) {
+                        Swal.fire({
+                           icon: "error",
+                           title: "Error",
+                           text: data.error,
+                        });
+                        return;
+                     }
+
+                     const details = response.data;
+
+                     if (!details) {
+                        Swal.fire({
+                           icon: "error",
+                           title: "Error",
+                           text: "No billing details found",
+                        });
+                        return;
+                     }
+
+                     $("#modalInvoiceId").text(
+                        `INV-${String(details.billing_id).padStart(6, "0")}`
+                     );
+                     $("#modalStudentName").text(
+                        details.student_name || "Not specified"
+                     );
+                     $("#modalStudentId").text(
+                        `ID: ${details.student_id || "N/A"}`
+                     );
+                     $("#modalStudentEmail").text(
+                        details.student_email || "No email provided"
+                     );
+                     $("#modalStudentPhone").text(
+                        details.student_phone || "No phone provided"
+                     );
+
+                    
+
+                     // Format dates
+                     $("#modalDateIssued").text(
+                        formatDate(details.date_issued)
+                     );
+                     $("#modalDueDate").text(
+                        formatDate(details.date_due)
+                     );
+
+                     // Build invoice items
+                     const itemsTable = $("#modalInvoiceItems tbody");
+                     itemsTable.empty();
+
+                     // Add main billing item
+                     itemsTable.append(`
+                        <tr>
+                           <td>1</td>
+                           <td>${details.description || "Hostel Fee"}</td>
+                           <td class="text-end">${formatCurrency(
+                              details.amount
+                           )}</td>
+                        </tr>
+                     `);
+
+                     // Update totals
+                     $("#modalSubtotal").text(formatCurrency(details.amount));
+                     $("#modalTotal").text(formatCurrency(details.amount));
+                     $("#modalAmountPaid").text(
+                        formatCurrency(details.paid_amount)
+                     );
+                     $("#modalBalanceDue").text(
+                        formatCurrency(details.amount - details.paid_amount)
+                     );
+
+                     // Update transaction history if available
+                     const transactionTable = $(
+                        "#modalTransactionHistory tbody"
+                     );
+                     transactionTable.empty();
+
+                     if (
+                        details.transactions &&
+                        details.transactions.length > 0
+                     ) {
+                        details.transactions.forEach(function (transaction) {
+                           transactionTable.append(`
+                              <tr>
+                                 <td>${moment(transaction.payment_date).format(
+                                    "MMM D, YYYY"
+                                 )}</td>
+                                 <td>${transaction.payment_method}</td>
+                                 <td>${formatCurrency(
+                                    transaction.amount
+                                 )}</td>
+                              </tr>
+                           `);
+                        });
+                     } else {
+                        transactionTable.append(`
+                           <tr>
+                              <td colspan="3" class="text-center">No payment transactions recorded</td>
+                           </tr>
+                        `);
+                     }
+
+                     // Show the modal
+                     $("#viewInvoiceModal").modal("show");
+                  },
+                  error: function () {
+                     Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to load billing details",
+                     });
+                  },
+               });
+            });
+
+            // Record payment
+            $(document).on("click", ".record-payment", function () {
+               const billingId = $(this).data("billing-id");
+               $("#recordPaymentBillingId").val(billingId);
+               $("#recordPaymentModal").modal("show");
+            });
+
+            // Send reminder
+            $(document).on("click", ".send-reminder", function () {
+               const billingId = $(this).data("billing-id");
+               $("#reminderBillingId").val(billingId);
+               $("#sendReminderModal").modal("show");
+            });
+
+            // Load building options dynamically
+            $.ajax({
+               url: "/admin/building-data",
+               method: "GET",
+               success: function (response) {
+                  const buildingSelect = $("#filterBuilding");
+                  // Clear existing options except the first one
+                  buildingSelect.find("option:not(:first)").remove();
+
+                  if (response && Array.isArray(response)) {
+                     // The response is a simple array of building names
+                     response.forEach(function (building) {
+                        buildingSelect.append(
+                           $("<option>").val(building).text(building)
+                        );
+                     });
+                  }
+               },
+               error: function () {
+                  console.error("Failed to load building data");
+               },
+            });
+         },
+      });
+   }
+
+   // Initialize UI components when document is ready
+   document.addEventListener("DOMContentLoaded", function () {
+      // Initialize Select2 for all filter dropdowns
+      if ($.fn.select2) {
+         // Status filter with Select2
+         $("#statusFilter").select2();
+
+         // Building filter with Select2
+         $("#filterBuilding").select2();
+      }
+
+      // Initialize flatpickr properly
+      if (typeof flatpickr !== "undefined") {
+         // Due date filter
+         flatpickr("#filterDueDate", {
+            enableTime: false,
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "F j, Y",
+            allowInput: true,
+            onClose: function (selectedDates, dateStr) {
+               if (dt && dateStr) {
+                  // Convert date to proper format for searching
+                  dt.api().column(4).search(dateStr).draw(); // Using column index 4 for due date
+               } else if (dt) {
+                  dt.api().column(4).search("").draw();
+               }
+            },
+         });
+      }
+   });
+
+   //Create Invoice Modal handler
+   $("#createInvoiceModal").on("show.bs.modal", function () {
+      const studentSelect = $("#studentSelect"); // Define the variable properly
+
+      // Clear previous options
+      studentSelect
+         .empty()
+         .append('<option value="">Select a student</option>');
+
+      // Initialize Select2 on the student select dropdown
+      if ($.fn.select2) {
+         studentSelect.select2({
+            placeholder: "Select a student",
+            allowClear: true,
+            width: "100%",
+            dropdownParent: $("#createInvoiceModal .modal-content"),
+         });
+
+         $("#invoiceType").select2({
+            placeholder: "Select invoice type",
+            allowClear: true,
+            width: "100%",
+            dropdownParent: $("#createInvoiceModal .modal-content"),
+         });
+
+         $("#academicPeriod").select2({
+            placeholder: "Select academic period",
+            allowClear: true,
+            width: "100%",
+            dropdownParent: $("#createInvoiceModal .modal-content"),
+         });
+
+         $("#paymentTerms").select2({
+            placeholder: "Select payment terms",
+            allowClear: true,
+            width: "100%",
+            dropdownParent: $("#createInvoiceModal .modal-content"),
+         });
+      }
+
+      if (typeof flatpickr !== "undefined") {
+         $("#dueDateInput").flatpickr({
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            minDate: "today",
+            allowInput: true,
+            altInput: true,
+            altFormat: "F j, Y at h:i K",
+            time_24hr: false,
+            static: true, // Important for modal
+            defaultDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default to 30 days from now
+            plugins: [
+               new confirmDatePlugin({
+                  confirmText: "OK",
+                  showAlways: false,
+                  theme: "dark",
+               }),
+            ],
+         });
+      }
+
+      // Load students from API
+      $.ajax({
+         url: "/admin/students-data",
+         method: "GET",
+         success: function (response) {
+            if (response && Array.isArray(response)) {
+               response.forEach(function (student) {
+                  studentSelect.append(
+                     $("<option>").val(student.student_id).text(student.name)
+                  );
+               });
+
+               // Refresh Select2 after populating options
+               studentSelect.trigger("change");
+            }
+         },
+         error: function () {
+            console.error("Failed to load student data");
+            Swal.fire({
+               icon: "error",
+               title: "Error",
+               text: "Failed to load student data. Please try again.",
+            });
+         },
+      });
+   });
+
+   // Handle the create invoice form submission
+   $("#createInvoiceForm").on("submit", function (e) {
+      e.preventDefault();
+
+      const formData = $(this).serialize();
+
+      $.ajax({
+         url: "/admin/create-invoice",
+         method: "POST",
+         data: formData,
+         success: function (response) {
+            if (response.success) {
+               // Close modal and refresh table
+               $("#createInvoiceModal").modal("hide");
+               dt.api().ajax.reload();
+
+               // Show success message
+               Swal.fire({
+                  icon: "success",
+                  title: "Success",
+                  text: "Invoice created successfully",
+               });
+            } else {
+               // Show error message
+               Swal.fire({
+                  icon: "error",
+                  title: "Error",
+                  text: response.error || "Failed to create invoice",
+               });
+            }
+         },
+         error: function () {
+            Swal.fire({
+               icon: "error",
+               title: "Error",
+               text: "Failed to create invoice. Please try again.",
+            });
+         },
+      });
+   });
+})();

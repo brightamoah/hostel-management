@@ -457,3 +457,17 @@ VALUES (
         'Visit',
         'Approved'
     );
+
+    SHOW TABLES FROM hostel_management LIKE 'bill%';
+
+    -- Make date_due use the same format as date_issued (with time component)
+ALTER TABLE billing MODIFY COLUMN date_due DATETIME NOT NULL;
+SHOW TABLES FROM hostel_management;
+
+
+-- modify the allocation taable allocations to add allocation period enum
+ALTER TABLE allocations
+    ADD COLUMN academic_period ENUM(
+        'Semester 1',
+        'Semester 2',
+    ) NOT NULL DEFAULT 'Semester 1';

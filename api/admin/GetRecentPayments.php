@@ -1,6 +1,6 @@
 <?php
-require_once './database/db.php';
-require_once './app/models/Student.php';
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../../app/models/Student.php";
 
 header('Content-Type: application/json');
 
@@ -13,8 +13,8 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
 }
 
 try {
-    $db = new Database();
-    $conn = $db->connect();
+    
+    $conn = getDb();
     $student = new Student($conn);
 
     // Fetch recent payments (last 30 days, limited to 5)
@@ -22,13 +22,13 @@ try {
         SELECT p.*, CONCAT(s.first_name, ' ', s.last_name) as student_name
         FROM payments p
         JOIN students s ON p.student_id = s.student_id
-        WHERE p.payment_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        WHERE p.payment_date >= DATE_SUB(CURDATE(), INTERVAL 40 DAY)
         ORDER BY p.payment_date DESC
         LIMIT 5";
     $result = $conn->query($query);
 
     if (!$result) {
-        throw new Exception("Query failed: " . $conn->error);
+        throw new Exception("Query failed: {$conn->error}");
     }
 
     $payments = [];

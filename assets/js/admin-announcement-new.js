@@ -1,427 +1,568 @@
-$(document).ready(function () {
-   ("use strict");
+(function () {
+   "use strict";
 
-   // DOM Elements
-   const searchInput = $("#searchInput");
-   const gridView = $(".announcement-grid-view");
-   const listView = $(".announcement-list-view");
-   const viewToggleBtns = $(".view-toggle-btn");
-   const filterTags = $(".filter-tags");
-   const noResults = $("#noResults");
-   const announcementItems = $(".announcement-item");
+   const dt_announcements_table = document.querySelector(
+      ".datatables-announcements"
+   );
 
-   // Initialize variables to track current filters and sort
-   let currentFilters = {
-      search: "",
-      priority: "all",
-      audience: "all",
-      sort: "newest",
-   };
+   if (dt_announcements_table) {
+      const csrfToken =
+         document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content") || "";
+      let dt;
 
-   // Initialize view preference (grid or list)
-   let currentView = "grid";
-
-   // View Toggle functionality with localStorage persistence
-   const savedViewMode = localStorage.getItem("announcementViewMode") || "grid";
-
-   // Apply the saved view mode on page load
-   setViewMode(savedViewMode);
-
-   // Handle view toggle button clicks
-   $(".view-toggle-btn").on("click", function () {
-      const viewMode = $(this).data("view");
-      setViewMode(viewMode);
-
-      // Save the preference to localStorage
-      localStorage.setItem("announcementViewMode", viewMode);
-   });
-
-   // Function to set the view mode
-   function setViewMode(viewMode) {
-      // Update active button state
-      $(".view-toggle-btn").removeClass("active");
-      $(`.view-toggle-btn[data-view="${viewMode}"]`).addClass("active");
-
-      // Show the appropriate view
-      if (viewMode === "grid") {
-         $(".announcement-grid-view").removeClass("d-none");
-         $(".announcement-list-view").addClass("d-none");
-      } else {
-         $(".announcement-grid-view").addClass("d-none");
-         $(".announcement-list-view").removeClass("d-none");
-      }
-   }
-
-   /**
-    * Handle view toggling between grid and list
-    */
-   viewToggleBtns.on("click", function () {
-      const view = $(this).data("view");
-
-      // Update active state
-      viewToggleBtns.removeClass("active");
-      $(this).addClass("active");
-
-      // Toggle views
-      if (view === "grid") {
-         gridView.removeClass("d-none");
-         listView.addClass("d-none");
-         currentView = "grid";
-      } else {
-         gridView.addClass("d-none");
-         listView.removeClass("d-none");
-         currentView = "list";
-      }
-
-      // Apply current filters to the new view
-      applyFilters();
-   });
-
-   /**
-    * Handle search input
-    */
-   searchInput.on("keyup", function () {
-      currentFilters.search = $(this).val().toLowerCase();
-      applyFilters();
-      updateFilterTags();
-   });
-
-   /**
-    * Handle priority filter selection
-    */
-   $(".filter-priority").on("click", function () {
-      const priority = $(this).data("value");
-
-      // Update active state
-      $(".filter-priority").removeClass("active");
-      $(this).addClass("active");
-
-      currentFilters.priority = priority;
-      applyFilters();
-      updateFilterTags();
-   });
-
-   /**
-    * Handle audience filter selection
-    */
-   $(".filter-audience").on("click", function () {
-      const audience = $(this).data("value");
-
-      // Update active state
-      $(".filter-audience").removeClass("active");
-      $(this).addClass("active");
-
-      currentFilters.audience = audience;
-      applyFilters();
-      updateFilterTags();
-   });
-
-   /**
-    * Handle sort options
-    */
-   $(".sort-option").on("click", function () {
-      const sort = $(this).data("sort");
-
-      // Update active state
-      $(".sort-option").removeClass("active");
-      $(this).addClass("active");
-
-      currentFilters.sort = sort;
-      applyFilters();
-      updateFilterTags();
-   });
-
-   /**
-    * Apply all current filters and sort to the announcements
-    */
-   function applyFilters() {
-      let visibleCount = 0;
-
-      // First sort the announcements
-      sortAnnouncements();
-
-      // Then apply the filters
-      announcementItems.each(function () {
-         const $item = $(this);
-         const title = $item.data("title").toLowerCase();
-         const content = $item
-            .find(".announcement-preview")
-            .text()
-            .toLowerCase();
-         const priority = $item.data("priority");
-         const audience = $item.data("audience");
-
-         // Check if the announcement matches all active filters
-         const matchesSearch =
-            currentFilters.search === "" ||
-            title.includes(currentFilters.search) ||
-            content.includes(currentFilters.search);
-
-         const matchesPriority =
-            currentFilters.priority === "all" ||
-            priority === currentFilters.priority;
-
-         const matchesAudience =
-            currentFilters.audience === "all" ||
-            audience === currentFilters.audience;
-
-         // Show or hide based on filter matches
-         if (matchesSearch && matchesPriority && matchesAudience) {
-            $item.removeClass("d-none");
-            visibleCount++;
-         } else {
-            $item.addClass("d-none");
-         }
-      });
-
-      // Show or hide "no results" message
-      if (visibleCount === 0) {
-         noResults.removeClass("d-none");
-      } else {
-         noResults.addClass("d-none");
-      }
-   }
-
-   /**
-    * Sort the announcements based on the current sort option
-    */
-   function sortAnnouncements() {
-      // Define sort values for priorities
-      const priorityValues = {
-         Urgent: 4,
-         High: 3,
-         Medium: 2,
-         Low: 1,
-      };
-
-      // Get the current container (grid or list)
-      const container =
-         currentView === "grid"
-            ? $(".announcement-grid-view .row")
-            : $(".announcement-list-view tbody");
-
-      // Get all announcement items that will be sorted
-      const items = container
-         .children(".announcement-item, tr.announcement-item")
-         .get();
-
-      // Sort the items
-      items.sort(function (a, b) {
-         const $a = $(a);
-         const $b = $(b);
-
-         switch (currentFilters.sort) {
-            case "newest":
-               return $b.data("date") - $a.data("date");
-
-            case "oldest":
-               return $a.data("date") - $b.data("date");
-
-            case "priority":
-               return (
-                  priorityValues[$b.data("priority")] -
-                  priorityValues[$a.data("priority")]
-               );
-
-            case "title":
-               return $a.data("title").localeCompare($b.data("title"));
-
-            default:
-               return 0;
-         }
-      });
-
-      // Re-append the sorted items to the container
-      $.each(items, function (index, item) {
-         container.append(item);
-      });
-   }
-
-   /**
-    * Update the filter tags displayed above the announcements
-    */
-   function updateFilterTags() {
-      // Clear current tags
-      filterTags.empty();
-
-      // Add search filter tag if there's a search query
-      if (currentFilters.search) {
-         addFilterTag("search", `Search: ${currentFilters.search}`);
-      }
-
-      // Add priority filter tag if not showing all priorities
-      if (currentFilters.priority !== "all") {
-         addFilterTag("priority", `Priority: ${currentFilters.priority}`);
-      }
-
-      // Add audience filter tag if not showing all audiences
-      if (currentFilters.audience !== "all") {
-         addFilterTag("audience", `Audience: ${currentFilters.audience}`);
-      }
-
-      // Add sort tag
-      const sortLabels = {
-         newest: "Newest First",
-         oldest: "Oldest First",
-         priority: "Priority (High to Low)",
-         title: "Title (A-Z)",
-      };
-      addFilterTag("sort", `Sort: ${sortLabels[currentFilters.sort]}`);
-   }
-
-   /**
-    * Add a filter tag to the filter tags container
-    */
-   function addFilterTag(type, text) {
-      const tag = $(`
-<div class="badge mb-1 filter-badge" data-type="${type}">
-${text}
-<i class="bx bx-x ms-1 clear-filter" data-type="${type}"></i>
-</div>
-`);
-
-      filterTags.append(tag);
-
-      // Add click handler to remove the filter
-      tag.find(".clear-filter").on("click", function () {
-         const filterType = $(this).data("type");
-
-         if (filterType === "search") {
-            searchInput.val("");
-            currentFilters.search = "";
-         } else if (filterType === "priority") {
-            $('.filter-priority[data-value="all"]').addClass("active");
-            $(".filter-priority")
-               .not('[data-value="all"]')
-               .removeClass("active");
-            currentFilters.priority = "all";
-         } else if (filterType === "audience") {
-            $('.filter-audience[data-value="all"]').addClass("active");
-            $(".filter-audience")
-               .not('[data-value="all"]')
-               .removeClass("active");
-            currentFilters.audience = "all";
-         } else if (filterType === "sort") {
-            $('.sort-option[data-sort="newest"]').addClass("active");
-            $(".sort-option").not('[data-sort="newest"]').removeClass("active");
-            currentFilters.sort = "newest";
-         }
-
-         applyFilters();
-         updateFilterTags();
-      });
-   }
-
-   /**
-    * Handle view announcement modal
-    */
-   $(".view-announcement").on("click", function () {
-      const announcementId = $(this).data("id");
-      const title = $(this).data("title");
-      const content = $(this).data("content");
-      const priority = $(this).data("priority");
-      const targetAudience = $(this).data("target-audience");
-      const date = $(this).data("date");
-
-      // Set the modal content
-      $("#view_title").text(title);
-      $("#view_content").html(content);
-      $("#view_date").text(date);
-
-      // Set priority badge color
-      let priorityBadgeClass = "";
-      switch (priority) {
-         case "Urgent":
-            priorityBadgeClass = "bg-label-danger";
-            break;
-         case "High":
-            priorityBadgeClass = "bg-label-warning";
-            break;
-         case "Medium":
-            priorityBadgeClass = "bg-label-info";
-            break;
-         default:
-            priorityBadgeClass = "bg-label-success";
-      }
-
-      $("#view_priority_badge")
-         .attr("class", `badge ${priorityBadgeClass} rounded-pill`)
-         .html(
-            `<span class="priority-indicator priority-${priority.toLowerCase()}"></span>${priority}`
-         );
-
-      // Set audience badge
-      $("#view_audience_badge").html(
-         `<i class="bx bx-group me-1"></i>${targetAudience}`
-      );
-
-      // Set edit link
-      $("#editFromView").attr(
-         "href",
-         `/admin/announcements/edit/${announcementId}`
-      );
-
-      // Show the modal
-      $("#viewAnnouncementModal").modal("show");
-   });
-
-   /**
-    * Handle delete announcement
-    */
-   $(".delete-announcement").on("click", function () {
-      const announcementId = $(this).data("id");
-
-      // Show confirmation dialog
-      Swal.fire({
-         title: "Are you sure?",
-         text: "You won't be able to revert this!",
-         icon: "warning",
-         showCancelButton: true,
-         confirmButtonText: "Yes, delete it!",
-         customClass: {
-            confirmButton: "btn btn-danger me-3",
-            cancelButton: "btn btn-label-secondary",
+      dt = new DataTable(dt_announcements_table, {
+         ajax: "/admin/announcements-data",
+         processing: true,
+         serverSide: false,
+         layout: {
+            topStart: {
+               rowClass: "row mx-3 my-0 justify-content-between",
+               features: [
+                  {
+                     pageLength: {
+                        menu: [5, 10, 25, 50],
+                        text: "Show _MENU_ entries",
+                     },
+                  },
+               ],
+            },
+            bottomStart: {
+               rowClass: "row mx-3 justify-content-between",
+               features: ["info"],
+            },
+            bottomEnd: {
+               paging: {
+                  firstLast: false,
+               },
+            },
+            topEnd: {
+               rowClass: "row mx-3 my-0 justify-content-between",
+               features: [
+                  {
+                     buttons: [
+                        {
+                           extend: "collection",
+                           className:
+                              "btn btn-label-secondary dropdown-toggle ms-4",
+                           text: '<span class="d-flex align-items-center gap-2"><i class="icon-base bx bx-export icon-sm"></i> <span class="d-none d-sm-inline-block">Export</span></span>',
+                           buttons: [
+                              {
+                                 extend: "csv",
+                                 text: '<span class="d-flex align-items-center"><i class="icon-base bx bx-file me-2"></i>Csv</span>',
+                                 className: "dropdown-item",
+                                 exportOptions: {
+                                    columns: [0, 1, 2, 3, 4],
+                                    format: {
+                                       body: function (
+                                          data,
+                                          row,
+                                          column,
+                                          node
+                                       ) {
+                                          return data.replace(/<[^>]+>/g, "");
+                                       },
+                                    },
+                                 },
+                              },
+                              {
+                                 extend: "excel",
+                                 text: '<span class="d-flex align-items-center"><i class="icon-base bx bxs-file-export me-2"></i>Excel</span>',
+                                 className: "dropdown-item",
+                                 exportOptions: {
+                                    columns: [0, 1, 2, 3, 4],
+                                    format: {
+                                       body: function (
+                                          data,
+                                          row,
+                                          column,
+                                          node
+                                       ) {
+                                          return data.replace(/<[^>]+>/g, "");
+                                       },
+                                    },
+                                 },
+                              },
+                              {
+                                 extend: "pdf",
+                                 text: '<span class="d-flex align-items-center"><i class="icon-base bx bxs-file-pdf me-2"></i>Pdf</span>',
+                                 className: "dropdown-item",
+                                 exportOptions: {
+                                    columns: [0, 1, 2, 3, 4],
+                                    format: {
+                                       body: function (
+                                          data,
+                                          row,
+                                          column,
+                                          node
+                                       ) {
+                                          return data.replace(/<[^>]+>/g, "");
+                                       },
+                                    },
+                                 },
+                                 customize: function (doc) {
+                                    if (
+                                       !doc ||
+                                       !doc.content ||
+                                       doc.content.length < 2 ||
+                                       !doc.content[1].table
+                                    ) {
+                                       console.warn(
+                                          "PDF structure not as expected:",
+                                          doc
+                                       );
+                                       return;
+                                    }
+                                    doc.styles = doc.styles || {};
+                                    doc.styles.tableHeader =
+                                       doc.styles.tableHeader || {};
+                                    doc.styles.tableBodyOdd =
+                                       doc.styles.tableBodyOdd || {};
+                                    doc.styles.tableBodyEven =
+                                       doc.styles.tableBodyEven || {};
+                                    doc.defaultStyle = doc.defaultStyle || {};
+                                    try {
+                                       doc.content[1].table.widths = [
+                                          "30%",
+                                          "20%",
+                                          "15%",
+                                          "15%",
+                                          "20%",
+                                       ];
+                                       doc.content[1].table.layout = {
+                                          hLineWidth: function () {
+                                             return 0.5;
+                                          },
+                                          vLineWidth: function () {
+                                             return 0.5;
+                                          },
+                                          hLineColor: function () {
+                                             return "#666";
+                                          },
+                                          vLineColor: function () {
+                                             return "#666";
+                                          },
+                                          paddingLeft: function () {
+                                             return 4;
+                                          },
+                                          paddingRight: function () {
+                                             return 4;
+                                          },
+                                          paddingTop: function () {
+                                             return 2;
+                                          },
+                                          paddingBottom: function () {
+                                             return 2;
+                                          },
+                                       };
+                                       doc.styles.tableHeader.fontSize = 10;
+                                       doc.styles.tableHeader.fillColor =
+                                          "#f3f3f3";
+                                       doc.styles.tableHeader.alignment =
+                                          "left";
+                                       doc.styles.tableBodyOdd.fontSize = 9;
+                                       doc.styles.tableBodyEven.fontSize = 9;
+                                       doc.defaultStyle.alignment = "left";
+                                       doc.styles.title = {
+                                          fontSize: 14,
+                                          bold: true,
+                                          alignment: "center",
+                                       };
+                                       doc.styles.subtitle = {
+                                          fontSize: 9,
+                                          italics: true,
+                                          alignment: "center",
+                                       };
+                                       doc.content.splice(0, 0, {
+                                          text: [
+                                             {
+                                                text: "Kings Hostel - Announcements Report\n",
+                                                style: "title",
+                                             },
+                                             {
+                                                text: `Generated on: ${new Date().toLocaleString()}`,
+                                                style: "subtitle",
+                                             },
+                                          ],
+                                          margin: [0, 0, 0, 10],
+                                       });
+                                       if (
+                                          doc.content[1] &&
+                                          doc.content[1].table &&
+                                          doc.content[1].table.body &&
+                                          doc.content[1].table.body.length > 0
+                                       ) {
+                                          doc.content[1].table.headerRows = 1;
+                                       }
+                                       doc.footer = function (
+                                          currentPage,
+                                          pageCount
+                                       ) {
+                                          return {
+                                             text: `Page ${currentPage} of ${pageCount}`,
+                                             alignment: "center",
+                                             fontSize: 8,
+                                             margin: [0, 10, 0, 0],
+                                          };
+                                       };
+                                    } catch (e) {
+                                       console.error(
+                                          "Error customizing PDF:",
+                                          e
+                                       );
+                                    }
+                                 },
+                              },
+                           ],
+                        },
+                     ],
+                  },
+               ],
+            },
          },
-         buttonsStyling: false,
-      }).then(function (result) {
-         if (result.isConfirmed) {
-            // Send delete request
-            $.ajax({
-               url: `/api/announcements/${announcementId}`,
-               type: "DELETE",
-               success: function (response) {
-                  // Show success message
-                  Swal.fire({
-                     icon: "success",
-                     title: "Deleted!",
-                     text: "The announcement has been deleted.",
-                     customClass: {
-                        confirmButton: "btn btn-success",
-                     },
-                     buttonsStyling: false,
-                  }).then(function () {
-                     // Reload the page to reflect changes
-                     window.location.reload();
-                  });
+         columns: [
+            { data: "title" },
+            { data: "posted_by_name" },
+            { data: "priority" },
+            { data: "target_audience" },
+            { data: "date_posted" },
+            { data: null, defaultContent: "" }, // Actions
+         ],
+         columnDefs: [
+            {
+               targets: 0,
+               render: function (data) {
+                  return `<span class="fw-medium">${data}</span>`;
                },
-               error: function (xhr) {
-                  // Show error message
-                  Swal.fire({
-                     icon: "error",
-                     title: "Error!",
-                     text: "There was a problem deleting the announcement.",
-                     customClass: {
-                        confirmButton: "btn btn-primary",
+            },
+            {
+               targets: 2, // Priority
+               render: function (data) {
+                  const priorityObj = {
+                     Urgent: {
+                        class: "bg-label-danger",
+                        title: "Urgent",
+                        description:
+                           "Requires immediate attention or action from recipients",
                      },
-                     buttonsStyling: false,
-                  });
+                     High: {
+                        class: "bg-label-warning",
+                        title: "High",
+                        description:
+                           "Important information that should be read promptly",
+                     },
+                     Medium: {
+                        class: "bg-label-info",
+                        title: "Medium",
+                        description:
+                           "Standard announcement with moderate importance",
+                     },
+                     Low: {
+                        class: "bg-label-success",
+                        title: "Low",
+                        description:
+                           "General information with no urgent action required",
+                     },
+                  };
+                  const priorityInfo = priorityObj[data] || {
+                     class: "bg-label-secondary",
+                     title: data,
+                     description: "Priority level not specified",
+                  };
+                  return `<span class="badge ${priorityInfo.class}" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               title="${priorityInfo.description}">
+                           <span class="text-center priority-${data.toLowerCase()}"></span>${
+                     priorityInfo.title
+                  }
+                        </span>`;
                },
-            });
-         }
-      });
-   });
+            },
+            {
+               targets: 4, // Date Posted
+               render: function (data) {
+                    const date = new Date(data);
+                    return new Intl.DateTimeFormat('en-GH', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    }).format(date);
+               },
+            },
+            {
+               targets: 5, // Actions
+               searchable: false,
+               orderable: false,
+               render: function (data, type, full) {
+                  return `
+                           <div class="d-flex align-items-center gap-2">
+                               <a href="javascript:;" class="btn btn-sm btn-icon view-announcement"
+                                  data-announcement-id="${full.announcement_id}"
+                                  data-bs-toggle="tooltip" 
+                                  title="View details">
+                                  <i class="bx bx-show icon-md"></i>
+                               </a>
+                               <a href="/admin/announcements/edit/${full.announcement_id}" 
+                                    class="btn btn-sm btn-icon" 
+                                    data-bs-toggle="tooltip" 
+                                  title="Edit">
+                                  <i class="bx bx-edit icon-md"></i>
+                               </a>
+                               <a href="javascript:;" class="btn btn-sm btn-icon delete-announcement"
+                                  data-announcement-id="${full.announcement_id}"
+                                  data-bs-toggle="tooltip" 
+                                  title="Delete">
+                                  <i class="bx bx-trash icon-md"></i>
+                               </a>
+                           </div>
+                       `;
+               },
+            },
+         ],
+         order: [[4, "desc"]],
+         responsive: {
+            details: {
+               display: DataTable.Responsive.display.modal({
+                  header: function (row) {
+                     const data = row.data();
+                     return `Announcement: ${data.title}`;
+                  },
+               }),
+               renderer: function (api, rowIdx, columns) {
+                  const data = columns
+                     .map(function (col) {
+                        return col.title !== "Actions"
+                           ? `<tr><td>${col.title}:</td><td>${col.data}</td></tr>`
+                           : "";
+                     })
+                     .join("");
+                  return data ? `<table class="table">${data}</table>` : false;
+               },
+            },
+         },
+         language: {
+            paginate: {
+               next: '<i class="bx bx-chevron-right icon-18px"></i>',
+               previous: '<i class="bx bx-chevron-left icon-18px"></i>',
+            },
+            emptyTable: "No announcements found",
+            zeroRecords: "No announcements match your filters",
+         },
+         initComplete: function () {
+            const api = this.api();
 
-   // Initialize the page on load
-   updateFilterTags();
-   applyFilters();
-});
+            // Initialize Select2 for filters
+            $("#priorityFilter, #audienceFilter").select2({
+               width: "100%",
+               minimumResultsForSearch: Infinity,
+            });
+
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(
+               document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            );
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+               return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Search box
+            $("#announcementSearch").on("keyup", function () {
+               api.search(this.value).draw();
+            });
+
+            // Priority filter
+            $("#priorityFilter").on("change", function () {
+               const val = $(this).val();
+               // If empty string (All Priorities), clear the search
+               api.column(2)
+                  .search(val || "", false, false)
+                  .draw();
+            });
+
+            // Audience filter
+            $("#audienceFilter").on("change", function () {
+               const val = $(this).val();
+               // If empty string (All Audiences), clear the search
+               api.column(3)
+                  .search(val || "", false, false)
+                  .draw();
+            });
+
+            // Add reset filters button functionality
+            $(".reset-filters").on("click", function () {
+               // Reset search box
+               $("#announcementSearch").val("");
+
+               // Reset select dropdowns
+               $("#priorityFilter, #audienceFilter").val("").trigger("change");
+
+               // Clear all filters and redraw table
+               api.search("").columns().search("").draw();
+            });
+            // Refresh table
+            $(".refresh-table").on("click", function () {
+               api.ajax.reload();
+            });
+
+            // View announcement
+            $(document).on("click", ".view-announcement", function (e) {
+               e.preventDefault();
+               const announcementId = $(this).data("announcement-id");
+
+               $.ajax({
+                  url: `/admin/announcements/${announcementId}`,
+                  method: "GET",
+                  success: function (data) {
+                     if (data.error) {
+                        Swal.fire({
+                           icon: "error",
+                           title: "Error",
+                           text: data.error,
+                        });
+                        return;
+                     }
+
+                     const announcement = data.announcement;
+                     $("#view_title").text(announcement.title);
+                     $("#view_content").html(announcement.content);
+                     $("#view_date").text(
+                        moment(announcement.date_posted).format(
+                           "MMM D, YYYY h:mm A"
+                        )
+                     );
+
+                     let priorityBadgeClass = "";
+                     switch (announcement.priority) {
+                        case "Urgent":
+                           priorityBadgeClass = "bg-label-danger";
+                           break;
+                        case "High":
+                           priorityBadgeClass = "bg-label-warning";
+                           break;
+                        case "Medium":
+                           priorityBadgeClass = "bg-label-info";
+                           break;
+                        default:
+                           priorityBadgeClass = "bg-label-success";
+                     }
+                     $("#view_priority_badge")
+                        .attr(
+                           "class",
+                           `badge ${priorityBadgeClass} rounded-pill`
+                        )
+                        .html(
+                           `<span class="priority-indicator priority-${announcement.priority.toLowerCase()}"></span>${
+                              announcement.priority
+                           }`
+                        );
+
+                     $("#view_audience_badge").html(
+                        `<i class="bx bx-group me-1"></i>${announcement.target_audience}`
+                     );
+                     $("#editFromView").attr(
+                        "href",
+                        `/admin/announcements/edit/${announcementId}`
+                     );
+
+                     $("#view_read_stats").html(
+                        `<i class="bx bx-check-circle me-1"></i>${announcement.read_count}/${announcement.total_users}`
+                     );
+
+                     $("#view_posted_by").html(
+                        `<span class="text-muted small">Posted by</span>
+                            <h6 class="mb-0" id="view_posted_by">${
+                               announcement.posted_by
+                                  ? announcement.posted_by
+                                  : "Admin"
+                            }</h6>`
+                     );
+
+                     $("#viewAnnouncementModal").modal("show");
+                  },
+                  error: function () {
+                     Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to load announcement details",
+                     });
+                  },
+               });
+            });
+
+            // Modal content formatting
+            $("#viewAnnouncementModal")
+               .on("show.bs.modal", function () {
+                  $(this).find(".modal-content");
+                  // .addClass("animate__animated animate__fadeIn");
+               })
+               .on("hide.bs.modal", function () {
+                  $(this)
+                     .find(".modal-content")
+                     .removeClass("animate__animated animate__bounceIn");
+               });
+
+            // Delete announcement
+            $(document).on("click", ".delete-announcement", function (e) {
+               e.preventDefault();
+               const announcementId = $(this).data("announcement-id");
+
+               Swal.fire({
+                  title: "Are you sure?",
+                  text: `Delete announcement #${announcementId}?`,
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonText: "Yes, delete it!",
+                  cancelButtonText: "No, cancel!",
+               }).then((result) => {
+                  if (result.isConfirmed) {
+                     $.ajax({
+                        url: "/admin/announcements/action",
+                        method: "POST",
+                        data: {
+                           action: "delete",
+                           announcement_id: announcementId,
+                           csrf: csrfToken,
+                        },
+                        success: function (response) {
+                           // Change this line to check for response.status instead of response.success
+                           if (response.status === "success") {
+                              Swal.fire({
+                                 icon: "success",
+                                 title: "Success",
+                                 text:
+                                    response.message ||
+                                    "Announcement deleted successfully!",
+                                 timer: 2000,
+                              }).then(() => {
+                                 api.ajax.reload();
+                              });
+                           } else {
+                              Swal.fire({
+                                 icon: "error",
+                                 title: "Error",
+                                 text:
+                                    response.message ||
+                                    "Failed to delete announcement",
+                              });
+                           }
+                        },
+                        error: function () {
+                           Swal.fire({
+                              icon: "error",
+                              title: "Error",
+                              text: "Request failed",
+                           });
+                        },
+                     });
+                  }
+               });
+            });
+         },
+      });
+   }
+})();
