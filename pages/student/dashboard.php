@@ -1,5 +1,6 @@
 <?php
-require_once "./app/controllers/student.php";
+// require_once "./app/controllers/student.php";
+require_once __DIR__ . "/../../app/controllers/student.php";
 ?>
 
 <!DOCTYPE html>
@@ -56,7 +57,7 @@ require_once "./app/controllers/student.php";
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
             <!-- Menu -->
-            <?php include_once "./Components/sidebar.php" ?>
+            <?php include_once __DIR__ . "/../../Components/sidebar.php" ?>
 
             <div class="menu-mobile-toggler d-xl-none rounded-1">
                 <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
@@ -69,7 +70,7 @@ require_once "./app/controllers/student.php";
             <!-- Layout container -->
             <div class="layout-page">
                 <!-- Navbar -->
-                <?php include_once "./Components/header.php" ?>
+                <?php include_once __DIR__ . "/../../Components/header.php" ?>
                 <!-- / Navbar -->
 
                 <!-- Content wrapper -->

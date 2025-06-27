@@ -415,7 +415,7 @@
                const announcementId = $(this).data("announcement-id");
 
                $.ajax({
-                  url: `/admin/announcements/${announcementId}`,
+                  url: `/admin/announcements/get/${announcementId}`,
                   method: "GET",
                   success: function (data) {
                      if (data.error) {

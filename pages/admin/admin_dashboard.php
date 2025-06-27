@@ -89,7 +89,7 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
             <!-- Menu -->
-            <?php include_once "./Components/sidebar.php" ?>
+            <?php include_once __DIR__. "/../../Components/sidebar.php"; ?>
             <div class="menu-mobile-toggler d-xl-none rounded-1">
                 <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
                     <i class="bx bx-menu icon-base"></i>
@@ -101,7 +101,7 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
             <!-- Layout container -->
             <div class="layout-page">
                 <!-- Navbar -->
-                <?php include_once "./Components/admin/header.php" ?>
+                <?php include_once __DIR__. "/../../Components/admin/header.php" ?>
                 <!-- / Navbar -->
 
                 <!-- Content wrapper -->
@@ -109,7 +109,7 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
                     <!-- Content -->
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <!-- Welcome Card -->
-                        <?php include_once "./Components/admin/dashboard_card.php" ?>
+                        <?php include_once __DIR__. "/../../Components/admin/dashboard_card.php" ?>
 
                         <!-- Statistics Cards -->
                         <div class="row mb-4">
@@ -585,7 +585,7 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
                         <!-- / Content -->
 
                         <!-- Footer -->
-                        <?php include_once "./Components/footer.php" ?>
+                        <?php include_once __DIR__ . "/../../Components/footer.php" ?>
                         <!-- / Footer -->
 
                         <div class="content-backdrop fade"></div>

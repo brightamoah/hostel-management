@@ -107,7 +107,7 @@ $announcementController = new AnnouncementController();
                                     <button class="btn btn-primary refresh-table me-2">
                                         <i class="bx bx-refresh me-1"></i> Refresh
                                     </button>
-                                    <a href="/admin/create-announcements" class="btn btn-primary">
+                                    <a href="/admin/announcements/create" class="btn btn-primary">
                                         <i class="bx bx-plus me-md-1"></i>
                                         <span class="d-none d-md-inline-block">New Announcement</span>
                                     </a>

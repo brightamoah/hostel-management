@@ -45,6 +45,7 @@ $rejected_requests = $maintenanceModel->getRejectedRequest();
     <link rel="stylesheet" href="../../assets/vendor/fonts/fontawesome.css" />
 
     <!-- Core CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/pickr/pickr-themes.css" />
     <link rel="stylesheet" href="../../assets/vendor/css/core.css" />
     <link rel="stylesheet" href="../../assets/css/demo.css" />
 
@@ -76,6 +77,7 @@ $rejected_requests = $maintenanceModel->getRejectedRequest();
 
     <!-- Helpers -->
     <script src="../../assets/vendor/js/helpers.js"></script>
+    <script src="../../assets/vendor/js/template-customizer.js"></script>
     <script src="../../assets/js/config.js"></script>
 </head>
 
@@ -395,7 +397,9 @@ $rejected_requests = $maintenanceModel->getRejectedRequest();
     <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
     <script src="../../assets/vendor/libs/popper/popper.js"></script>
     <script src="../../assets/vendor/js/bootstrap.js"></script>
+    <script src="../../assets/vendor/libs/pickr/pickr.js"></script>
     <script src="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="../../assets/vendor/js/menu.js"></script>
     <script src="../../assets/vendor/libs/jszip/jszip.js"></script>
     <script src="../../assets/vendor/libs/pdfmake/pdfmake.js"></script>
     <script src="../../assets/vendor/libs/pdfmake/vfs_fonts.js"></script>

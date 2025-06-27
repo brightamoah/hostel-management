@@ -484,15 +484,11 @@
                         details.student_phone || "No phone provided"
                      );
 
-                    
-
                      // Format dates
                      $("#modalDateIssued").text(
                         formatDate(details.date_issued)
                      );
-                     $("#modalDueDate").text(
-                        formatDate(details.date_due)
-                     );
+                     $("#modalDueDate").text(formatDate(details.date_due));
 
                      // Build invoice items
                      const itemsTable = $("#modalInvoiceItems tbody");
@@ -536,9 +532,7 @@
                                     "MMM D, YYYY"
                                  )}</td>
                                  <td>${transaction.payment_method}</td>
-                                 <td>${formatCurrency(
-                                    transaction.amount
-                                 )}</td>
+                                 <td>${formatCurrency(transaction.amount)}</td>
                               </tr>
                            `);
                         });
@@ -675,15 +669,18 @@
          });
       }
 
+      let flatpickrInstance;
       if (typeof flatpickr !== "undefined") {
-         $("#dueDateInput").flatpickr({
+         flatpickrInstance = $("#dueDateInput").flatpickr({
             enableTime: true,
+            noCalendar: false,
             dateFormat: "Y-m-d H:i",
             minDate: "today",
             allowInput: true,
             altInput: true,
+            animate: true,
             altFormat: "F j, Y at h:i K",
-            time_24hr: false,
+            time_24hr: true,
             static: true, // Important for modal
             defaultDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default to 30 days from now
             plugins: [
@@ -693,8 +690,65 @@
                   theme: "dark",
                }),
             ],
+            onChange: function (selectedDates, dateStr) {
+               $("#dueDateHidden").val(dateStr);
+            },
          });
+
+         // Trigger initial update based on default payment terms
+         const defaultPaymentTerms = $("#paymentTerms").val() || "30";
+         let dueDate;
+         switch (defaultPaymentTerms) {
+            case "Net 15 Days":
+               dueDate = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+               break;
+            case "Net 30 Days":
+               dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+               break;
+            case "Net 45 Days":
+               dueDate = new Date(Date.now() + 45 * 24 * 60 * 60 * 1000);
+               break;
+            case "Immediate Payment":
+               dueDate = new Date();
+               break;
+            default:
+               dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+         }
+         flatpickrInstance.setDate(dueDate, true);
+         $("#dueDateHidden").val(
+            flatpickrInstance.formatDate(dueDate, "Y-m-d H:i")
+         );
       }
+
+      // Update due date based on payment terms
+      $("#paymentTerms").on("change", function () {
+         const paymentTerms = $(this).val();
+         let dueDate;
+
+         switch (paymentTerms) {
+            case "15":
+               dueDate = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+               break;
+            case "30":
+               dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+               break;
+            case "45":
+               dueDate = new Date(Date.now() + 45 * 24 * 60 * 60 * 1000);
+               break;
+            case "immediate":
+               dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+               break;
+            default:
+               dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Fallback
+         }
+
+         if (flatpickrInstance) {
+            flatpickrInstance.setDate(dueDate, true); // Trigger onChange to update UI
+            $("#dueDateHidden").val(
+               flatpickrInstance.formatDate(dueDate, "Y-m-d H:i")
+            );
+         }
+      });
 
       // Load students from API
       $.ajax({
@@ -728,6 +782,37 @@
       e.preventDefault();
 
       const formData = $(this).serialize();
+
+      // Check for empty required fields
+      const requiredFields = [
+         { id: "studentSelect", label: "Student" },
+         { id: "invoiceType", label: "Invoice Type" },
+         { id: "academicPeriod", label: "Academic Period" },
+         { id: "amount", label: "Amount" },
+         { id: "paymentTerms", label: "Payment Terms" },
+         { id: "invoiceDescription", label: "Description" },
+      ];
+      const emptyFields = [];
+      
+      requiredFields.forEach(field => {
+         const fieldValue = $(`#${field.id}`).val();
+         if (!fieldValue || fieldValue.trim() === '') {
+         emptyFields.push(field.label);
+         }
+      });
+      
+      if (emptyFields.length > 0) {
+         Swal.fire({
+         icon: "warning",
+         title: "Missing Information",
+         text: `Please fill in all required fields: ${emptyFields.join(', ')}`,
+         });
+         return;
+      }
+
+      // Log for debugging
+      console.log("Form submitted", $(this));
+      console.log("Form data:", formData);
 
       $.ajax({
          url: "/admin/create-invoice",
