@@ -11,7 +11,7 @@ require_once "./app/controllers/Login.php";
    dir="ltr"
    data-skin="default"
    data-assets-path="../../assets/"
-   data-template="horizontal-menu-template"
+   data-template="front-pages"
    data-bs-theme="light">
 
 <head>
@@ -69,7 +69,7 @@ require_once "./app/controllers/Login.php";
 <body>
    <!-- Content -->
    <div class="container-xxl">
-     
+
       <div class="authentication-wrapper authentication-basic container-p-y">
          <div class="authentication-inner">
 

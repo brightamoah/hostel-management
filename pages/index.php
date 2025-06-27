@@ -61,6 +61,8 @@ function getRoute()
 
     <!-- Core CSS -->
     <!-- build:css assets/vendor/css/theme.css  -->
+    <link href='https://cdn.boxicons.com/fonts/basic/boxicons.min.css' rel='stylesheet'>
+    <link href='https://cdn.boxicons.com/fonts/animations.min.css' rel='stylesheet'>
 
     <link rel="stylesheet" href="../../assets/vendor/libs/pickr/pickr-themes.css" />
 
@@ -91,7 +93,7 @@ function getRoute()
     <script src="../assets/vendor/js/mega-dropdown.js"></script> -->
 
     <!-- Navbar -->
-   <?php include_once __DIR__ . '/../Components/home/navbar.php';?>
+    <?php include_once __DIR__ . '/../Components/home/navbar.php'; ?>
 
     <!-- Sections:Start -->
 

@@ -1,5 +1,5 @@
 <?php
-require_once "./app/models/Room.php";
+require_once __DIR__ . "/../../../app/models/Room.php";
 header('Content-Type: application/json');
 
 $room_id = $id;

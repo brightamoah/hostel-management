@@ -124,7 +124,7 @@
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
             <!-- Menu -->
-            <?php include_once "./Components/sidebar.php" ?>
+            <?php include_once __DIR__ . "/../../Components/sidebar.php" ?>
 
             <div class="menu-mobile-toggler d-xl-none rounded-1">
                 <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
@@ -137,7 +137,7 @@
             <!-- Layout container -->
             <div class="layout-page">
                 <!-- Navbar -->
-                <?php include_once "./Components/header.php" ?>
+                <?php include_once __DIR__ . "/../../Components/header.php" ?>
                 <!-- / Navbar -->
 
                 <!-- Content wrapper -->
@@ -248,6 +248,7 @@
     <script src="../../assets/vendor/libs/@form-validation/auto-focus.js"></script>
     <script src="../../assets/vendor/libs/cleave-zen/cleave-zen.js"></script>
     <script src="../../assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
+    <script src="../../assets/js/main.js"></script>
 
     <!-- Page JS -->
     <script>

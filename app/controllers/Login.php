@@ -123,14 +123,6 @@ class Login
                     } else {
                         error_log("Failed to prepare admin query: {$this->user->getConnection()->error}");
                     }
-                } else {
-                    $_SESSION['user'] = [
-                        'user_id' => $user['user_id'],
-                        'name' => $user['name'],
-                        'email' => $user['email'],
-                        'role' => $user['role'],
-                        'last_login' => $user['last_login']
-                    ];
                 }
 
                 if ($remember_me) {
@@ -253,8 +245,8 @@ class Login
 
     // /**
     //  * Validates login form input
-    
-    
+
+
     //  * @param string $email User email
     //  * @param string $password User password
     //  * @return bool True if validation passes, false otherwise
@@ -435,7 +427,7 @@ class Login
     // }
 
 
-    
+
 }
 
 try {

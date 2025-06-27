@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . "/../../app/models/User.php";
-require_once __DIR__ . "/../../database/db.php";
-require_once __DIR__ . "/../../utils/functions.php";
+require_once __DIR__ . "/../../../app/models/User.php";
+require_once __DIR__ . "/../../../database/db.php";
+require_once __DIR__ . "/../../../utils/functions.php";
 
 
 header('Content-Type: application/json');
