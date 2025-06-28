@@ -1,13 +1,16 @@
 <?php
 require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../../services/EmailService.php";
 
 class Billing
 {
     private $db;
+    private $emailService;
 
     public function __construct()
     {
         $this->db = getDb();
+        $this->emailService = new EmailService();
     }
 
     public function __destruct()
@@ -322,29 +325,107 @@ class Billing
         $student_id = $this->db->real_escape_string($data['student_id']);
         $amount = floatval($data['amount']);
         $description = $this->db->real_escape_string($data['description']);
-        $date_due = $this->db->real_escape_string($data['date_due']);
-        $purpose = $this->db->real_escape_string($data['purpose']);
+        $due_date = $this->db->real_escape_string($data['due_date']);
+        $billing_type = $this->db->real_escape_string($data['purpose']);
         $academic_period = $this->db->real_escape_string($data['academic_period'] ?? '');
-        $payment_terms = $this->db->real_escape_string($data['payment_terms'] ?? 'net30');
-        $send_notification = isset($data['send_notification']) ? 1 : 0;
+        $payment_terms = $this->db->real_escape_string($data['payment_terms'] ?? '30');
+        $send_notification = isset($data['send_notification']) && $data['send_notification'] === 'on' ? 1 : 0;
 
-        $date_issued = date('Y-m-d');
+
+        // Get student's active allocation
+        $allocationQuery = "SELECT allocation_id FROM allocations WHERE student_id = ? AND status = 'Active' LIMIT 1";
+        $stmt = $this->db->prepare($allocationQuery);
+        $stmt->bind_param('i', $student_id);
+        $stmt->execute();
+        $allocationResult = $stmt->get_result();
+        $allocation_id = null;
+
+        if ($allocationResult && $allocationResult->num_rows > 0) {
+            $allocation = $allocationResult->fetch_assoc();
+            $allocation_id = $allocation['allocation_id'];
+        }
+        $stmt->close();
+
+
+        // Validate inputs
+        $errors = [];
+        if (!$student_id) $errors[] = 'Student ID';
+        if (!$amount || $amount <= 0) $errors[] = 'Amount (must be greater than 0)';
+        if (!$due_date) $errors[] = 'Due Date';
+        if (!$billing_type) $errors[] = 'Purpose';
+        if (!$academic_period) $errors[] = 'Academic Period';
+        if (!$payment_terms) $errors[] = 'Payment Terms';
+        if (!$description) $errors[] = 'Description';
+
+        if (!empty($errors)) {
+            return ['success' => false, 'error' => 'The following fields are required: ' . implode(', ', $errors)];
+        }
+
+        // Validate due_date format (Y-m-d H:i:s)
+        $due_date_obj = DateTime::createFromFormat('Y-m-d H:i:s', $due_date);
+        if (!$due_date_obj) {
+            return ['success' => false, 'error' => 'Invalid due date format. Expected Y-m-d H:i:s or Y-m-d H:i, received: ' . $due_date];
+        }
+
+        $due_date_formatted = $due_date_obj->format('Y-m-d H:i:s');
+
+        // Map academic_period to database ENUM
+        $academic_period_map = [
+            'first_semester' => 'Semester 1',
+            'second_semester' => 'Semester 2',
+            'entire_year' => 'Entire Year',
+            'vacation_period' => 'Vacation Period',
+        ];
+        $academic_period = $academic_period_map[strtolower($academic_period)] ?? 'Semester 1';
+
+        // Map payment_terms to database ENUM
+        $payment_terms_map = [
+            '15' => 'Net 15 Days',
+            '30' => 'Net 30 Days',
+            '45' => 'Net 45 Days',
+            'immediate' => 'Immediate Payment',
+        ];
+        $payment_terms = $payment_terms_map[strtolower($payment_terms)] ?? 'Net 30 Days';
+
+        $date_issued = date('Y-m-d H:i:s');
         $status = 'Unpaid';
 
         $query = "
-            INSERT INTO billing (student_id, amount, description, date_issued, date_due, status, purpose, academic_period, payment_terms)
-            VALUES ('$student_id', '$amount', '$description', '$date_issued', '$date_due', '$status', '$purpose', '$academic_period', '$payment_terms')
+            INSERT INTO billing (student_id, allocation_id, amount, description, date_issued, date_due, status, billing_type, academic_period, payment_terms)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ";
 
-        if ($this->db->query($query)) {
+        $stmt = $this->db->prepare($query);
+
+        if (!$stmt) {
+            return ['success' => false, 'error' => 'Failed to prepare statement: ' . $this->db->error];
+        }
+
+        $stmt->bind_param(
+            'iidsssssss',
+            $student_id,
+            $allocation_id,
+            $amount,
+            $description,
+            $date_issued,
+            $due_date_formatted,
+            $status,
+            $billing_type,
+            $academic_period,
+            $payment_terms
+        );
+
+        if ($stmt->execute()) {
             $billing_id = $this->db->insert_id;
             if ($send_notification) {
-                $this->sendNotification($billing_id, $student_id, $amount, $date_due);
+                $this->sendNotification($billing_id, $student_id, $amount, $due_date_formatted, $description, $billing_type);
             }
+            $stmt->close();
             return ['success' => true, 'billing_id' => $billing_id];
         }
 
-        return ['success' => false, 'error' => 'Failed to create invoice'];
+        $stmt->close();
+        return ['success' => false, 'error' => 'Failed to create invoice: ' . $this->db->error];
     }
 
     /**
@@ -361,12 +442,20 @@ class Billing
         $status = 'Completed';
 
         // Get billing details
-        $billingQuery = "SELECT amount, paid_amount, student_id FROM billing WHERE billing_id = '$billing_id'";
-        $billingResult = $this->db->query($billingQuery);
+        $billingQuery = "SELECT amount, paid_amount, student_id FROM billing WHERE billing_id = ?";
+
+        $stmt = $this->db->prepare($billingQuery);
+        $stmt->bind_param('i', $billing_id);
+        $stmt->execute();
+        $billingResult = $stmt->get_result();
         if (!$billingResult || $billingResult->num_rows == 0) {
+            $stmt->close();
             return ['success' => false, 'error' => 'Invoice not found'];
         }
         $billing = $billingResult->fetch_assoc();
+        $stmt->close();
+
+
         $student_id = $billing['student_id'];
         $new_paid_amount = floatval($billing['paid_amount']) + $amount;
 
@@ -379,20 +468,38 @@ class Billing
             // Insert payment
             $paymentQuery = "
                 INSERT INTO payments (student_id, billing_id, amount, payment_date, transaction_reference, payment_method, status, payment_notes)
-                VALUES ('$student_id', '$billing_id', '$amount', '$payment_date', '$transaction_reference', '$payment_method', '$status', '$payment_notes')
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ";
-            $this->db->query($paymentQuery);
+            $stmt = $this->db->prepare($paymentQuery);
+            $stmt->bind_param(
+                'iiddssss',
+                $student_id,
+                $billing_id,
+                $amount,
+                $payment_date,
+                $transaction_reference,
+                $payment_method,
+                $status,
+                $payment_notes
+            );
+            $stmt->execute();
+            $stmt->close();
+
+            // $this->db->query($paymentQuery);
 
             // Update billing
             $updateBillingQuery = "
                 UPDATE billing 
-                SET paid_amount = '$new_paid_amount', status = '$new_status'
-                WHERE billing_id = '$billing_id'
+                SET paid_amount = ?, status = ?
+                WHERE billing_id = ?
             ";
-            $this->db->query($updateBillingQuery);
+            $stmt = $this->db->prepare($updateBillingQuery);
+            $stmt->bind_param('dsi', $new_paid_amount, $new_status, $billing_id);
+            $stmt->execute();
+            $stmt->close();
 
             $this->db->commit();
-            return ['success' => true];
+            return ['success' => true, 'message' => 'Payment recorded successfully', 'billing_id' => $billing_id];
         } catch (Exception $e) {
             $this->db->rollback();
             return ['success' => false, 'error' => 'Failed to record payment: ' . $e->getMessage()];
@@ -414,15 +521,20 @@ class Billing
             SELECT b.amount, b.paid_amount, b.date_due, s.email, s.first_name, s.last_name
             FROM billing b
             JOIN students s ON b.student_id = s.student_id
-            WHERE b.billing_id = '$billing_id'
+            WHERE b.billing_id = ?
         ";
-        $result = $this->db->query($query);
+        $stmt = $this->db->prepare($query);
+        $stmt->bind_param('i', $billing_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
         if ($result && $result->num_rows > 0) {
             $row = $result->fetch_assoc();
-            $this->sendEmail($row['email'], $subject, $message, $billing_id, $attach_invoice);
-            return ['success' => true];
+            $this->emailService->sendEmail($row['email'], $subject, $message, $billing_id, $attach_invoice);
+            $stmt->close();
+            return ['success' => true, 'message' => 'Reminder sent successfully'];
         }
 
+        $stmt->close();
         return ['success' => false, 'error' => 'Failed to send reminder'];
     }
 
@@ -438,22 +550,32 @@ class Billing
                 SELECT b.amount, b.paid_amount, b.date_due, s.email, s.first_name, s.last_name
                 FROM billing b
                 JOIN students s ON b.student_id = s.student_id
-                WHERE b.billing_id = '$billing_id' AND b.status IN ('Unpaid', 'Partially Paid', 'Overdue')
+                WHERE b.billing_id = ? AND b.status IN ('Unpaid', 'Partially Paid', 'Overdue')
             ";
-            $result = $this->db->query($query);
+            $stmt = $this->db->prepare($query);
+            $stmt->bind_param('i', $billing_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
             if ($result && $result->num_rows > 0) {
                 $row = $result->fetch_assoc();
-                $subject = "Payment Reminder: Invoice #INV-" . str_pad($billing_id, 5, '0', STR_PAD_LEFT);
+                $subject = "Payment Reminder: Invoice #INV-" . str_pad($billing_id, 6, '0', STR_PAD_LEFT);
                 $message = "Dear {$row['first_name']} {$row['last_name']},\n\nThis is a reminder that your payment of $" .
                     ($row['amount'] - $row['paid_amount']) . " for invoice #INV-" .
-                    str_pad($billing_id, 5, '0', STR_PAD_LEFT) . " is due on " .
+                    str_pad($billing_id, 6, '0', STR_PAD_LEFT) . " is due on " .
                     date('M d, Y', strtotime($row['date_due'])) . ".\n\nThank you,\nKings Hostel Management";
-                $this->sendEmail($row['email'], $subject, $message, $billing_id, true);
+                $this->emailService->sendEmail($row['email'], $subject, $message, $billing_id, true);
                 $success_count++;
             }
+            $stmt->close();
         }
 
-        return ['success' => true, 'sent' => $success_count];
+        return [
+            'success' => true,
+            'sent' => $success_count,
+            'total' => count($billing_ids),
+            'failed' => count($billing_ids) - $success_count,
+            'message' => "Successfully sent $success_count out of " . count($billing_ids) . " reminders"
+        ];
     }
 
     /**
@@ -490,25 +612,25 @@ class Billing
     /**
      * Send email notification (placeholder)
      */
-    private function sendNotification($billing_id, $student_id, $amount, $date_due)
+    private function sendNotification($billing_id, $student_id, $amount, $date_due, $description, $billing_type)
     {
-        $query = "SELECT email, first_name, last_name FROM students WHERE student_id = '$student_id'";
-        $result = $this->db->query($query);
+        $query = "SELECT email, first_name, last_name FROM students s JOIN users u ON s.user_id = u.user_id WHERE student_id = ?";
+        $stmt = $this->db->prepare($query);
+        $stmt->bind_param('i', $student_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
         if ($result && $result->num_rows > 0) {
             $student = $result->fetch_assoc();
-            $subject = "New Invoice #INV-" . str_pad($billing_id, 5, '0', STR_PAD_LEFT);
-            $message = "Dear {$student['first_name']} {$student['last_name']},\n\nA new invoice (#INV-" .
-                str_pad($billing_id, 5, '0', STR_PAD_LEFT) . ") for $$amount has been issued. " .
-                "It is due on " . date('M d, Y', strtotime($date_due)) . ".\n\nThank you,\nKings Hostel Management";
-            $this->sendEmail($student['email'], $subject, $message, $billing_id, true);
+            $subject = "New Invoice #INV-" . str_pad($billing_id, 6, '0', STR_PAD_LEFT);
+            $message = "Dear {$student['first_name']} {$student['last_name']},\n\n" .
+                "A new invoice (#INV-" . str_pad($billing_id, 6, '0', STR_PAD_LEFT) . ") for {$billing_type} has been issued.\n" .
+                "Amount: GHS {$amount}\n" .
+                "Description: {$description}\n" .
+                "Due Date: " . date('M d, Y H:i', strtotime($date_due)) . "\n\n" .
+                "Thank you,\nKings Hostel Management";
+            $this->emailService->sendEmail($student['email'], $subject, $message, $billing_id, true);
         }
-    }
-
-    /**
-     * Send email (placeholder for actual implementation)
-     */
-    private function sendEmail($to, $subject, $message, $billing_id, $attach_invoice)
-    {
-        error_log("Sending email to $to: Subject: $subject, Message: $message, Attach Invoice: " . ($attach_invoice ? 'Yes' : 'No'));
+        $stmt->close();
+        error_log("Notification sent for billing ID $billing_id to student ID $student_id");
     }
 }

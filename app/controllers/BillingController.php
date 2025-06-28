@@ -81,4 +81,44 @@ class BillingController
         }
         exit();
     }
+
+    public function createInvoice()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !is_csrf_valid()) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid request or CSRF token']);
+            http_response_code(403);
+            exit;
+        }
+
+        $user_id = $_SESSION['user']['user_id'] ?? null;
+        if (!$user_id) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'User not authenticated']);
+            http_response_code(401);
+            exit;
+        }
+
+        $data = [
+            'student_id' => $_POST['student_id'] ?? '',
+            'amount' => $_POST['amount'] ?? '',
+            'description' => $_POST['description'] ?? '',
+            'due_date' => $_POST['due_date'] ?? '',
+            'purpose' => $_POST['purpose'] ?? '',
+            'academic_period' => $_POST['academic_period'] ?? '',
+            'payment_terms' => $_POST['payment_terms'] ?? '',
+            'send_notification' => $_POST['send_notification'] ?? '',
+        ];
+
+        try {
+            $result = $this->billingModel->createInvoice($data);
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Failed to create invoice: ' . $e->getMessage()]);
+            http_response_code(500);
+        }
+        exit();
+    }
 }

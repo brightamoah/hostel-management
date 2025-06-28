@@ -3,7 +3,7 @@
 ?>
 
 <!doctype html>
-<html lang="en" class="layout-wide" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
+<html lang="en" class="layout-wide" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="front-pages" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
@@ -13,7 +13,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/favicon_io/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="../../assets/img/favicon_io/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../../assets/img/favicon_io/favicon-16x16.png">
-    
+
     <link rel="stylesheet" href="../../assets/vendor/fonts/iconify-icons.css" />
     <link rel="stylesheet" href="../../assets/vendor/css/core.css" />
     <link rel="stylesheet" href="../../assets/css/demo.css" />
