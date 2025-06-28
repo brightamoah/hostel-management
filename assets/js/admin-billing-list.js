@@ -674,12 +674,12 @@
          flatpickrInstance = $("#dueDateInput").flatpickr({
             enableTime: true,
             noCalendar: false,
-            dateFormat: "Y-m-d H:i",
+            dateFormat: "Y-m-d H:i:S",
             minDate: "today",
-            allowInput: true,
+            allowInput: false,
             altInput: true,
             animate: true,
-            altFormat: "F j, Y at h:i K",
+            altFormat: "F j, Y at H:i",
             time_24hr: true,
             static: true, // Important for modal
             defaultDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default to 30 days from now
@@ -811,8 +811,8 @@
       }
 
       // Log for debugging
-      console.log("Form submitted", $(this));
-      console.log("Form data:", formData);
+      // console.log("Form submitted", $(this).val());
+      // console.log("Form data:", formData);
 
       $.ajax({
          url: "/admin/create-invoice",

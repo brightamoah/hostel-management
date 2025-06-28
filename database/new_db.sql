@@ -470,4 +470,29 @@ ALTER TABLE allocations
     ADD COLUMN academic_period ENUM(
         'Semester 1',
         'Semester 2',
+        'Entire Year',
+        'Vacation Period'
     ) NOT NULL DEFAULT 'Semester 1';
+
+
+ALTER TABLE billing
+ADD COLUMN billing_type ENUM(
+    'Hostel Fee',
+    'Security Deposit',
+    'Utility Fee',
+    'Maintenance Fee',
+    'Late Payment Penalty',
+    'Other'
+) NOT NULL DEFAULT 'Hostel Fee',
+ADD COLUMN academic_period ENUM(
+    'Semester 1',
+    'Semester 2',
+    'Entire Year',
+    'Vacation Period'
+) NOT NULL DEFAULT 'Semester 1',
+ADD COLUMN payment_terms ENUM(
+    'Net 15 Days',
+    'Net 30 Days',
+    'Net 45 Days',
+    'Immediate Payment'
+) NOT NULL DEFAULT 'Net 30 Days';

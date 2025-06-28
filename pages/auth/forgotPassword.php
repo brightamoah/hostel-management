@@ -11,7 +11,7 @@
     dir="ltr"
     data-skin="default"
     data-assets-path="../../assets/"
-    data-template="vertical-menu-template"
+    data-template="front-pages"
     data-bs-theme="light">
 
 <head>

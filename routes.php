@@ -122,6 +122,7 @@ post('/admin/maintenance/update-status', 'api/admin/UpdateMaintenanceStatus.php'
 post('/admin/announcements/action', 'app/admin/announcements_logic.php', ['admin']);
 post("/admin/announcements/create", "pages/admin/create_announcements.php", ['auth', 'admin']);
 post('/admin/announcements/edit/$a_id', 'pages/admin/edit_announcement.php', ['auth', 'admin']);
+post('/admin/create-invoice', 'api/admin/billings/CreateBilling.php', ['auth', 'admin']);
 // post('/api/admin/fetch-targets', 'api/admin/announcement/fetchTargets.php', ['auth', 'admin']);
 
 // Room Management Routes (Admin)
