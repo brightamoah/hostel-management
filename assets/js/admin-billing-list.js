@@ -4,6 +4,8 @@
 
    const dt_billing_table = document.querySelector(".datatables-billings");
 
+   let flatpickrInstance;
+
    const formatCurrency = (amount) => {
       return new Intl.NumberFormat("en-GH", {
          style: "currency",
@@ -30,15 +32,14 @@
 
       dt = new DataTable(dt_billing_table, {
          ajax: "/admin/billing-data",
-         processing: true,
-         serverSide: false,
+         pageLength: 7,
          layout: {
             topStart: {
                rowClass: "row mx-3 my-0 justify-content-between",
                features: [
                   {
                      pageLength: {
-                        menu: [5, 10, 25, 50],
+                        menu: [5, 7, 10, 25],
                         text: "Show _MENU_ entries",
                      },
                   },
@@ -365,7 +366,7 @@
                },
             },
          ],
-         order: [[1, "desc"]],
+         order: [[0, "desc"]],
          responsive: {
             details: {
                display: DataTable.Responsive.display.modal({
@@ -591,6 +592,11 @@
                },
                error: function () {
                   console.error("Failed to load building data");
+                  Swal.fire({
+                     icon: "error",
+                     title: "Error",
+                     text: "Failed to load building data",
+                  });
                },
             });
          },
@@ -669,8 +675,11 @@
          });
       }
 
-      let flatpickrInstance;
       if (typeof flatpickr !== "undefined") {
+         if (flatpickrInstance) {
+            flatpickrInstance.destroy();
+         }
+
          flatpickrInstance = $("#dueDateInput").flatpickr({
             enableTime: true,
             noCalendar: false,
@@ -782,6 +791,7 @@
       e.preventDefault();
 
       const formData = $(this).serialize();
+      const submitButton = $("#createInvoiceButton");
 
       // Check for empty required fields
       const requiredFields = [
@@ -793,19 +803,21 @@
          { id: "invoiceDescription", label: "Description" },
       ];
       const emptyFields = [];
-      
-      requiredFields.forEach(field => {
+
+      requiredFields.forEach((field) => {
          const fieldValue = $(`#${field.id}`).val();
-         if (!fieldValue || fieldValue.trim() === '') {
-         emptyFields.push(field.label);
+         if (!fieldValue || fieldValue.trim() === "") {
+            emptyFields.push(field.label);
          }
       });
-      
+
       if (emptyFields.length > 0) {
          Swal.fire({
-         icon: "warning",
-         title: "Missing Information",
-         text: `Please fill in all required fields: ${emptyFields.join(', ')}`,
+            icon: "warning",
+            title: "Missing Information",
+            text: `Please fill in all required fields: ${emptyFields.join(
+               ", "
+            )}`,
          });
          return;
       }
@@ -818,18 +830,107 @@
          url: "/admin/create-invoice",
          method: "POST",
          data: formData,
+         beforeSend: function () {
+            submitButton.prop("disabled", true);
+            submitButton.html(
+               '<span class="spinner-border spinner-border-lg me-2" role="status" aria-hidden="true"></span> Creating Invoice...'
+            );
+         },
          success: function (response) {
             if (response.success) {
+               //clear form
+               $("#createInvoiceForm")[0].reset();
+
+               // Reset Select2 dropdowns
+               $("#studentSelect").val(null).trigger("change");
+               $("#invoiceType").val(null).trigger("change");
+               $("#academicPeriod").val(null).trigger("change");
+               $("#paymentTerms").val("30").trigger("change"); // Reset to default
+
+               // Clear flatpickr
+               if (flatpickrInstance) {
+                  flatpickrInstance.clear();
+               }
+
                // Close modal and refresh table
                $("#createInvoiceModal").modal("hide");
-               dt.api().ajax.reload();
 
-               // Show success message
-               Swal.fire({
-                  icon: "success",
-                  title: "Success",
-                  text: "Invoice created successfully",
-               });
+               // Wait for modal to fully close before showing SweetAlert
+               // $("#createInvoiceModal").on("hidden.bs.modal", function () {
+               //    let successMessage = "Invoice created successfully!";
+
+               //    const emailSent =
+               //       response.email_sent ||
+               //       (response.email_result && response.email_result.success);
+
+               //    if (emailSent) {
+               //       successMessage +=
+               //          '<br><span class="text-success">✓ Email notification sent successfully</span>';
+               //    } else {
+               //       successMessage +=
+               //          '<br><span class="text-warning">⚠ Failed to send email notification</span>';
+               //       const emailError =
+               //          response.email_error ||
+               //          (response.email_result && response.email_result.error);
+               //       if (emailError) {
+               //          successMessage += `<br><small class="text-muted">${emailError}</small>`;
+               //       }
+               //    }
+
+               //    // Show success message
+               //    Swal.fire({
+               //       icon: "success",
+               //       title: "Success!",
+               //       html: successMessage,
+               //       showCloseButton: true,
+               //       showConfirmButton: true,
+               //       allowOutsideClick: false,
+               //       allowEscapeKey: false,
+               //    });
+               // });
+
+               setTimeout(() => {
+                  let successMessage = "Invoice created successfully!";
+                  let icon = "success";
+
+                  // Check email status from response
+                  const emailSent = response.email_sent === true;
+                  const emailResult = response.email_result;
+
+                  if (emailSent && emailResult && emailResult.success) {
+                     successMessage +=
+                        '<br><span class="text-success">✓ Email notification sent successfully</span>';
+                  } else {
+                     // Email failed - show warning instead of success
+                     icon = "warning";
+                     successMessage +=
+                        '<br><span class="text-warning">⚠ Invoice created but email notification failed</span>';
+
+                     // Add error details if available
+                     const emailError =
+                        response.email_error ||
+                        (emailResult && emailResult.error) ||
+                        (emailResult && emailResult.message);
+
+                     if (emailError) {
+                        successMessage += `<br><small class="text-muted">${emailError}</small>`;
+                     }
+                  }
+
+                  // Show the alert
+                  Swal.fire({
+                     icon: icon,
+                     title: emailSent ? "Success!" : "Invoice Created",
+                     html: successMessage,
+                     timer: emailSent ? 3500 : 5500, // Show longer if there's an email error
+                     timerProgressBar: true,
+                     showConfirmButton: true,
+                  });
+               }, 300);
+               // Refresh the DataTable
+               if (dt && dt.api) {
+                  dt.api().ajax.reload();
+               }
             } else {
                // Show error message
                Swal.fire({
@@ -839,11 +940,34 @@
                });
             }
          },
-         error: function () {
+         complete: function () {
+            submitButton.prop("disabled", false);
+            submitButton.html("Create Invoice");
+         },
+         error: function (xhr, status, error) {
+            console.error("AJAX Error:", { xhr, status, error });
+
+            let errorMessage = "Failed to create invoice. Please try again.";
+
+            // Try to get more specific error from response
+            if (xhr.responseJSON && xhr.responseJSON.error) {
+               errorMessage = xhr.responseJSON.error;
+            } else if (xhr.responseText) {
+               try {
+                  const response = JSON.parse(xhr.responseText);
+                  if (response.error) {
+                     errorMessage = response.error;
+                  }
+               } catch (e) {
+                  // If JSON parsing fails, use default message
+               }
+            }
+
+            // Show error message to user
             Swal.fire({
                icon: "error",
                title: "Error",
-               text: "Failed to create invoice. Please try again.",
+               text: errorMessage,
             });
          },
       });

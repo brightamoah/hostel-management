@@ -21,7 +21,7 @@
 
                     <div class="col-md-6">
                         <label for="amountInput" class="form-label">Amount (GH₵)</label>
-                        <input type="number" step="0.01" class="form-control" id="amount" name="amount"
+                        <input type="number" step="0.1" class="form-control" id="amount" name="amount"
                             placeholder="Enter amount" required>
                     </div>
 
@@ -39,8 +39,8 @@
                             <option value="Security Deposit">Security Deposit</option>
                             <option value="Utility Fee">Utility Fee</option>
                             <option value="Maintenance Fee">Maintenance Fee</option>
-                            <option value="Penalty">Late Payment Penalty</option>
-                            <option value="Other">Other (specify)</option>
+                            <option value="Late Payment Penalty">Late Payment Penalty</option>
+                            <!-- <option value="Other">Other (specify)</option> -->
                         </select>
                     </div>
                     <div class="col-md-6">
@@ -81,7 +81,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" form="createInvoiceForm" class="btn btn-primary">Create Invoice</button>
+                <button type="submit" form="createInvoiceForm" id="createInvoiceButton" class="btn btn-primary">
+                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    Create Invoice
+                </button>
             </div>
         </div>
     </div>

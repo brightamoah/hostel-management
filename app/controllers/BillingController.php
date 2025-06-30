@@ -112,6 +112,15 @@ class BillingController
 
         try {
             $result = $this->billingModel->createInvoice($data);
+
+
+            if ($result['success']) {
+                // Add email status to result
+                $email_result = $result['email_result'] ?? ['success' => false];
+                $result['email_sent'] = $email_result['success'] ?? false;
+                $result['email_error'] = $email_result['error'] ?? null;
+            }
+
             header('Content-Type: application/json');
             echo json_encode($result);
         } catch (Exception $e) {

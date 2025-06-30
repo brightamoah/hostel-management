@@ -20,208 +20,6 @@ class Billing
         }
     }
 
-    /**
-     * Get all billings for DataTables server-side processing
-     */
-    public function getBillings($request)
-    {
-        $draw = isset($request['draw']) ? intval($request['draw']) : 1;
-        $start = isset($request['start']) ? intval($request['start']) : 0;
-        $length = isset($request['length']) ? intval($request['length']) : 10;
-        $search = isset($request['search']['value']) ? $this->db->real_escape_string($request['search']['value']) : '';
-        $status = isset($request['columns'][6]['search']['value']) ? $this->db->real_escape_string($request['columns'][6]['search']['value']) : '';
-        $dueDate = isset($request['columns'][5]['search']['value']) ? $this->db->real_escape_string($request['columns'][5]['search']['value']) : '';
-        $building = isset($request['columns'][2]['search']['value']) ? $this->db->real_escape_string($request['columns'][2]['search']['value']) : '';
-
-        // Base query for current period
-        $query = "
-        SELECT b.billing_id, b.student_id, b.allocation_id, b.amount, b.description, b.date_issued, b.date_due, 
-               b.status, b.paid_amount, s.first_name, s.last_name, r.building
-        FROM billing b
-        LEFT JOIN students s ON b.student_id = s.student_id
-        LEFT JOIN allocations a ON b.allocation_id = a.allocation_id
-        LEFT JOIN rooms r ON a.room_id = r.room_id
-        ";
-
-        // Filtering
-        $where = [];
-        if ($search) {
-            $where[] = "(b.billing_id LIKE '%$search%' OR CONCAT(s.first_name, ' ', s.last_name) LIKE '%$search%' OR b.description LIKE '%$search%')";
-        }
-        if ($status) {
-            $where[] = "b.status = '$status'";
-        }
-        if ($dueDate) {
-            $where[] = "DATE(b.date_due) = '$dueDate'";
-        }
-        if ($building) {
-            $where[] = "r.building = '$building'";
-        }
-
-        // Build WHERE clause
-        $whereClause = "";
-        if (!empty($where)) {
-            $whereClause = " WHERE " . implode(" AND ", $where);
-            $query .= $whereClause;
-        }
-
-        // Ordering
-        $orderColumnIndex = isset($request['order'][0]['column']) ? intval($request['order'][0]['column']) : 4;
-        $orderDir = $request['order'][0]['dir'] ?? 'desc';
-        $columns = ['b.billing_id', 'b.billing_id', 's.first_name', 'b.amount', 'b.date_issued', 'b.date_due', 'b.status', 'b.paid_amount'];
-        $orderColumn = $columns[$orderColumnIndex] ?? 'b.date_issued';
-        $query .= " ORDER BY $orderColumn $orderDir";
-
-        // Get total record count before filtering
-        $totalRecordsQuery = "SELECT COUNT(*) as total FROM billing";
-        $totalRecordsResult = $this->db->query($totalRecordsQuery);
-        $totalRecords = $totalRecordsResult->fetch_assoc()['total'];
-
-        // Get filtered record count
-        $totalFiltered = $totalRecords;
-        if (!empty($where)) {
-            $filteredQuery = "
-            SELECT COUNT(*) as total 
-            FROM billing b
-            LEFT JOIN students s ON b.student_id = s.student_id
-            LEFT JOIN allocations a ON b.allocation_id = a.allocation_id
-            LEFT JOIN rooms r ON a.room_id = r.room_id
-            $whereClause
-            ";
-            $filteredResult = $this->db->query($filteredQuery);
-            $totalFiltered = $filteredResult->fetch_assoc()['total'];
-        }
-
-        // Apply pagination
-        $paginatedQuery = "$query LIMIT $start, $length";
-        $result = $this->db->query($paginatedQuery);
-
-        // Process results
-        $data = [];
-        while ($row = $result->fetch_assoc()) {
-            $data[] = [
-                'billing_id' => $row['billing_id'],
-                'student_name' => $row['first_name'] . ' ' . $row['last_name'],
-                'student_id' => $row['student_id'],
-                'amount' => $row['amount'],
-                'description' => $row['description'],
-                'date_issued' => $row['date_issued'],
-                'date_due' => $row['date_due'],
-                'status' => $row['status'],
-                'paid_amount' => $row['paid_amount'],
-                'building' => $row['building'],
-                'balance' => max(0, $row['amount'] - $row['paid_amount']),
-            ];
-        }
-
-        // Calculate statistics for current period
-        $statsQuery = "
-        SELECT 
-            COALESCE(SUM(b.amount), 0) as total_billings,
-            COALESCE(SUM(b.paid_amount), 0) as total_paid,
-            COALESCE(SUM(CASE WHEN b.status = 'Fully Paid' THEN b.amount ELSE 0 END), 0) as paid_invoices,
-            COALESCE(SUM(CASE WHEN b.status IN ('Partially Paid', 'Unpaid') THEN b.amount - COALESCE(b.paid_amount, 0) ELSE 0 END), 0) as pending_invoices,
-            COALESCE(SUM(CASE WHEN b.status = 'Overdue' THEN b.amount - COALESCE(b.paid_amount, 0) ELSE 0 END), 0) as overdue_invoices,
-            COUNT(*) as total_invoices,
-            COALESCE(SUM(CASE WHEN b.status = 'Fully Paid' THEN 1 ELSE 0 END), 0) as paid_count,
-            COALESCE(SUM(CASE WHEN b.status IN ('Partially Paid', 'Unpaid') THEN 1 ELSE 0 END), 0) as pending_count,
-            COALESCE(SUM(CASE WHEN b.status = 'Overdue' THEN 1 ELSE 0 END), 0) as overdue_count
-        FROM billing b
-        LEFT JOIN students s ON b.student_id = s.student_id
-        LEFT JOIN allocations a ON b.allocation_id = a.allocation_id
-        LEFT JOIN rooms r ON a.room_id = r.room_id
-        " . (!empty($whereClause) ? $whereClause : "");
-
-        $statsResult = $this->db->query($statsQuery);
-        if (!$statsResult) {
-            error_log("Stats query error: " . $this->db->error);
-            error_log("Stats query: " . $statsQuery);
-            $stats = [
-                'total_billings' => 0,
-                'total_paid' => 0,
-                'paid_invoices' => 0,
-                'pending_invoices' => 0,
-                'overdue_invoices' => 0,
-                'total_invoices' => 0,
-                'paid_count' => 0,
-                'pending_count' => 0,
-                'overdue_count' => 0,
-                'collection_rate' => 0,
-                'total_change' => 0,
-                'paid_change' => 0,
-                'pending_change' => 0,
-                'overdue_change' => 0
-            ];
-        } else {
-            $stats = $statsResult->fetch_assoc();
-
-            // Ensure numeric values
-            $stats['total_billings'] = floatval($stats['total_billings']);
-            $stats['total_paid'] = floatval($stats['total_paid']);
-            $stats['paid_invoices'] = floatval($stats['paid_invoices']);
-            $stats['pending_invoices'] = floatval($stats['pending_invoices']);
-            $stats['overdue_invoices'] = floatval($stats['overdue_invoices']);
-            $stats['total_invoices'] = intval($stats['total_invoices']);
-            $stats['paid_count'] = intval($stats['paid_count']);
-            $stats['pending_count'] = intval($stats['pending_count']);
-            $stats['overdue_count'] = intval($stats['overdue_count']);
-            $stats['collection_rate'] = ($stats['total_billings'] > 0)
-                ? round(($stats['total_paid'] / $stats['total_billings']) * 100, 1)
-                : 0;
-
-            // Calculate statistics for previous period (last month)
-            $prevStatsQuery = "
-            SELECT 
-                COALESCE(SUM(b.amount), 0) as total_billings,
-                COALESCE(SUM(b.paid_amount), 0) as total_paid,
-                COALESCE(SUM(CASE WHEN b.status IN ('Partially Paid', 'Unpaid') THEN b.amount - COALESCE(b.paid_amount, 0) ELSE 0 END), 0) as pending_invoices,
-                COALESCE(SUM(CASE WHEN b.status = 'Overdue' THEN b.amount - COALESCE(b.paid_amount, 0) ELSE 0 END), 0) as overdue_invoices
-            FROM billing b
-            LEFT JOIN students s ON b.student_id = s.student_id
-            LEFT JOIN allocations a ON b.allocation_id = a.allocation_id
-            LEFT JOIN rooms r ON a.room_id = r.room_id
-            WHERE b.date_issued >= DATE_SUB(LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 2 MONTH)), INTERVAL 1 MONTH)
-            AND b.date_issued < LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
-            " . (!empty($whereClause) ? $whereClause : "");
-
-            $prevStatsResult = $this->db->query($prevStatsQuery);
-            if ($prevStatsResult) {
-                $prevStats = $prevStatsResult->fetch_assoc();
-                $prev_total_billings = floatval($prevStats['total_billings']);
-                $prev_total_paid = floatval($prevStats['total_paid']);
-                $prev_pending_invoices = floatval($prevStats['pending_invoices']);
-                $prev_overdue_invoices = floatval($prevStats['overdue_invoices']);
-
-                // Calculate percentage changes
-                $stats['total_change'] = $prev_total_billings > 0
-                    ? round((($stats['total_billings'] - $prev_total_billings) / $prev_total_billings) * 100, 1)
-                    : ($stats['total_billings'] > 0 ? 100 : 0);
-                $stats['paid_change'] = $prev_total_paid > 0
-                    ? round((($stats['total_paid'] - $prev_total_paid) / $prev_total_paid) * 100, 1)
-                    : ($stats['total_paid'] > 0 ? 100 : 0);
-                $stats['pending_change'] = $prev_pending_invoices > 0
-                    ? round((($stats['pending_invoices'] - $prev_pending_invoices) / $prev_pending_invoices) * 100, 1)
-                    : ($stats['pending_invoices'] > 0 ? 100 : 0);
-                $stats['overdue_change'] = $prev_overdue_invoices > 0
-                    ? round((($stats['overdue_invoices'] - $prev_overdue_invoices) / $prev_overdue_invoices) * 100, 1)
-                    : ($stats['overdue_invoices'] > 0 ? 100 : 0);
-            } else {
-                // If no previous data, set changes to 0 or 100 based on current values
-                $stats['total_change'] = $stats['total_billings'] > 0 ? 100 : 0;
-                $stats['paid_change'] = $stats['total_paid'] > 0 ? 100 : 0;
-                $stats['pending_change'] = $stats['pending_invoices'] > 0 ? 100 : 0;
-                $stats['overdue_change'] = $stats['overdue_invoices'] > 0 ? 100 : 0;
-            }
-        }
-
-        return [
-            'draw' => $draw,
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $totalFiltered,
-            'data' => $data,
-            'stats' => $stats
-        ];
-    }
 
     /**
      * Get billing details by ID
@@ -270,6 +68,8 @@ class Billing
         return $data['details'] ?? null;
     }
 
+
+
     /**
      * Get payment history for a billing ID
      */
@@ -316,6 +116,280 @@ class Billing
 
         return $data;
     }
+
+
+    /** 
+     * Build the base query for fetching billings
+     */
+    private function buildBaseQuery()
+    {
+        $query = "
+            SELECT b.billing_id, b.student_id, b.allocation_id, b.amount, b.description, 
+                   b.date_issued, b.date_due, b.status, b.paid_amount, 
+                   s.first_name, s.last_name, r.building
+            FROM billing b
+            LEFT JOIN students s ON b.student_id = s.student_id
+            LEFT JOIN allocations a ON b.allocation_id = a.allocation_id
+            LEFT JOIN rooms r ON a.room_id = r.room_id
+        ";
+        return $query;
+    }
+
+    /** 
+     * Build the WHERE clause for filtering billings
+     */
+    private function buildWhereClause(array $request): string
+    {
+        $search = isset($request['search']['value']) ? $this->db->real_escape_string($request['search']['value']) : '';
+        $status = isset($request['columns'][6]['search']['value']) ? $this->db->real_escape_string($request['columns'][6]['search']['value']) : '';
+        $dueDate = isset($request['columns'][5]['search']['value']) ? $this->db->real_escape_string($request['columns'][5]['search']['value']) : '';
+        $building = isset($request['columns'][2]['search']['value']) ? $this->db->real_escape_string($request['columns'][2]['search']['value']) : '';
+
+        $where = [];
+        if ($search) {
+            $where[] = "(b.billing_id LIKE '%$search%' OR CONCAT(s.first_name, ' ', s.last_name) LIKE '%$search%' OR b.description LIKE '%$search%')";
+        }
+        if ($status) {
+            $where[] = "b.status = '$status'";
+        }
+        if ($dueDate) {
+            $where[] = "DATE(b.date_due) = '$dueDate'";
+        }
+        if ($building) {
+            $where[] = "r.building = '$building'";
+        }
+
+        return !empty($where) ? " WHERE " . implode(" AND ", $where) : "";
+    }
+
+
+    /**
+     * Apply ordering to the query
+     */
+    private function buildOrderClause(array $request): string
+    {
+        $orderColumnIndex = isset($request['order'][0]['column']) ? intval($request['order'][0]['column']) : 4;
+        $orderDir = $request['order'][0]['dir'] ?? 'desc';
+        $columns = ['b.billing_id', 'b.billing_id', 's.first_name', 'b.amount', 'b.date_issued', 'b.date_due', 'b.status', 'b.paid_amount'];
+        $orderColumn = $columns[$orderColumnIndex] ?? 'b.date_issued';
+        return " ORDER BY $orderColumn $orderDir";
+    }
+
+    /**
+     * Get total record count
+     */
+    private function getTotalRecords(): int
+    {
+        $totalRecordsQuery = "SELECT COUNT(*) as total FROM billing";
+        $totalRecordsResult = $this->db->query($totalRecordsQuery);
+        return $totalRecordsResult->fetch_assoc()['total'];
+    }
+
+    /**
+     * Get filtered record count
+     */
+    private function getFilteredRecords(string $whereClause): int
+    {
+        if (empty($whereClause)) {
+            return $this->getTotalRecords();
+        }
+
+        $filteredQuery = "
+            SELECT COUNT(*) as total 
+            FROM billing b
+            LEFT JOIN students s ON b.student_id = s.student_id
+            LEFT JOIN allocations a ON b.allocation_id = a.allocation_id
+            LEFT JOIN rooms r ON a.room_id = r.room_id
+            $whereClause
+        ";
+        $filteredResult = $this->db->query($filteredQuery);
+        return $filteredResult->fetch_assoc()['total'];
+    }
+
+
+    /**
+     * Fetch billing data
+     */
+    private function fetchBillingData(string $query): array
+    {
+        $result = $this->db->query($query);
+        $data = [];
+        while ($row = $result->fetch_assoc()) {
+            $data[] = [
+                'billing_id' => $row['billing_id'],
+                'student_name' => $row['first_name'] . ' ' . $row['last_name'],
+                'student_id' => $row['student_id'],
+                'amount' => $row['amount'],
+                'description' => $row['description'],
+                'date_issued' => $row['date_issued'],
+                'date_due' => $row['date_due'],
+                'status' => $row['status'],
+                'paid_amount' => $row['paid_amount'],
+                'building' => $row['building'],
+                'balance' => max(0, $row['amount'] - $row['paid_amount']),
+            ];
+        }
+        return $data;
+    }
+
+    /**
+     * Calculate billing statistics for current period
+     */
+    private function calculateCurrentStats(string $whereClause): array
+    {
+        $statsQuery = "
+            SELECT 
+                COALESCE(SUM(b.amount), 0) as total_billings,
+                COALESCE(SUM(b.paid_amount), 0) as total_paid,
+                COALESCE(SUM(CASE WHEN b.status = 'Fully Paid' THEN b.amount ELSE 0 END), 0) as paid_invoices,
+                COALESCE(SUM(CASE WHEN b.status IN ('Partially Paid', 'Unpaid') THEN b.amount - COALESCE(b.paid_amount, 0) ELSE 0 END), 0) as pending_invoices,
+                COALESCE(SUM(CASE WHEN b.status = 'Overdue' THEN b.amount - COALESCE(b.paid_amount, 0) ELSE 0 END), 0) as overdue_invoices,
+                COUNT(*) as total_invoices,
+                COALESCE(SUM(CASE WHEN b.status = 'Fully Paid' THEN 1 ELSE 0 END), 0) as paid_count,
+                COALESCE(SUM(CASE WHEN b.status IN ('Partially Paid', 'Unpaid') THEN 1 ELSE 0 END), 0) as pending_count,
+                COALESCE(SUM(CASE WHEN b.status = 'Overdue' THEN 1 ELSE 0 END), 0) as overdue_count
+            FROM billing b
+            LEFT JOIN students s ON b.student_id = s.student_id
+            LEFT JOIN allocations a ON b.allocation_id = a.allocation_id
+            LEFT JOIN rooms r ON a.room_id = r.room_id
+            $whereClause
+        ";
+
+        $statsResult = $this->db->query($statsQuery);
+        if (!$statsResult) {
+            error_log("Stats query error: " . $this->db->error);
+            error_log("Stats query: $statsQuery");
+            return [
+                'total_billings' => 0,
+                'total_paid' => 0,
+                'paid_invoices' => 0,
+                'pending_invoices' => 0,
+                'overdue_invoices' => 0,
+                'total_invoices' => 0,
+                'paid_count' => 0,
+                'pending_count' => 0,
+                'overdue_count' => 0,
+                'collection_rate' => 0,
+                'total_change' => 0,
+                'paid_change' => 0,
+                'pending_change' => 0,
+                'overdue_change' => 0
+            ];
+        }
+
+        $stats = $statsResult->fetch_assoc();
+        $stats['total_billings'] = floatval($stats['total_billings']);
+        $stats['total_paid'] = floatval($stats['total_paid']);
+        $stats['paid_invoices'] = floatval($stats['paid_invoices']);
+        $stats['pending_invoices'] = floatval($stats['pending_invoices']);
+        $stats['overdue_invoices'] = floatval($stats['overdue_invoices']);
+        $stats['total_invoices'] = intval($stats['total_invoices']);
+        $stats['paid_count'] = intval($stats['paid_count']);
+        $stats['pending_count'] = intval($stats['pending_count']);
+        $stats['overdue_count'] = intval($stats['overdue_count']);
+        $stats['collection_rate'] = ($stats['total_billings'] > 0)
+            ? round(($stats['total_paid'] / $stats['total_billings']) * 100, 1)
+            : 0;
+
+        return $stats;
+    }
+
+    /**
+     * Calculate statistics for the previous period
+     */
+    private function calculatePreviousStats(string $whereClause): array
+    {
+        $prevStatsQuery = "
+            SELECT 
+                COALESCE(SUM(b.amount), 0) as total_billings,
+                COALESCE(SUM(b.paid_amount), 0) as total_paid,
+                COALESCE(SUM(CASE WHEN b.status IN ('Partially Paid', 'Unpaid') THEN b.amount - COALESCE(b.paid_amount, 0) ELSE 0 END), 0) as pending_invoices,
+                COALESCE(SUM(CASE WHEN b.status = 'Overdue' THEN b.amount - COALESCE(b.paid_amount, 0) ELSE 0 END), 0) as overdue_invoices
+            FROM billing b
+            LEFT JOIN students s ON b.student_id = s.student_id
+            LEFT JOIN allocations a ON b.allocation_id = a.allocation_id
+            LEFT JOIN rooms r ON a.room_id = r.room_id
+            WHERE b.date_issued >= DATE_SUB(LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 2 MONTH)), INTERVAL 1 MONTH)
+            AND b.date_issued < LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
+            $whereClause
+        ";
+
+        $prevStatsResult = $this->db->query($prevStatsQuery);
+        if (!$prevStatsResult) {
+            return [
+                'total_billings' => 0,
+                'total_paid' => 0,
+                'pending_invoices' => 0,
+                'overdue_invoices' => 0
+            ];
+        }
+
+        return $prevStatsResult->fetch_assoc();
+    }
+
+
+    /**
+     * Combine current and previous stats to calculate changes
+     */
+    private function combineStats(array $currentStats, array $prevStats): array
+    {
+        $prev_total_billings = floatval($prevStats['total_billings']);
+        $prev_total_paid = floatval($prevStats['total_paid']);
+        $prev_pending_invoices = floatval($prevStats['pending_invoices']);
+        $prev_overdue_invoices = floatval($prevStats['overdue_invoices']);
+
+        $currentStats['total_change'] = $prev_total_billings > 0
+            ? round((($currentStats['total_billings'] - $prev_total_billings) / $prev_total_billings) * 100, 1)
+            : ($currentStats['total_billings'] > 0 ? 100 : 0);
+        $currentStats['paid_change'] = $prev_total_paid > 0
+            ? round((($currentStats['total_paid'] - $prev_total_paid) / $prev_total_paid) * 100, 1)
+            : ($currentStats['total_paid'] > 0 ? 100 : 0);
+        $currentStats['pending_change'] = $prev_pending_invoices > 0
+            ? round((($currentStats['pending_invoices'] - $prev_pending_invoices) / $prev_pending_invoices) * 100, 1)
+            : ($currentStats['pending_invoices'] > 0 ? 100 : 0);
+        $currentStats['overdue_change'] = $prev_overdue_invoices > 0
+            ? round((($currentStats['overdue_invoices'] - $prev_overdue_invoices) / $prev_overdue_invoices) * 100, 1)
+            : ($currentStats['overdue_invoices'] > 0 ? 100 : 0);
+
+        return $currentStats;
+    }
+
+    /**
+     * Get all billings for DataTables server-side processing
+     */
+    public function getBillings($request)
+    {
+        $draw = isset($request['draw']) ? intval($request['draw']) : 1;
+
+        // Build query components
+        $baseQuery = $this->buildBaseQuery();
+        $whereClause = $this->buildWhereClause($request);
+        $orderClause = $this->buildOrderClause($request);
+
+        // Construct final query without pagination
+        $query = $baseQuery . $whereClause . $orderClause;
+
+        // Get total and filtered record counts
+        $totalRecords = $this->getTotalRecords();
+        $totalFiltered = $this->getFilteredRecords($whereClause);
+
+        // Fetch billing data
+        $data = $this->fetchBillingData($query);
+
+        // Calculate statistics
+        $currentStats = $this->calculateCurrentStats($whereClause);
+        $prevStats = $this->calculatePreviousStats($whereClause);
+        $stats = $this->combineStats($currentStats, $prevStats);
+
+        return [
+            'draw' => $draw,
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data,
+            'stats' => $stats
+        ];
+    }
+
 
     /**
      * Create a new invoice
@@ -417,11 +491,24 @@ class Billing
 
         if ($stmt->execute()) {
             $billing_id = $this->db->insert_id;
+            $email_result = ['success' => false];
+
             if ($send_notification) {
-                $this->sendNotification($billing_id, $student_id, $amount, $due_date_formatted, $description, $billing_type);
+                $email_result = $this->sendNotification(
+                    $billing_id,
+                    $student_id,
+                    $amount,
+                    $due_date_formatted,
+                    $description,
+                    $billing_type
+                );
             }
             $stmt->close();
-            return ['success' => true, 'billing_id' => $billing_id];
+            return [
+                'success' => true,
+                'billing_id' => $billing_id,
+                'email_result' => $email_result
+            ];
         }
 
         $stmt->close();
@@ -621,16 +708,20 @@ class Billing
         $result = $stmt->get_result();
         if ($result && $result->num_rows > 0) {
             $student = $result->fetch_assoc();
-            $subject = "New Invoice #INV-" . str_pad($billing_id, 6, '0', STR_PAD_LEFT);
-            $message = "Dear {$student['first_name']} {$student['last_name']},\n\n" .
-                "A new invoice (#INV-" . str_pad($billing_id, 6, '0', STR_PAD_LEFT) . ") for {$billing_type} has been issued.\n" .
-                "Amount: GHS {$amount}\n" .
-                "Description: {$description}\n" .
-                "Due Date: " . date('M d, Y H:i', strtotime($date_due)) . "\n\n" .
-                "Thank you,\nKings Hostel Management";
-            $this->emailService->sendEmail($student['email'], $subject, $message, $billing_id, true);
+
+            $email_result = $this->emailService->sendInvoiceNotification(
+                $student['email'],
+                $billing_id,
+                $student['first_name'] . ' ' . $student['last_name'],
+                $amount,
+                $date_due,
+                $description,
+                $billing_type
+            );
+            $stmt->close();
+            return $email_result;
         }
         $stmt->close();
-        error_log("Notification sent for billing ID $billing_id to student ID $student_id");
+        return ['success' => false, 'error' => 'Student email not found'];
     }
 }
