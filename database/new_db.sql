@@ -496,3 +496,4 @@ ADD COLUMN payment_terms ENUM(
     'Net 45 Days',
     'Immediate Payment'
 ) NOT NULL DEFAULT 'Net 30 Days';
+
