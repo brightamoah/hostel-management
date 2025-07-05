@@ -1,6 +1,9 @@
 <?php
 
 require_once __DIR__ . "/../vendor/autoload.php";
+require_once __DIR__ . "/../app/models/PDFGenerator.php";
+// require_once __DIR__ . "/../api/admin/billings/EmailHandler.php";
+require_once __DIR__ . "/../utils/format_currency.php";
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -36,32 +39,40 @@ class EmailService
         return true;
     }
 
-    public function sendEmail($to, $subject, $body, $billing_id = null, $attach_invoice = false)
+    public function sendEmail($to, $subject, $body, $billing_id = null, $attach_invoice = false, $attachment_path = null)
     {
         try {
+            $this->mailer->clearAddresses();
+            $this->mailer->clearAttachments();
+
+
             $this->mailer->addAddress($to);
             $this->mailer->Subject = $subject;
             $this->mailer->Body = $body;
 
-            if ($attach_invoice && $billing_id) {
-                $invoice_path = $this->getInvoicePath($billing_id);
-                if ($invoice_path) {
-                    $this->mailer->addAttachment($invoice_path);
-                }
+            // Add attachment if provided
+            if ($attach_invoice && $attachment_path && file_exists($attachment_path)) {
+                $this->mailer->addAttachment($attachment_path, "invoice_INV-" . sprintf("%06d", $billing_id) . ".pdf");
             }
 
             $this->mailer->send();
+
             return [
                 'success' => true,
-                'message' => 'Email sent successfully'
+                'message' => 'Email sent successfully',
+                'email_sent' => true
             ];
         } catch (Exception $e) {
             error_log("Failed to send email: " . $e->getMessage());
             return [
                 'success' => false,
                 'message' => 'Failed to send email: ' . $e->getMessage(),
+                'email_sent' => false,
                 'error' => $e->getMessage()
             ];
+        } finally {
+            $this->mailer->clearAddresses();
+            $this->mailer->clearAttachments();
         }
     }
 
@@ -92,23 +103,61 @@ class EmailService
     public function sendInvoiceNotification($to, $billing_id, $student_name, $amount, $due_date, $description, $billing_type)
     {
         try {
+            $pdfGenerator = new PDFGenerator();
+            $temp_file = $pdfGenerator->generateInvoicePDFFile($billing_id);
+
+
+            $this->mailer->clearAddresses();
+            $this->mailer->clearAttachments();
+
             $this->mailer->addAddress($to);
             $this->mailer->Subject = "New Billing #INV-{$this->formatInvoiceId($billing_id)} from Kings Hostel Management";
 
-            $formatted_amount = number_format($amount, 2);
+            $formatted_amount = formatCurrency($amount);
             $formatted_due_date = date('F j, Y H:i', strtotime($due_date));
-            // $logo_path =  "../assets/img/logo-no-text.svg";
 
-            // Embed logo as attachment for email
+            // Add PDF attachment
+            if ($temp_file && file_exists($temp_file)) {
+                $this->mailer->addAttachment($temp_file, "invoice_INV-" . sprintf("%06d", $billing_id) . ".pdf");
+            }
 
-            $this->mailer->addEmbeddedImage(__DIR__ . "/../assets/img/logo-no-text.svg", 'logo', 'logo-no-text.svg');
-            
+            $this->mailer->Body = $this->buildNotificationHTML($student_name, $billing_id, $formatted_amount, $formatted_due_date, $description, $billing_type);
 
-            // } else {
-            //     $logo_src = 'data:image/svg+xml;base64,' . base64_encode('<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" rx="12" fill="#986886"/><text x="30" y="35" text-anchor="middle" fill="white" font-family="Arial" font-size="24" font-weight="bold">K</text></svg>');
-            // }
+            $this->mailer->send();
 
-            $this->mailer->Body = <<<HTML
+            // Clean up temporary PDF file
+            if ($temp_file && file_exists($temp_file)) {
+                unlink($temp_file);
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Invoice notification sent successfully',
+                'email_sent' => true
+            ];
+        } catch (Exception $e) {
+            // Clean up temporary PDF file even on error
+            if (isset($temp_file) && $temp_file && file_exists($temp_file)) {
+                unlink($temp_file);
+            }
+
+            error_log("Failed to send invoice notification: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Failed to send invoice notification: ' . $e->getMessage(),
+                'email_sent' => false,
+                'error' => $e->getMessage()
+            ];
+        } finally {
+            $this->mailer->clearAddresses();
+            $this->mailer->clearAttachments();
+        }
+    }
+
+    public function buildNotificationHTML($student_name, $billing_id, $formatted_amount, $formatted_due_date, $description, $billing_type)
+    {
+
+        $content = <<<HTML
 
             <!DOCTYPE html>
 <html lang="en">
@@ -174,12 +223,6 @@ class EmailService
             margin-bottom: 15px;
             backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .logo svg {
-            width: 50px;
-            height: 50px;
-            filter: brightness(0) invert(1);
         }
         
         .header h1 {
@@ -432,7 +475,7 @@ class EmailService
                 font-size: 24px;
             }
             
-            .logo {
+            /* .logo {
                 width: 70px;
                 height: 70px;
             }
@@ -440,7 +483,7 @@ class EmailService
             .logo svg {
                 width: 40px;
                 height: 40px;
-            }
+            } */
         }
     </style>
 </head>
@@ -448,11 +491,11 @@ class EmailService
     <div class="email-container">
         <div class="header">
             <div class="logo-section">
-                <div class="logo">
-                    <!-- <img src="cid:logo" alt="Kings Hostel Management Logo"> -->
+                <!-- <div class="logo">
+                    <img src="cid:logo" alt="Kings Hostel Management Logo">
                     
                     
-                </div>
+                </div> -->
                 <h1>Kings Hostel Management</h1>
                 <div class="subtitle">Invoice Notification</div>
             </div>
@@ -468,7 +511,7 @@ class EmailService
             <div class="invoice-card">
                 <div class="invoice-header">
                     <span>Invoice Details</span>
-                    <span class="invoice-number">#INV-{$this->formatInvoiceId($billing_id)}</span>
+                    <!-- <span class="invoice-number">#INV-{$this->formatInvoiceId($billing_id)}</span> -->
                 </div>
                 <div class="invoice-details">
                     <table>
@@ -528,9 +571,9 @@ class EmailService
         
         <div class="footer">
             <div class="footer-title">Kings Hostel Management</div>
-            123 University Avenue, Accra, Ghana<br>
+            University Campus, Accra<br>
             <a href="mailto:kingshostelmgt@gmail.com">kingshostelmgt@gmail.com</a> | 
-            <a href="tel:+233123456789">+233 123 456 789</a><br>
+            <a href="tel:+233549684848">+233 549 684 848</a><br>
             <a href="https://kingshostelmgt.com">www.kingshostelmgt.com</a>
         </div>
     </div>
@@ -538,25 +581,6 @@ class EmailService
 </html>
 HTML;
 
-            $invoice_path = $billing_id ? $this->getInvoicePath($billing_id) : null;
-            if ($invoice_path) {
-                $this->mailer->addAttachment($invoice_path);
-            }
-
-            $this->mailer->send();
-            return [
-                'success' => true,
-                'message' => 'Invoice notification sent successfully',
-                'email_sent' => true
-            ];
-        } catch (Exception $e) {
-            error_log("Failed to send invoice notification: " . $e->getMessage());
-            return [
-                'success' => false,
-                'message' => 'Failed to send invoice notification: ' . $e->getMessage(),
-                'email_sent' => false,
-                'error' => $e->getMessage()
-            ];
-        }
+        return $content;
     }
 }

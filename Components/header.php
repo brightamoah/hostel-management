@@ -124,7 +124,7 @@ $profile_url = getProfileURL($role);
                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
                                     <i class="icon-base bx bx-food-menu icon-26px text-heading"></i>
                                 </span>
-                                <a href="app-invoice-list.html" class="stretched-link">Billings</a>
+                                <a href="/student/billing" class="stretched-link">Billings</a>
                                 <small>View Your Bills</small>
                             </div>
                         </div>

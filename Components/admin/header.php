@@ -127,7 +127,7 @@ $profile_url = getProfileURL($role);
                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
                                     <i class="icon-base bx bx-food-menu icon-26px text-heading"></i>
                                 </span>
-                                <a href="app-invoice-list.html" class="stretched-link">Billings</a>
+                                <a href="/admin/billings" class="stretched-link">Billings</a>
                                 <small>View Your Bills</small>
                             </div>
                         </div>
@@ -137,14 +137,14 @@ $profile_url = getProfileURL($role);
                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
                                     <i class="icon-base bx bx-pie-chart-alt-2 icon-26px text-heading"></i>
                                 </span>
-                                <a href="index.html" class="stretched-link">Dashboard<a />
+                                <a href="/admin/dashboard" class="stretched-link">Dashboard<a />
                                     <small>Your Dashboard</small>
                             </div>
                             <div class="dropdown-shortcuts-item col">
                                 <span class="dropdown-shortcuts-icon rounded-circle mb-3">
                                     <i class="icon-base bx bx-cog icon-26px text-heading"></i>
                                 </span>
-                                <a href="pages-account-settings-account.html" class="stretched-link">Setting</a>
+                                <a href="/admin/profile" class="stretched-link">Setting</a>
                                 <small>Account Settings</small>
                             </div>
                         </div>
