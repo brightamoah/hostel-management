@@ -11,6 +11,7 @@ require_once __DIR__ . "/../../utils/format_currency.php";
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="csrf-token" content="<?php echo $_SESSION['csrf'] ?? ''; ?>">
 
     <title>Kings Hostel - Admin Billing Dashboard</title>
 
@@ -130,6 +131,8 @@ require_once __DIR__ . "/../../utils/format_currency.php";
                         <!-- Create Invoice Modal -->
                         <?php include_once __DIR__ . "/../../Components/admin/billing/create_invoice_modal.php"; ?>
 
+                        <?php include_once __DIR__ . "/../../Components/admin/billing/edit_billing.php"; ?>
+
                         <!-- Record Payment Modal -->
                         <?php include_once __DIR__ . "/../../Components/admin/billing/record_payment_modal.php"; ?>
 
@@ -193,6 +196,7 @@ require_once __DIR__ . "/../../utils/format_currency.php";
     <script src="../../assets/js/main.js"></script>
     <!-- Page JS -->
     <script src="../../assets/js/admin-billing-list.js"></script>
+
 </body>
 
 

@@ -9,7 +9,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <div class="invoice-preview-card mb-0">
+                <div class="invoice-preview-card mb-0 invoice-content">
                     <!-- Invoice Header -->
                     <div class="invoice-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
                         <div class="logo-details mb-3 mb-md-0">
@@ -190,10 +190,10 @@
                 <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">
                     <i class="icon-base bx bx-x me-1"></i>Close
                 </button>
-                <button type="button" class="btn btn-outline-primary me-1 download-invoice">
+                <button type="button" class="btn btn-outline-primary me-1 download-invoice" id="downloadInvoiceBtn" data-billing-id="">
                     <i class="icon-base bx bx-download me-1"></i>Download
                 </button>
-                <button type="button" class="btn btn-primary send-invoice">
+                <button type="button" class="btn btn-primary send-invoice" id="emailInvoiceBtn" data-student-email="" data-billing-id="">
                     <i class="icon-base bx bx-send me-1"></i>Email Invoice
                 </button>
             </div>

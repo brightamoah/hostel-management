@@ -28,6 +28,7 @@
          document
             .querySelector('meta[name="csrf-token"]')
             ?.getAttribute("content") || "";
+
       let dt;
 
       dt = new DataTable(dt_billing_table, {
@@ -267,7 +268,7 @@
             { data: "status" },
             { data: "paid_amount" },
             { data: "building", visible: false }, // Building
-            { data: null, defaultContent: "" }, // Actions
+            { data: "null", defaultContent: "" }, // Actions
          ],
          columnDefs: [
             {
@@ -340,29 +341,53 @@
                orderable: false,
                render: function (data, type, full) {
                   return `
-                           <div class="d-flex align-items-center gap-2">
-                               <a href="javascript:;" class="btn btn-sm btn-icon view-billing-details" 
-                                  data-billing-id="${full.billing_id}"
-                                  data-bs-toggle="tooltip" 
-                                  title="View details">
-                                  <i class="bx bx-show icon-md"></i>
-                               </a>
-                               <a href="javascript:;" class="btn btn-sm btn-icon record-payment" 
-                                  data-billing-id="${full.billing_id}"
-                                  data-bs-toggle="modal" 
-                                  data-bs-target="#recordPaymentModal"
-                                  title="Record payment">
-                                  <i class="bx bx-dollar-circle icon-md text-success"></i>
-                               </a>
-                               <a href="javascript:;" class="btn btn-sm btn-icon send-reminder" 
-                                  data-billing-id="${full.billing_id}"
-                                  data-bs-toggle="modal" 
-                                  data-bs-target="#sendReminderModal"
-                                  title="Send reminder">
-                                  <i class="bx bx-envelope icon-md text-info"></i>
-                               </a>
-                           </div>
-                       `;
+                            <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                    data-bs-toggle="dropdown" aria-expanded="false">
+               <i class="bx bx-dots-vertical-rounded"></i>
+            </button>
+            <ul class="dropdown-menu">
+               <li>
+                  <a class="dropdown-item view-billing-details" href="javascript:;" 
+                     data-billing-id="${full.billing_id}">
+                     <i class="bx bx-show me-2"></i>View Details
+                  </a>
+               </li>
+               <li>
+                  <a class="dropdown-item edit-billing" href="javascript:;" 
+                     data-billing-id="${full.billing_id}"
+                     data-bs-toggle="modal" 
+                     data-bs-target="#editBillingModal">
+                     <i class="bx bx-edit me-2"></i>Edit Billing
+                  </a>
+               </li>
+               <li><hr class="dropdown-divider"></li>
+               <li>
+                  <a class="dropdown-item record-payment" href="javascript:;" 
+                     data-billing-id="${full.billing_id}"
+                     data-bs-toggle="modal" 
+                     data-bs-target="#recordPaymentModal">
+                     <i class="bx bx-dollar-circle me-2 text-success"></i>Record Payment
+                  </a>
+               </li>
+               <li>
+                  <a class="dropdown-item send-reminder" href="javascript:;" 
+                     data-billing-id="${full.billing_id}"
+                     data-bs-toggle="modal" 
+                     data-bs-target="#sendReminderModal">
+                     <i class="bx bx-envelope me-2 text-info"></i>Send Reminder
+                  </a>
+               </li>
+               <li><hr class="dropdown-divider"></li>
+               <li>
+                  <a class="dropdown-item text-danger delete-billing" href="javascript:;" 
+                     data-billing-id="${full.billing_id}">
+                     <i class="bx bx-trash me-2"></i>Delete Billing
+                  </a>
+               </li>
+            </ul>
+         </div>
+      `;
                },
             },
          ],
@@ -437,7 +462,7 @@
 
             // Refresh table
             $(".refresh-table").on("click", function () {
-               api.ajax.reload();
+               dt.ajax.reload(null, false);
             });
 
             // View details
@@ -449,11 +474,13 @@
                   url: `/admin/billing/${billingId}`,
                   method: "GET",
                   success: function (response) {
-                     if (data.error) {
+                     if (!response.data) {
                         Swal.fire({
                            icon: "error",
                            title: "Error",
-                           text: data.error,
+                           text:
+                              response.error ||
+                              "Failed to load billing details",
                         });
                         return;
                      }
@@ -468,6 +495,19 @@
                         });
                         return;
                      }
+
+                     $("#downloadInvoiceBtn").data(
+                        "billing-id",
+                        details.billing_id
+                     );
+                     $("#emailInvoiceBtn").data(
+                        "billing-id",
+                        details.billing_id
+                     );
+                     $("#emailInvoiceBtn").data(
+                        "student-email",
+                        details.student_email
+                     );
 
                      $("#modalInvoiceId").text(
                         `INV-${String(details.billing_id).padStart(6, "0")}`
@@ -548,13 +588,314 @@
                      // Show the modal
                      $("#viewInvoiceModal").modal("show");
                   },
-                  error: function () {
+                  error: function (xhr) {
+                     let errorMessage = "Failed to load billing details";
+                     if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMessage = xhr.responseJSON.error;
+                     }
                      Swal.fire({
                         icon: "error",
                         title: "Error",
-                        text: "Failed to load billing details",
+                        text: errorMessage,
                      });
                   },
+               });
+            });
+
+            // Download invoice
+            $(document).on("click", "#downloadInvoiceBtn", function () {
+               const billingId = $(this).data("billing-id");
+               if (!billingId) {
+                  Swal.fire({
+                     icon: "error",
+                     title: "Error",
+                     text: "Billing ID is missing",
+                  });
+                  return;
+               }
+               // Redirect to download endpoint
+               window.location.href = `/admin/generate-invoice-pdf?action=download&id=${billingId}`;
+            });
+
+            // Email invoice
+            $(document).on("click", "#emailInvoiceBtn", function () {
+               const billingId = $(this).data("billing-id");
+               const studentEmail = $(this).data("student-email");
+
+               if (!billingId || !studentEmail) {
+                  Swal.fire({
+                     icon: "error",
+                     title: "Error",
+                     text: "Billing ID or student email is missing",
+                  });
+                  return;
+               }
+
+               $.ajax({
+                  url: `/admin/email-invoice`,
+                  method: "GET",
+                  data: {
+                     action: "email",
+                     id: billingId,
+                     email: studentEmail,
+                  },
+                  dataType: "json",
+                  beforeSend: function () {
+                     $("#emailInvoiceBtn")
+                        .prop("disabled", true)
+                        .html(
+                           '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...'
+                        );
+                  },
+                  success: function (response) {
+                     if (response.success) {
+                        Swal.fire({
+                           icon: "success",
+                           title: "Success",
+                           text:
+                              response.message ||
+                              "Invoice emailed successfully",
+                           timer: 3000,
+                           timerProgressBar: true,
+                        });
+                     } else {
+                        Swal.fire({
+                           icon: "error",
+                           title: "Error",
+                           text:
+                              response.error || "Failed to send invoice email",
+                        });
+                     }
+                  },
+                  error: function (xhr) {
+                     let errorMessage = "Failed to send invoice email";
+                     // Try to parse the response even if it contains HTML
+                     try {
+                        const responseText = xhr.responseText;
+                        // Look for JSON in the response
+                        const jsonMatch = responseText.match(/\{.*\}/);
+                        if (jsonMatch) {
+                           const jsonResponse = JSON.parse(jsonMatch[0]);
+                           if (jsonResponse.error) {
+                              errorMessage = jsonResponse.error;
+                           } else if (jsonResponse.success) {
+                              // If we found successful JSON, show success
+                              Swal.fire({
+                                 icon: "success",
+                                 title: "Success",
+                                 text:
+                                    jsonResponse.message ||
+                                    "Invoice emailed successfully",
+                                 timer: 3000,
+                                 timerProgressBar: true,
+                              });
+                              return;
+                           }
+                        }
+                     } catch (e) {
+                        console.error("Failed to parse response:", e);
+                     }
+
+                     Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: errorMessage,
+                     });
+                  },
+                  complete: function () {
+                     $("#emailInvoiceBtn")
+                        .prop("disabled", false)
+                        .html("Email Invoice");
+                  },
+               });
+            });
+
+            // Edit billing
+            $(document).on("click", ".edit-billing", function () {
+               const billingId = $(this).data("billing-id");
+
+               $.ajax({
+                  url: `/admin/billing/${billingId}`,
+                  method: "GET",
+                  success: function (response) {
+                     if (!response.data) {
+                        Swal.fire({
+                           icon: "error",
+                           title: "Error",
+                           text:
+                              response.error ||
+                              "Failed to load billing details",
+                        });
+                        return;
+                     }
+
+                     const details = response.data;
+
+                     // Populate edit form with current data
+                     $("#editBillingId").val(details.billing_id);
+                     $("#editStudentId").val(details.student_id);
+                     $("#editStudentName").val(details.student_name);
+
+                     // Edit billing section - update the field population
+                     const billingType =
+                        details.purpose || details.billing_type || "";
+                     $("#editInvoiceType").val(billingType).trigger("change");
+                     $("#editAcademicPeriod")
+                        .val(details.academic_period)
+                        .trigger("change");
+
+                     // Calculate payment terms from date difference
+                     const dateIssued = new Date(details.date_issued);
+                     const dateDue = new Date(details.date_due);
+                     const daysDifference = Math.ceil(
+                        (dateDue - dateIssued) / (1000 * 60 * 60 * 24)
+                     );
+
+                     let paymentTermsValue = "30"; // default
+                     switch (true) {
+                        case daysDifference <= 7:
+                           paymentTermsValue = "immediate";
+                           break;
+                        case daysDifference <= 15:
+                           paymentTermsValue = "15";
+                           break;
+                        case daysDifference <= 30:
+                           paymentTermsValue = "30";
+                           break;
+                        case daysDifference <= 45:
+                           paymentTermsValue = "45";
+                           break;
+                        default:
+                           paymentTermsValue = "30"; // fallback for longer periods
+                     }
+
+                     $("#editPaymentTerms")
+                        .val(paymentTermsValue)
+                        .trigger("change");
+
+                     $("#editAmount").val(details.amount);
+                     $("#editDescription").val(details.description);
+
+                     // Format the date to match the datetime-local input format (YYYY-MM-DDTHH:MM)
+                     const formattedDate = details.date_due
+                        .replace(" ", "T")
+                        .substring(0, 16);
+                     $("#editDueDateInput").val(formattedDate);
+
+                     $("#editInvoiceDescription").val(details.description);
+
+                     $("#editBillingModal").modal("show");
+                  },
+
+                  error: function (xhr) {
+                     let errorMessage = "Failed to load billing details";
+                     if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMessage = xhr.responseJSON.error;
+                     }
+                     Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: errorMessage,
+                     });
+                  },
+               });
+            });
+
+            // Delete billing
+            $(document).on("click", ".delete-billing", function (e) {
+               e.preventDefault();
+               const billingId = $(this).data("billing-id");
+
+               if (!billingId) {
+                  Swal.fire({
+                     icon: "error",
+                     title: "Error",
+                     text: "Billing ID is missing",
+                  });
+                  return;
+               }
+
+               Swal.fire({
+                  title: "Are you sure?",
+                  text: `This action will permanently delete billing #INV-${String(
+                     billingId
+                  ).padStart(6, "0")}`,
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#3085d6",
+                  cancelButtonColor: "#d33",
+                  confirmButtonText: "Yes, delete it!",
+                  cancelButtonText: "Cancel",
+               }).then((result) => {
+                  if (result.isConfirmed) {
+                     $.ajax({
+                        url: `/admin/delete-invoice/${billingId}`,
+                        method: "POST",
+                        data: {
+                           csrf: csrfToken,
+                        },
+                        beforeSend: function () {
+                           $(this).prop("disabled", true);
+                        },
+                        success: function (response) {
+                           if (response.success) {
+                              Swal.fire({
+                                 icon: "success",
+                                 title: "Success",
+                                 text:
+                                    response.message ||
+                                    "Invoice deleted successfully",
+                                 timer: 2000,
+                                 timerProgressBar: true,
+                              });
+
+                              dt.ajax.reload(null, false);
+                           } else {
+                              Swal.fire({
+                                 icon: "error",
+                                 title: "Error",
+                                 text:
+                                    response.error ||
+                                    "Failed to delete invoice",
+                              });
+                           }
+                        },
+                        error: function (xhr) {
+                           let errorMessage = "Failed to delete invoice";
+                           try {
+                              if (xhr.responseJSON && xhr.responseJSON.error) {
+                                 errorMessage = xhr.responseJSON.error;
+                              } else if (xhr.responseText) {
+                                 // Attempt to parse responseText if it's JSON
+                                 const parsed = JSON.parse(xhr.responseText);
+                                 errorMessage = parsed.error || errorMessage;
+                              }
+                           } catch (e) {
+                              // If response is not JSON, check for common error patterns
+                              if (xhr.status === 403) {
+                                 errorMessage =
+                                    "Unauthorized request or invalid CSRF token";
+                              } else if (xhr.status === 404) {
+                                 errorMessage = "Invoice not found";
+                              } else if (xhr.status === 400) {
+                                 errorMessage =
+                                    "Invalid request. Please check the invoice details.";
+                              } else {
+                                 errorMessage =
+                                    "Server error occurred. Please try again.";
+                              }
+                           }
+                           Swal.fire({
+                              icon: "error",
+                              title: "Error",
+                              text: errorMessage,
+                           });
+                        },
+                        complete: function () {
+                           $(this).prop("disabled", false);
+                        },
+                     });
+                  }
                });
             });
 
@@ -607,12 +948,35 @@
    document.addEventListener("DOMContentLoaded", function () {
       // Initialize Select2 for all filter dropdowns
       if ($.fn.select2) {
-         // Status filter with Select2
          $("#statusFilter").select2();
-
-         // Building filter with Select2
          $("#filterBuilding").select2();
+
+         $("#editInvoiceType").select2({
+            placeholder: "Select invoice type",
+            allowClear: true,
+            width: "100%",
+            dropdownParent: $("#editBillingModal .modal-content"),
+         });
+         $("#editAcademicPeriod").select2({
+            placeholder: "Select academic period",
+            allowClear: true,
+            width: "100%",
+            dropdownParent: $("#editBillingModal .modal-content"),
+         });
+         $("#editPaymentTerms").select2({
+            placeholder: "Select payment terms",
+            allowClear: true,
+            width: "100%",
+            dropdownParent: $("#editBillingModal .modal-content"),
+         });
       }
+
+      // Add this event handler to ensure button is reset when modal is closed
+      $("#editBillingModal").on("hidden.bs.modal", function () {
+         const submitButton = $("#editBillingButton");
+         submitButton.prop("disabled", false);
+         submitButton.html("Save Changes");
+      });
 
       // Initialize flatpickr properly
       if (typeof flatpickr !== "undefined") {
@@ -632,6 +996,29 @@
                }
             },
          });
+
+         flatpickr("#paymentDate", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i:s",
+            altInput: true,
+            altFormat: "F j, Y H:i",
+            allowInput: true,
+            defaultDate: new Date(),
+         });
+
+         // flatpickrInstance = $("#editDueDateInput").flatpickr({
+         //    enableTime: true,
+         //    dateFormat: "Y-m-d H:i:s",
+         //    altInput: true,
+         //    altFormat: "F j, Y H:i",
+         //    allowInput: false,
+         //    time_24hr: true,
+         //    static: true,
+         //    altInputClass: "form-control flatpickr-date",
+         //    onChange: function (selectedDates, dateStr) {
+         //       $("#editDueDateHidden").val(dateStr);
+         //    },
+         // });
       }
    });
 
@@ -718,7 +1105,7 @@
                dueDate = new Date(Date.now() + 45 * 24 * 60 * 60 * 1000);
                break;
             case "Immediate Payment":
-               dueDate = new Date();
+               dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
                break;
             default:
                dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
@@ -822,10 +1209,6 @@
          return;
       }
 
-      // Log for debugging
-      // console.log("Form submitted", $(this).val());
-      // console.log("Form data:", formData);
-
       $.ajax({
          url: "/admin/create-invoice",
          method: "POST",
@@ -854,40 +1237,6 @@
 
                // Close modal and refresh table
                $("#createInvoiceModal").modal("hide");
-
-               // Wait for modal to fully close before showing SweetAlert
-               // $("#createInvoiceModal").on("hidden.bs.modal", function () {
-               //    let successMessage = "Invoice created successfully!";
-
-               //    const emailSent =
-               //       response.email_sent ||
-               //       (response.email_result && response.email_result.success);
-
-               //    if (emailSent) {
-               //       successMessage +=
-               //          '<br><span class="text-success">✓ Email notification sent successfully</span>';
-               //    } else {
-               //       successMessage +=
-               //          '<br><span class="text-warning">⚠ Failed to send email notification</span>';
-               //       const emailError =
-               //          response.email_error ||
-               //          (response.email_result && response.email_result.error);
-               //       if (emailError) {
-               //          successMessage += `<br><small class="text-muted">${emailError}</small>`;
-               //       }
-               //    }
-
-               //    // Show success message
-               //    Swal.fire({
-               //       icon: "success",
-               //       title: "Success!",
-               //       html: successMessage,
-               //       showCloseButton: true,
-               //       showConfirmButton: true,
-               //       allowOutsideClick: false,
-               //       allowEscapeKey: false,
-               //    });
-               // });
 
                setTimeout(() => {
                   let successMessage = "Invoice created successfully!";
@@ -928,9 +1277,7 @@
                   });
                }, 300);
                // Refresh the DataTable
-               if (dt && dt.api) {
-                  dt.api().ajax.reload();
-               }
+               dt.ajax.reload(null, false);
             } else {
                // Show error message
                Swal.fire({
@@ -969,6 +1316,77 @@
                title: "Error",
                text: errorMessage,
             });
+         },
+      });
+   });
+
+   $("#editBillingForm").on("submit", function (e) {
+      e.preventDefault();
+      const formData = $(this).serialize();
+      const billingId = $("#editBillingId").val();
+      const submitButton = $("#editBillingButton");
+
+      $.ajax({
+         url: `/admin/update-invoice/${billingId}`,
+         method: "POST",
+         data: formData,
+         beforeSend: function () {
+            submitButton.prop("disabled", true);
+            submitButton.html(
+               '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Updating...'
+            );
+         },
+         success: function (response) {
+            if (response.success) {
+               $("#editBillingModal").modal("hide");
+
+               // Different messages based on whether changes were made
+               let title = "Success!";
+               let text = response.message || "Billing updated successfully";
+               let icon = "success";
+               let timer = 3000;
+
+               // If no changes were detected
+               if (response.no_changes) {
+                  icon = "info";
+                  title = "No Changes";
+                  timer = 2000;
+               }
+
+               Swal.fire({
+                  icon: icon,
+                  title: title,
+                  text: text,
+                  timer: timer,
+                  timerProgressBar: true,
+               });
+
+               // Refresh the DataTable only if there were actual changes
+               if (!response.no_changes) {
+                  dt.ajax.reload(null, false);
+               }
+            } else {
+               Swal.fire({
+                  icon: "error",
+                  title: "Error",
+                  text: response.error || "Failed to update billing",
+               });
+            }
+         },
+         error: function (xhr) {
+            let errorMessage = "Failed to update billing";
+            if (xhr.responseJSON && xhr.responseJSON.error) {
+               errorMessage = xhr.responseJSON.error;
+            }
+            Swal.fire({
+               icon: "error",
+               title: "Error",
+               text: errorMessage,
+            });
+         },
+         complete: function () {
+            submitButton.prop("disabled", false);
+            submitButton.html("Update Billing");
          },
       });
    });

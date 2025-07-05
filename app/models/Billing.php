@@ -515,6 +515,246 @@ class Billing
         return ['success' => false, 'error' => 'Failed to create invoice: ' . $this->db->error];
     }
 
+
+    /**
+     * Update an existing invoice
+     */
+    public function updateInvoice($billing_id, $data)
+    {
+        $billing_id = $this->db->real_escape_string($billing_id);
+
+        $currentQuery = "SELECT * FROM billing WHERE billing_id = ?";
+        $stmt = $this->db->prepare($currentQuery);
+        $stmt->bind_param('i', $billing_id);
+        $stmt->execute();
+        $currentResult = $stmt->get_result();
+
+        if (!$currentResult || $currentResult->num_rows === 0) {
+            $stmt->close();
+            return ['success' => false, 'error' => 'Billing record not found'];
+        }
+
+        $currentData = $currentResult->fetch_assoc();
+        $stmt->close();
+
+        $student_id = $this->db->real_escape_string($data['student_id']);
+        $amount = floatval($data['amount']);
+        $description = $this->db->real_escape_string($data['description']);
+        $due_date = $this->db->real_escape_string($data['date_due'] ?? $data['due_date'] ?? '');
+        $billing_type = $this->db->real_escape_string($data['billing_type'] ?? $data['purpose'] ?? '');
+        $academic_period = $this->db->real_escape_string($data['academic_period']);
+        $payment_terms = $this->db->real_escape_string($data['payment_terms']);
+
+        $errors = [];
+        if (!$student_id) $errors[] = 'Student ID';
+        if (!$amount || $amount <= 0) $errors[] = 'Amount (must be greater than 0)';
+        if (!$due_date) $errors[] = 'Due Date';
+        if (!$billing_type) $errors[] = 'Billing Type';
+        if (!$academic_period) $errors[] = 'Academic Period';
+        if (!$payment_terms) $errors[] = 'Payment Terms';
+        if (!$description) $errors[] = 'Description';
+
+        if (!empty($errors)) {
+            return ['success' => false, 'error' => 'The following fields are required: ' . implode(', ', $errors)];
+        }
+
+        $due_date_formatted = null;
+
+        // Try HTML5 datetime-local format first (Y-m-d\TH:i)
+        $due_date_obj = DateTime::createFromFormat('Y-m-d\TH:i', $due_date);
+
+        if (!$due_date_obj) {
+            // Try full datetime format (Y-m-d H:i:s)
+            $due_date_obj = DateTime::createFromFormat('Y-m-d H:i:s', $due_date);
+        }
+
+        if (!$due_date_obj) {
+            // Try without seconds (Y-m-d H:i)
+            $due_date_obj = DateTime::createFromFormat('Y-m-d H:i', $due_date);
+        }
+
+        if (!$due_date_obj) {
+            return ['success' => false, 'error' => "Invalid due date format. Expected Y-m-d H:i:s or Y-m-dTH:i, received: $due_date"];
+        }
+
+        $due_date_formatted = $due_date_obj->format('Y-m-d H:i:s');
+
+        $academic_period_map = [
+            'first_semester' => 'Semester 1',
+            'second_semester' => 'Semester 2',
+            'entire_year' => 'Entire Year',
+            'vacation_period' => 'Vacation Period',
+        ];
+
+        if (isset($academic_period_map[strtolower($academic_period)])) {
+            $academic_period = $academic_period_map[strtolower($academic_period)];
+        }
+
+        // Map payment_terms to database ENUM if needed
+        $payment_terms_map = [
+            '15' => 'Net 15 Days',
+            '30' => 'Net 30 Days',
+            '45' => 'Net 45 Days',
+            'immediate' => 'Immediate Payment',
+        ];
+
+        if (isset($payment_terms_map[strtolower($payment_terms)])) {
+            $payment_terms = $payment_terms_map[strtolower($payment_terms)];
+        }
+
+        // Check if there are any changes
+        $hasChanges = false;
+        $changes = [];
+
+        if ($currentData['student_id'] != $student_id) {
+            $hasChanges = true;
+            $changes[] = 'Student ID';
+        }
+        if (floatval($currentData['amount']) != $amount) {
+            $hasChanges = true;
+            $changes[] = 'Amount';
+        }
+        if ($currentData['description'] != $description) {
+            $hasChanges = true;
+            $changes[] = 'Description';
+        }
+        if ($currentData['date_due'] != $due_date_formatted) {
+            $hasChanges = true;
+            $changes[] = 'Due Date';
+        }
+        if ($currentData['billing_type'] != $billing_type) {
+            $hasChanges = true;
+            $changes[] = 'Billing Type';
+        }
+        if ($currentData['academic_period'] != $academic_period) {
+            $hasChanges = true;
+            $changes[] = 'Academic Period';
+        }
+        if ($currentData['payment_terms'] != $payment_terms) {
+            $hasChanges = true;
+            $changes[] = 'Payment Terms';
+        }
+
+        // If no changes detected, return success without updating
+        if (!$hasChanges) {
+            return ['success' => true, 'message' => 'No changes detected. Billing is already up to date.', 'no_changes' => true];
+        }
+
+        $allocationQuery = "SELECT allocation_id FROM allocations WHERE student_id = ? AND status = 'Active' LIMIT 1";
+        $stmt = $this->db->prepare($allocationQuery);
+        $stmt->bind_param('i', $student_id);
+        $stmt->execute();
+        $allocationResult = $stmt->get_result();
+        $allocation_id = null;
+
+        if ($allocationResult && $allocationResult->num_rows > 0) {
+            $allocation = $allocationResult->fetch_assoc();
+            $allocation_id = $allocation['allocation_id'];
+        }
+        $stmt->close();
+
+        $query = "
+        UPDATE billing 
+        SET student_id = ?, allocation_id = ?, amount = ?, description = ?, 
+            date_due = ?, billing_type = ?, academic_period = ?, payment_terms = ?
+        WHERE billing_id = ?
+    ";
+
+        $stmt = $this->db->prepare($query);
+        if (!$stmt) {
+            return ['success' => false, 'error' => 'Failed to prepare statement: ' . $this->db->error];
+        }
+
+        $stmt->bind_param(
+            'iidsssssi',
+            $student_id,
+            $allocation_id,
+            $amount,
+            $description,
+            $due_date_formatted,
+            $billing_type,
+            $academic_period,
+            $payment_terms,
+            $billing_id
+        );
+
+        if ($stmt->execute()) {
+            $stmt->close();
+            return [
+                'success' => true,
+                'message' => 'Billing updated successfully',
+                'changes' => $changes,
+                'updated' => true
+            ];
+        }
+
+        $stmt->close();
+        return ['success' => false, 'error' => 'Failed to update billing: ' . $this->db->error];
+    }
+
+
+    /**
+     * Delete an invoice
+     */
+
+    public function deleteInvoice($billing_id)
+    {
+        $billing_id = $this->db->real_escape_string($billing_id);
+
+        // Check if the billing record exists
+        $query = "SELECT billing_id, status FROM billing WHERE billing_id = ?";
+        $stmt = $this->db->prepare($query);
+
+        if (!$stmt) {
+            return ['success' => false, 'error' => 'Failed to prepare statement: ' . $this->db->error];
+        }
+        $stmt->bind_param('i', $billing_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if (!$result || $result->num_rows === 0) {
+            $stmt->close();
+            return ['success' => false, 'error' => 'Billing record not found'];
+        }
+
+        $billing = $result->fetch_assoc();
+        $stmt->close();
+
+        // Prevent deletion of paid or partially paid invoices
+        if ($billing['status'] === 'Fully Paid' || $billing['status'] === 'Partially Paid') {
+            return ['success' => false, 'error' => 'Cannot delete a paid or partially paid invoice'];
+        }
+
+        $this->db->begin_transaction();
+
+        try {
+            // Delete related payments (if any, though should be none due to status check)
+            $paymentQuery = "DELETE FROM payments WHERE billing_id = ?";
+            $stmt = $this->db->prepare($paymentQuery);
+            $stmt->bind_param('i', $billing_id);
+            $stmt->execute();
+            $stmt->close();
+
+            // Delete the billing record
+            $deleteQuery = "DELETE FROM billing WHERE billing_id = ?";
+            $stmt = $this->db->prepare($deleteQuery);
+            if (!$stmt) {
+                $this->db->rollback();
+                return ['success' => false, 'error' => 'Failed to prepare delete statement: ' . $this->db->error];
+            }
+            $stmt->bind_param('i', $billing_id);
+            $stmt->execute();
+            $stmt->close();
+
+            $this->db->commit();
+            return ['success' => true, 'message' => 'Invoice deleted successfully'];
+        } catch (Exception $e) {
+            $this->db->rollback();
+            return ['success' => false, 'error' => 'Failed to delete invoice: ' . $e->getMessage()];
+        }
+    }
+
+
     /**
      * Record a payment
      */
