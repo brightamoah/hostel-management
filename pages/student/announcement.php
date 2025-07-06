@@ -154,8 +154,8 @@
                                         <p class="mb-0 text-muted" id="announcement-count">Loading announcements...</p>
                                     </div>
                                     <div class="btn-group" role="group" aria-label="Filter announcements">
-                                        <button type="button" class="btn btn-outline-primary announcement-filter-btn active" data-filter="all">All</button>
-                                        <button type="button" class="btn btn-outline-primary announcement-filter-btn" data-filter="unread">Unread</button>
+                                        <button type="button" class="btn btn-outline-primary announcement-filter-btn active" data-filter="unread">Unread</button>
+                                        <button type="button" class="btn btn-outline-primary announcement-filter-btn" data-filter="all">All</button>
                                     </div>
                                 </div>
                             </div>
@@ -255,7 +255,7 @@
         $(document).ready(function() {
             // Load user's read announcements from localStorage
             let readAnnouncements = JSON.parse(localStorage.getItem('readAnnouncements')) || [];
-            let currentFilter = 'all';
+            let currentFilter = 'unread';
 
             // Fetch announcements from the API
             $.ajax({

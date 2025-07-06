@@ -958,6 +958,20 @@
                         `Amount Due: ${formatCurrency(outstandingAmount)}`
                      );
 
+                     // Payment information
+                     const paymentInfo =
+                        `\n\nPAYMENT METHODS & DETAILS:\n` +
+                        `• Bank Transfer:\n` +
+                        `  Bank: Ghana Commercial Bank\n` +
+                        `  Account Name: Kings Hostel Management\n` +
+                        `  Account Number: 1234567890\n\n` +
+                        `• Mobile Money: +233 54 968 4848\n\n` +
+                        `• Cash payment at the office\n` +
+                        `• Online payment portal (if available)\n\n` +
+                        `Please use your invoice number INV-${String(
+                           details.billing_id
+                        ).padStart(6, "0")} as reference for all payments.`;
+
                      // Generate status-specific content
                      let subject, message;
 
@@ -991,20 +1005,20 @@
                                  outstandingAmount
                               )}\n\n` +
                               (daysLeft > 0
-                                 ? `This remaining balance is due in ${daysLeft} days on ${formatDate(
+                                 ? `This remaining balance is due in ${remainingDays} on ${formatDate(
                                       details.date_due
                                    )}.\n\n` +
                                    `Please complete your payment to avoid late fees.`
                                  : `This balance was due on ${formatDate(
                                       details.date_due
-                                   )} and is now ${Math.abs(
-                                      daysLeft
-                                   )} days overdue.\n\n` +
+                                   )} and is now ${remainingDays}.\n\n` +
                                    `Please make the outstanding payment immediately to avoid additional charges.`) +
-                              `\n\nYou can make the remaining payment using any of our available payment methods. ` +
-                              `Please contact us if you need assistance or have any questions about your account.\n\n` +
+                              paymentInfo +
+                              `\nIf you have any questions or need assistance with your payment, please don't hesitate to contact us.\n\n` +
                               `Thank you for your continued cooperation.\n\n` +
-                              `Best regards,\nKings Hostel Management`;
+                              `Best regards,\nKings Hostel Management\n` +
+                              `Phone: +233 54 968 4848\n` +
+                              `Email: kingshostelmgt@gmail.com`;
                            break;
 
                         case "Overdue":
@@ -1032,11 +1046,14 @@
                               `This is your final notice before escalation procedures begin. You have 48 hours from ` +
                               `receipt of this notice to make full payment or contact our office to arrange an ` +
                               `acceptable payment plan.\n\n` +
-                              `IMMEDIATE CONTACT REQUIRED:\n` +
-                              `Please contact the Finance Office immediately at [Phone] or visit our office ` +
+                              `IMMEDIATE PAYMENT REQUIRED:` +
+                              paymentInfo +
+                              `\nIMPORTANT: Contact us immediately at +233 54 968 4848 or visit our office ` +
                               `during business hours to resolve this matter.\n\n` +
                               `We strongly encourage you to take immediate action to avoid further complications.\n\n` +
-                              `Kings Hostel Management\nFinance Department`;
+                              `Kings Hostel Management\nFinance Department\n` +
+                              `Phone: +233 54 968 4848\n` +
+                              `Email: kingshostelmgt@gmail.com`;
                            break;
 
                         case "Cancelled":
@@ -1061,10 +1078,15 @@
                               ).padStart(6, "0")}\n\n` +
                               `If any payments were made towards this invoice, they will be processed according to ` +
                               `our refund policy. Please allow 5-7 business days for refund processing.\n\n` +
+                              `Refunds will be processed to the original payment method or via:\n` +
+                              `• Bank Transfer: Ghana Commercial Bank - Account: 1234567890\n` +
+                              `• Mobile Money: +233 54 968 4848\n\n` +
                               `If you have any questions about this cancellation or need clarification, ` +
-                              `please contact our finance office.\n\n` +
+                              `please contact our finance office at +233 54 968 4848.\n\n` +
                               `Thank you for your understanding.\n\n` +
-                              `Best regards,\nKings Hostel Management`;
+                              `Best regards,\nKings Hostel Management\n` +
+                              `Phone: +233 54 968 4848\n` +
+                              `Email: kingshostelmgt@gmail.com`;
                            break;
 
                         default: // 'Unpaid' and any other status
@@ -1084,13 +1106,11 @@
                                     "0"
                                  )} is due in ${daysLeft} days ` +
                                  `on ${formatDate(details.date_due)}.\n\n` +
-                                 `To avoid any late fees or service interruptions, please ensure your payment is made before the due date.\n\n` +
-                                 `Payment Methods Available:\n` +
-                                 `• Online payment portal\n` +
-                                 `• Bank transfer\n` +
-                                 `• Mobile money\n` +
-                                 `• Cash payment at the office\n\n` +
-                                 `If you have any questions or need assistance with your payment, please don't hesitate to contact us.\n\n` +
+                                 `To avoid any late fees or service interruptions, please ensure your payment is made before the due date.` +
+                                 paymentInfo +
+                                 `\nFor any assistance or questions regarding your payment, please contact us:\n` +
+                                 `Phone: +233 54 968 4848\n` +
+                                 `Email: kingshostelmgt@gmail.com\n\n` +
                                  `Thank you for your attention to this matter.\n\n` +
                                  `Best regards,\nKings Hostel Management`;
                            } else {
@@ -1113,10 +1133,10 @@
                                  `IMMEDIATE ACTION REQUIRED:\n` +
                                  `Please make your payment immediately to avoid additional late fees and potential service suspension.\n\n` +
                                  `Late fees may apply as per our hostel policy. Please contact the finance office immediately ` +
-                                 `if you are experiencing financial difficulties so we can discuss payment arrangements.\n\n` +
-                                 `Payment can be made through any of our available methods. Please retain your payment receipt ` +
-                                 `and contact us once payment is completed.\n\n` +
-                                 `Urgent Contact: [Finance Office Phone] | [Email]\n\n` +
+                                 `if you are experiencing financial difficulties so we can discuss payment arrangements.` +
+                                 paymentInfo +
+                                 `\nPlease retain your payment receipt and contact us once payment is completed.\n\n` +
+                                 `Urgent Contact: +233 54 968 4848 | kingshostelmgt@gmail.com\n\n` +
                                  `Thank you for your immediate attention.\n\n` +
                                  `Kings Hostel Management`;
                            }

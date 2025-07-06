@@ -840,30 +840,67 @@ class Billing
     {
         $billing_id = $this->db->real_escape_string($data['billing_id']);
         $subject = $this->db->real_escape_string($data['subject']);
-        $message = $this->db->real_escape_string($data['message']);
+        $message = $data['message'];
         $attach_invoice = isset($data['attach_invoice']) ? 1 : 0;
 
         // Get billing and student details
         $query = "
-            SELECT b.amount, b.paid_amount, b.date_due, u.email, s.first_name, s.last_name
-            FROM billing b
-            JOIN students s ON b.student_id = s.student_id
-            JOIN users u ON s.user_id = u.user_id
-            WHERE b.billing_id = ?
-        ";
+        SELECT b.amount, b.paid_amount, b.date_due, b.status, u.email, s.first_name, s.last_name
+        FROM billing b
+        JOIN students s ON b.student_id = s.student_id
+        JOIN users u ON s.user_id = u.user_id
+        WHERE b.billing_id = ?
+    ";
         $stmt = $this->db->prepare($query);
         $stmt->bind_param('i', $billing_id);
         $stmt->execute();
         $result = $stmt->get_result();
         if ($result && $result->num_rows > 0) {
             $row = $result->fetch_assoc();
-            $this->emailService->sendEmail($row['email'], $subject, $message, $billing_id, $attach_invoice);
+
+            // Check if bill is fully paid
+            if ($row['status'] === 'Fully Paid') {
+                $stmt->close();
+                return [
+                    'success' => false,
+                    'error' => 'Cannot send reminder for fully paid invoice'
+                ];
+            }
+
+            // Generate PDF if attachment is requested
+            $attachment_path = null;
+            if ($attach_invoice) {
+                try {
+                    require_once __DIR__ . "/../models/PDFGenerator.php";
+                    $pdfGenerator = new PDFGenerator();
+                    $attachment_path = $pdfGenerator->generateInvoicePDFFile($billing_id);
+                } catch (Exception $e) {
+                    error_log("Failed to generate PDF for reminder: " . $e->getMessage());
+                    // Continue without attachment
+                }
+            }
+
+            // ASSIGN the result to $email_result variable
+            $email_result = $this->emailService->sendEmail(
+                $row['email'],
+                $subject,
+                $message,
+                $billing_id,
+                $attach_invoice,
+                $attachment_path
+            );
+
+            // Clean up temporary PDF file
+            if ($attachment_path && file_exists($attachment_path)) {
+                unlink($attachment_path);
+            }
+
             $stmt->close();
-            return ['success' => true, 'message' => 'Reminder sent successfully'];
+            return $email_result;
         }
 
         $stmt->close();
-        return ['success' => false, 'error' => 'Failed to send reminder'];
+        return ['success' => false, 'error' => 'Failed to send reminder - billing record not found'];
     }
 
     /**
