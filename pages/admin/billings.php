@@ -99,13 +99,11 @@ require_once __DIR__ . "/../../utils/format_currency.php";
                         <!-- Billing Records DataTable -->
                         <div class="card">
                             <div class="card-header card-header-flex border-bottom">
-                                <h5 class="card-title mb-0">Billing Records</h5>
+                                <h5 class="card-title mb-1">Billing Records</h5>
                                 <div class="action-buttons">
-                                    <button type="button" class="btn btn-outline-primary btn-sm">
-                                        <i class="ti ti-download me-1"></i> Export
-                                    </button>
+                                    
                                     <button type="button" class="btn btn-outline-secondary btn-sm refresh-table">
-                                        <i class="ti ti-refresh me-1"></i> Refresh
+                                        <i class="bx bx-refresh icon-lg me-1"></i> Refresh
                                     </button>
                                 </div>
                             </div>

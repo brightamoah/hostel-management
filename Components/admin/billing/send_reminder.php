@@ -7,6 +7,7 @@
             </div>
             <div class="modal-body">
                 <form id="sendReminderForm" class="row g-3">
+                    <?php set_csrf() ?>
                     <input type="hidden" id="reminderBillingId" name="billing_id">
                     <div class="col-12">
                         <div class="alert alert-info" role="alert">
@@ -21,7 +22,7 @@
                     </div>
                     <div class="col-12">
                         <label for="reminderMessage" class="form-label">Message</label>
-                        <textarea class="form-control" id="reminderMessage" name="message" rows="5" required></textarea>
+                        <textarea class="form-control" id="reminderMessage" name="message" rows="10" required></textarea>
                     </div>
                     <div class="col-12">
                         <div class="form-check">
@@ -35,7 +36,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" form="sendReminderForm" class="btn btn-primary">Send Reminder</button>
+                <button type="submit" form="sendReminderForm" class="btn btn-primary" id="sendReminderButton">Send Reminder</button>
             </div>
         </div>
     </div>

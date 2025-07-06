@@ -127,6 +127,7 @@ post('/admin/announcements/edit/$a_id', 'pages/admin/edit_announcement.php', ['a
 post('/admin/create-invoice', 'api/admin/billings/CreateBilling.php', ['auth', 'admin']);
 post('/admin/update-invoice/$billingId', 'api/admin/billings/UpdateBilling.php', ['auth', 'admin']);
 post('/admin/delete-invoice/$billingId', 'api/admin/billings/DeleteInvoice.php', ['auth', 'admin']);
+post('/admin/billing/send-reminder', 'api/admin/billings/SendBillingReminder.php', ['auth', 'admin']);
 // post('/api/admin/fetch-targets', 'api/admin/announcement/fetchTargets.php', ['auth', 'admin']);
 
 // Room Management Routes (Admin)
