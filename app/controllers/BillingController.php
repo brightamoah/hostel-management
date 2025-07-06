@@ -212,4 +212,49 @@ class BillingController
         }
         exit();
     }
+
+    public function sendBillingReminder()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !is_csrf_valid()) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid request or CSRF token']);
+            http_response_code(403);
+            exit;
+        }
+
+        $user_id = $_SESSION['user']['user_id'] ?? null;
+        $user_role = $_SESSION['user']['role'] ?? null;
+
+        if (!$user_id) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'User not authenticated']);
+            http_response_code(401);
+            exit;
+        }
+
+        if ($user_role !== 'Admin') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'You do not have permission to perform this action']);
+            http_response_code(403);
+            exit;
+        }
+
+        $data = [
+            'billing_id' => $_POST['billing_id'] ?? '',
+            'subject' => $_POST['subject'] ?? '',
+            'message' => nl2br(htmlspecialchars($_POST['message'] ?? '', ENT_QUOTES, 'UTF-8')),
+            'attach_invoice' => isset($_POST['attach_invoice']) ? true : false,
+        ];
+
+        try {
+            $result = $this->billingModel->sendReminder($data);
+
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => 'Failed to send billing reminder: ' . $e->getMessage()]);
+            http_response_code(500);
+        }
+        exit();
+    }
 }

@@ -340,8 +340,39 @@
                searchable: false,
                orderable: false,
                render: function (data, type, full) {
+                  const sendReminderAndPaymentButton =
+                     full.status === "Fully Paid"
+                        ? ""
+                        : `
+         <li>
+            <a class="dropdown-item send-reminder" href="javascript:;" 
+               data-billing-id="${full.billing_id}"
+               data-bs-toggle="modal" 
+               data-bs-target="#sendReminderModal">
+               <i class="bx bx-envelope me-2 text-info"></i>Send Reminder
+            </a>
+         </li>
+         <li>
+                  <a class="dropdown-item record-payment" href="javascript:;" 
+                     data-billing-id="${full.billing_id}"
+                     data-bs-toggle="modal" 
+                     data-bs-target="#recordPaymentModal">
+                     <i class="bx bx-dollar-circle me-2 text-success"></i>Record Payment
+                  </a>
+               </li>
+
+               <li>
+                  <a class="dropdown-item edit-billing" href="javascript:;" 
+                     data-billing-id="${full.billing_id}"
+                     data-bs-toggle="modal" 
+                     data-bs-target="#editBillingModal">
+                     <i class="bx bx-edit me-2"></i>Edit Billing
+                  </a>
+               </li>
+         `;
+
                   return `
-                            <div class="dropdown">
+         <div class="dropdown">
             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
                     data-bs-toggle="dropdown" aria-expanded="false">
                <i class="bx bx-dots-vertical-rounded"></i>
@@ -353,32 +384,13 @@
                      <i class="bx bx-show me-2"></i>View Details
                   </a>
                </li>
-               <li>
-                  <a class="dropdown-item edit-billing" href="javascript:;" 
-                     data-billing-id="${full.billing_id}"
-                     data-bs-toggle="modal" 
-                     data-bs-target="#editBillingModal">
-                     <i class="bx bx-edit me-2"></i>Edit Billing
-                  </a>
-               </li>
+               
                <li><hr class="dropdown-divider"></li>
-               <li>
-                  <a class="dropdown-item record-payment" href="javascript:;" 
-                     data-billing-id="${full.billing_id}"
-                     data-bs-toggle="modal" 
-                     data-bs-target="#recordPaymentModal">
-                     <i class="bx bx-dollar-circle me-2 text-success"></i>Record Payment
-                  </a>
-               </li>
-               <li>
-                  <a class="dropdown-item send-reminder" href="javascript:;" 
-                     data-billing-id="${full.billing_id}"
-                     data-bs-toggle="modal" 
-                     data-bs-target="#sendReminderModal">
-                     <i class="bx bx-envelope me-2 text-info"></i>Send Reminder
-                  </a>
-               </li>
-               <li><hr class="dropdown-divider"></li>
+               
+               ${sendReminderAndPaymentButton}
+
+                    <li><hr class="dropdown-divider"></li>
+               
                <li>
                   <a class="dropdown-item text-danger delete-billing" href="javascript:;" 
                      data-billing-id="${full.billing_id}">
@@ -910,7 +922,227 @@
             $(document).on("click", ".send-reminder", function () {
                const billingId = $(this).data("billing-id");
                $("#reminderBillingId").val(billingId);
-               $("#sendReminderModal").modal("show");
+
+               $.ajax({
+                  url: `/admin/billing/${billingId}`,
+                  method: "GET",
+                  success: function (response) {
+                     if (!response.data) {
+                        Swal.fire({
+                           icon: "error",
+                           title: "Error",
+                           text:
+                              response.error ||
+                              "Failed to load billing details",
+                        });
+                        return;
+                     }
+
+                     const details = response.data;
+                     const dueDate = new Date(details.date_due);
+                     const today = new Date();
+                     const timeDiff = dueDate.getTime() - today.getTime();
+                     const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                     const status = details.status;
+                     const outstandingAmount =
+                        details.amount - details.paid_amount;
+
+                     // Populate invoice details
+                     $("#reminderInvoiceDetails").text(
+                        `Invoice #INV-${String(details.billing_id).padStart(
+                           6,
+                           "0"
+                        )} for ${details.student_name}`
+                     );
+                     $("#reminderAmountDue").text(
+                        `Amount Due: ${formatCurrency(outstandingAmount)}`
+                     );
+
+                     // Generate status-specific content
+                     let subject, message;
+
+                     switch (status) {
+                        case "Partially Paid":
+                           const remainingDays =
+                              daysLeft > 0
+                                 ? `${daysLeft} days`
+                                 : `${Math.abs(daysLeft)} days overdue`;
+                           subject = `Payment Reminder: Outstanding Balance - Invoice #INV-${String(
+                              details.billing_id
+                           ).padStart(6, "0")}`;
+                           message =
+                              `Dear ${details.student_name},\n\n` +
+                              `Thank you for your partial payment of ${formatCurrency(
+                                 details.paid_amount
+                              )} ` +
+                              `towards invoice #INV-${String(
+                                 details.billing_id
+                              ).padStart(6, "0")}.\n\n` +
+                              `OUTSTANDING BALANCE: ${formatCurrency(
+                                 outstandingAmount
+                              )}\n` +
+                              `Original Amount: ${formatCurrency(
+                                 details.amount
+                              )}\n` +
+                              `Amount Paid: ${formatCurrency(
+                                 details.paid_amount
+                              )}\n` +
+                              `Balance Due: ${formatCurrency(
+                                 outstandingAmount
+                              )}\n\n` +
+                              (daysLeft > 0
+                                 ? `This remaining balance is due in ${daysLeft} days on ${formatDate(
+                                      details.date_due
+                                   )}.\n\n` +
+                                   `Please complete your payment to avoid late fees.`
+                                 : `This balance was due on ${formatDate(
+                                      details.date_due
+                                   )} and is now ${Math.abs(
+                                      daysLeft
+                                   )} days overdue.\n\n` +
+                                   `Please make the outstanding payment immediately to avoid additional charges.`) +
+                              `\n\nYou can make the remaining payment using any of our available payment methods. ` +
+                              `Please contact us if you need assistance or have any questions about your account.\n\n` +
+                              `Thank you for your continued cooperation.\n\n` +
+                              `Best regards,\nKings Hostel Management`;
+                           break;
+
+                        case "Overdue":
+                           subject = `FINAL NOTICE: Overdue Payment - Invoice #INV-${String(
+                              details.billing_id
+                           ).padStart(6, "0")}`;
+                           message =
+                              `Dear ${details.student_name},\n\n` +
+                              `*** FINAL NOTICE - IMMEDIATE ACTION REQUIRED ***\n\n` +
+                              `Your payment of ${formatCurrency(
+                                 outstandingAmount
+                              )} for invoice #INV-${String(
+                                 details.billing_id
+                              ).padStart(6, "0")} ` +
+                              `is now ${Math.abs(
+                                 daysLeft
+                              )} days overdue (due date: ${formatDate(
+                                 details.date_due
+                              )}).\n\n` +
+                              `CONSEQUENCES OF NON-PAYMENT:\n` +
+                              `• Additional late fees and penalties\n` +
+                              `• Suspension of hostel services\n` +
+                              `• Potential termination of accommodation\n` +
+                              `• Referral to collections\n\n` +
+                              `This is your final notice before escalation procedures begin. You have 48 hours from ` +
+                              `receipt of this notice to make full payment or contact our office to arrange an ` +
+                              `acceptable payment plan.\n\n` +
+                              `IMMEDIATE CONTACT REQUIRED:\n` +
+                              `Please contact the Finance Office immediately at [Phone] or visit our office ` +
+                              `during business hours to resolve this matter.\n\n` +
+                              `We strongly encourage you to take immediate action to avoid further complications.\n\n` +
+                              `Kings Hostel Management\nFinance Department`;
+                           break;
+
+                        case "Cancelled":
+                           subject = `Information: Cancelled Invoice #INV-${String(
+                              details.billing_id
+                           ).padStart(6, "0")}`;
+                           message =
+                              `Dear ${details.student_name},\n\n` +
+                              `This is to inform you that invoice #INV-${String(
+                                 details.billing_id
+                              ).padStart(6, "0")} ` +
+                              `has been cancelled as requested.\n\n` +
+                              `Invoice Details:\n` +
+                              `• Original Amount: ${formatCurrency(
+                                 details.amount
+                              )}\n` +
+                              `• Cancellation Date: ${formatDate(
+                                 new Date()
+                              )}\n` +
+                              `• Reference: INV-${String(
+                                 details.billing_id
+                              ).padStart(6, "0")}\n\n` +
+                              `If any payments were made towards this invoice, they will be processed according to ` +
+                              `our refund policy. Please allow 5-7 business days for refund processing.\n\n` +
+                              `If you have any questions about this cancellation or need clarification, ` +
+                              `please contact our finance office.\n\n` +
+                              `Thank you for your understanding.\n\n` +
+                              `Best regards,\nKings Hostel Management`;
+                           break;
+
+                        default: // 'Unpaid' and any other status
+                           if (daysLeft > 0) {
+                              subject = `Payment Reminder: Invoice #INV-${String(
+                                 details.billing_id
+                              ).padStart(6, "0")} - Due in ${daysLeft} days`;
+                              message =
+                                 `Dear ${details.student_name},\n\n` +
+                                 `This is a friendly reminder that your payment of ${formatCurrency(
+                                    outstandingAmount
+                                 )} ` +
+                                 `for invoice #INV-${String(
+                                    details.billing_id
+                                 ).padStart(
+                                    6,
+                                    "0"
+                                 )} is due in ${daysLeft} days ` +
+                                 `on ${formatDate(details.date_due)}.\n\n` +
+                                 `To avoid any late fees or service interruptions, please ensure your payment is made before the due date.\n\n` +
+                                 `Payment Methods Available:\n` +
+                                 `• Online payment portal\n` +
+                                 `• Bank transfer\n` +
+                                 `• Mobile money\n` +
+                                 `• Cash payment at the office\n\n` +
+                                 `If you have any questions or need assistance with your payment, please don't hesitate to contact us.\n\n` +
+                                 `Thank you for your attention to this matter.\n\n` +
+                                 `Best regards,\nKings Hostel Management`;
+                           } else {
+                              subject = `URGENT: Payment Overdue - Invoice #INV-${String(
+                                 details.billing_id
+                              ).padStart(6, "0")}`;
+                              message =
+                                 `Dear ${details.student_name},\n\n` +
+                                 `This is an urgent notice that your payment of ${formatCurrency(
+                                    outstandingAmount
+                                 )} ` +
+                                 `for invoice #INV-${String(
+                                    details.billing_id
+                                 ).padStart(6, "0")} was due on ${formatDate(
+                                    details.date_due
+                                 )} ` +
+                                 `and is now ${Math.abs(
+                                    daysLeft
+                                 )} days overdue.\n\n` +
+                                 `IMMEDIATE ACTION REQUIRED:\n` +
+                                 `Please make your payment immediately to avoid additional late fees and potential service suspension.\n\n` +
+                                 `Late fees may apply as per our hostel policy. Please contact the finance office immediately ` +
+                                 `if you are experiencing financial difficulties so we can discuss payment arrangements.\n\n` +
+                                 `Payment can be made through any of our available methods. Please retain your payment receipt ` +
+                                 `and contact us once payment is completed.\n\n` +
+                                 `Urgent Contact: [Finance Office Phone] | [Email]\n\n` +
+                                 `Thank you for your immediate attention.\n\n` +
+                                 `Kings Hostel Management`;
+                           }
+                     }
+
+                     // Set the generated subject and message
+                     $("#reminderSubject").val(subject);
+                     $("#reminderMessage").val(message);
+
+                     // Ensure attach invoice is checked by default
+                     $("#attachInvoice").prop("checked", true);
+
+                     $("#sendReminderModal").modal("show");
+                  },
+                  error: function (xhr) {
+                     let errorMessage = "Failed to load billing details";
+                     if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMessage = xhr.responseJSON.error;
+                     }
+                     Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: errorMessage,
+                     });
+                  },
+               });
             });
 
             // Load building options dynamically
@@ -1387,6 +1619,56 @@
          complete: function () {
             submitButton.prop("disabled", false);
             submitButton.html("Update Billing");
+         },
+      });
+   });
+
+   $("#sendReminderForm").on("submit", function (e) {
+      e.preventDefault();
+      const formData = $(this).serialize();
+      const submitButton = $("#sendReminderButton");
+      $.ajax({
+         url: "/admin/billing/send-reminder",
+         method: "POST",
+         data: formData,
+         beforeSend: function () {
+            submitButton.prop("disabled", true);
+            submitButton.html(
+               '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...'
+            );
+         },
+         success: function (response) {
+            if (response.success) {
+               $("#sendReminderModal").modal("hide");
+               Swal.fire({
+                  icon: "success",
+                  title: "Success",
+                  text: response.message || "Reminder sent successfully",
+                  timer: 3000,
+                  timerProgressBar: true,
+               });
+            } else {
+               Swal.fire({
+                  icon: "error",
+                  title: "Error",
+                  text: response.error || "Failed to send reminder",
+               });
+            }
+         },
+         error: function (xhr) {
+            let errorMessage = "Failed to send reminder";
+            if (xhr.responseJSON && xhr.responseJSON.error) {
+               errorMessage = xhr.responseJSON.error;
+            }
+            Swal.fire({
+               icon: "error",
+               title: "Error",
+               text: errorMessage,
+            });
+         },
+         complete: function () {
+            submitButton.prop("disabled", false);
+            submitButton.html("Send Reminder");
          },
       });
    });

@@ -845,9 +845,10 @@ class Billing
 
         // Get billing and student details
         $query = "
-            SELECT b.amount, b.paid_amount, b.date_due, s.email, s.first_name, s.last_name
+            SELECT b.amount, b.paid_amount, b.date_due, u.email, s.first_name, s.last_name
             FROM billing b
             JOIN students s ON b.student_id = s.student_id
+            JOIN users u ON s.user_id = u.user_id
             WHERE b.billing_id = ?
         ";
         $stmt = $this->db->prepare($query);
