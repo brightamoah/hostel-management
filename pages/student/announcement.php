@@ -53,11 +53,13 @@
 
         .announcement-card.unread {
             border-left-color: #7367f0;
+            box-shadow: 0 2px 8px rgba(115, 103, 240, 0.1);
         }
 
         .announcement-card.read {
             opacity: 0.8;
             background-color: #f8f8f8;
+            border-left-color: #d0d0d0;
         }
 
         .priority-indicator {
@@ -115,6 +117,19 @@
 
         .announcement-card:hover .mark-read-btn {
             opacity: 1;
+        }
+
+        /* Section separator styling */
+        .section-separator {
+            color: #6c757d;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Enhanced badge for new announcements */
+        .badge.bg-primary {
+            font-size: 0.7rem;
+            padding: 0.25em 0.5em;
         }
     </style>
 </head>
@@ -334,6 +349,18 @@
 
                 // Sort announcements by priority (Urgent > High > Medium > Low) and then by date
                 announcements.sort(function(a, b) {
+
+                    const aIsRead = a.is_read === 1 || readAnnouncements.includes(a.announcement_id);
+                    const bIsRead = b.is_read === 1 || readAnnouncements.includes(b.announcement_id);
+
+                    // For "All" filter: unread first, then read
+                    if (filter === 'all') {
+                        if (aIsRead !== bIsRead) {
+                            return aIsRead ? 1 : -1; // Unread (false) comes first
+                        }
+                    }
+
+
                     const priorityOrder = {
                         'Urgent': 0,
                         'High': 1,
@@ -365,35 +392,89 @@
                     const timeAgo = moment(announcement.date_posted).fromNow();
                     const priorityClass = getPriorityClass(announcement.priority);
 
-                    const announcementCard = `
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card announcement-card h-100 ${isRead ? 'read' : 'unread'}" data-id="${announcementId}">
-                <div class="card-header border-bottom pt-3 pb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+
+                    // Add visual separator for read/unread sections when showing "All"
+                    let sectionHeader = '';
+                    if (filter === 'all' && visibleCount === 1) {
+                        if (!isRead) {
+                            sectionHeader = `
+                    <div class="col-12 mb-3">
                         <div class="d-flex align-items-center">
-                            <span class="priority-indicator ${priorityClass} me-2"></span>
-                            <span class="badge bg-label-${getPriorityBadgeClass(announcement.priority)}">${announcement.priority}</span>
+                            <hr class="flex-grow-1">
+                            <span class="px-3 text-muted fw-semibold">
+                                <i class="bx bx-bell me-1"></i>Unread Announcements
+                            </span>
+                            <hr class="flex-grow-1">
                         </div>
-                        ${!isRead ? `
-                        <button type="button" class="btn btn-sm btn-icon btn-text-secondary mark-read-btn" title="Mark as read">
-                            <i class="icon-base bx bx-check-circle icon-lg"></i>
-                        </button>` : ''}
                     </div>
-                    <h5 class="card-title mb-0">${announcement.title}</h5>
-                </div>
-                <div class="card-body pt-3 pb-3">
-                    <p class="card-text">${announcement.content}</p>
-                </div>
-                <div class="card-footer border-top pt-3 pb-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted announcement-date">
-                            <i class="bx bx-calendar me-1"></i>${formattedDate}
-                        </small>
-                        <small class="text-muted">${timeAgo}</small>
+                `;
+                        } else {
+                            sectionHeader = `
+                    <div class="col-12 mb-3">
+                        <div class="d-flex align-items-center">
+                            <hr class="flex-grow-1">
+                            <span class="px-3 text-muted fw-semibold">
+                                <i class="bx bx-check-circle me-1"></i>Read Announcements
+                            </span>
+                            <hr class="flex-grow-1">
+                        </div>
+                    </div>
+                `;
+                        }
+                    }
+
+                    // Check if we need to add "Read Announcements" header
+                    if (filter === 'all' && visibleCount > 1) {
+                        const prevAnnouncement = announcements[announcements.findIndex(a => a.announcement_id === announcementId) - 1];
+                        if (prevAnnouncement) {
+                            const prevIsRead = prevAnnouncement.is_read === 1 || readAnnouncements.includes(prevAnnouncement.announcement_id);
+                            if (!prevIsRead && isRead) {
+                                sectionHeader = `
+                        <div class="col-12 mb-3 mt-4">
+                            <div class="d-flex align-items-center">
+                                <hr class="flex-grow-1">
+                                <span class="px-3 text-muted fw-semibold">
+                                    <i class="bx bx-check-circle me-1"></i>Read Announcements
+                                </span>
+                                <hr class="flex-grow-1">
+                            </div>
+                        </div>
+                    `;
+                            }
+                        }
+                    }
+
+                    const announcementCard = `
+            ${sectionHeader}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card announcement-card h-100 ${isRead ? 'read' : 'unread'}" data-id="${announcementId}">
+                    <div class="card-header border-bottom pt-3 pb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center">
+                                <span class="priority-indicator ${priorityClass} me-2"></span>
+                                <span class="badge bg-label-${getPriorityBadgeClass(announcement.priority)}">${announcement.priority}</span>
+                                ${!isRead ? '<span class="badge bg-primary ms-2">New</span>' : ''}
+                            </div>
+                            ${!isRead ? `
+                            <button type="button" class="btn btn-sm btn-icon btn-text-secondary mark-read-btn" title="Mark as read">
+                                <i class="icon-base bx bx-check-circle icon-lg"></i>
+                            </button>` : ''}
+                        </div>
+                        <h5 class="card-title mb-0">${announcement.title}</h5>
+                    </div>
+                    <div class="card-body pt-3 pb-3">
+                        <p class="card-text">${announcement.content}</p>
+                    </div>
+                    <div class="card-footer border-top pt-3 pb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted announcement-date">
+                                <i class="bx bx-calendar me-1"></i>${formattedDate}
+                            </small>
+                            <small class="text-muted">${timeAgo}</small>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
         `;
 
                     container.append(announcementCard);
