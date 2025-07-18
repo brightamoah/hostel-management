@@ -108,6 +108,7 @@ post('/visitor/cancel/$id', './app/controllers/visitors/CancelVisitor.php', ['au
 post('/visitor/register', '/app/controllers/visitors/RegisterVisitor.php', ['auth']);
 post('/visitor/edit/$id', '/app/controllers/visitors/EditVisitors.php', ['auth']);
 post('/student/profile/update', '/app/controllers/ProfileController.php', ['auth']);
+post('/admin/profile/update', '/app/controllers/AdminProfileController.php', ['auth', 'admin']);
 post('/complaint/submit', 'api/SubmitComplaint.php', ['auth']);
 post('/maintenance/submit', '/api/SubmitMaintenance.php', ['auth']);
 post('/announcement/mark-read', 'api/student/MarkAnnouncementAsRead.php', ['auth']);
@@ -128,6 +129,7 @@ post('/admin/create-invoice', 'api/admin/billings/CreateBilling.php', ['auth', '
 post('/admin/update-invoice/$billingId', 'api/admin/billings/UpdateBilling.php', ['auth', 'admin']);
 post('/admin/delete-invoice/$billingId', 'api/admin/billings/DeleteInvoice.php', ['auth', 'admin']);
 post('/admin/billing/send-reminder', 'api/admin/billings/SendBillingReminder.php', ['auth', 'admin']);
+post('/admin/billing/record-payment', 'api/admin/billings/RecordPayment.php', ['auth', 'admin']);
 // post('/api/admin/fetch-targets', 'api/admin/announcement/fetchTargets.php', ['auth', 'admin']);
 
 // Room Management Routes (Admin)

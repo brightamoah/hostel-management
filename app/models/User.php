@@ -386,6 +386,23 @@ class User
         return $user;
     }
 
+    public function getAdminByUserId($user_id)
+    {
+        $query = "SELECT * FROM admins WHERE user_id = ?";
+        $stmt = $this->connection->prepare($query);
+        if (!$stmt) {
+            throw new Exception("Failed to prepare statement: {$this->connection->error}");
+        }
+
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $admin = $result->fetch_assoc();
+        $stmt->close();
+
+        return $admin;
+    }
+
 
 
     public function __destruct()

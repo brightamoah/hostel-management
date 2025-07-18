@@ -26,22 +26,22 @@ $profile_url = getProfileURL($role);
 ?>
 
 <nav
-    class="layout-navbar container-xxl navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme"
+    class="align-items-center bg-navbar-theme layout-navbar container-xxl navbar-detached navbar navbar-expand-xl"
     id="layout-navbar">
-    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
-        <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+    <div class="align-items-xl-center me-4 me-xl-0 layout-menu-toggle navbar-nav d-xl-none">
+        <a class="me-xl-6 px-0 nav-item nav-link" href="javascript:void(0)">
             <i class="icon-base bx bx-menu icon-md"></i>
         </a>
     </div>
 
     <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
         <!-- Search -->
-        <div class="navbar-nav align-items-center">
-            <div class="nav-item navbar-search-wrapper mb-0">
-                <a class="nav-item nav-link search-toggler px-0" href="javascript:void(0);">
+        <div class="align-items-center navbar-nav">
+            <div class="mb-0 nav-item navbar-search-wrapper">
+                <a class="px-0 nav-item nav-link search-toggler" href="javascript:void(0);">
                     <span class="d-inline-block text-body-secondary fw-normal" id="autocomplete">
                         <div class="aa-Autocomplete" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-labelledby="autocomplete-0-label"><button type="button" class="aa-DetachedSearchButton" title="Search" id="autocomplete-0-label">
-                                <i class="icon-base bx  bx-search icon-xl"></i>
+                                <i class="icon-base bx bx-search icon-xl"></i>
                                 <div class="aa-DetachedSearchButtonPlaceholder">Search [CTRL + K]</div>
                                 <div class="aa-DetachedSearchButtonQuery"></div>
                             </button></div>
@@ -52,45 +52,45 @@ $profile_url = getProfileURL($role);
 
         <!-- /Search -->
 
-        <ul class="navbar-nav flex-row align-items-center ms-md-auto">
+        <ul class="flex-row align-items-center ms-md-auto navbar-nav">
 
 
             <!-- Style Switcher -->
-            <li class="nav-item dropdown me-2 me-xl-0">
+            <li class="me-2 me-xl-0 nav-item dropdown">
                 <a
                     class="nav-link dropdown-toggle hide-arrow"
                     id="nav-theme"
                     href="javascript:void(0);"
                     data-bs-toggle="dropdown">
                     <i class="icon-base bx bx-sun icon-md theme-icon-active"></i>
-                    <span class="d-none ms-2" id="nav-theme-text">Toggle theme</span>
+                    <span class="ms-2 d-none" id="nav-theme-text">Toggle theme</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-theme-text">
                     <li>
                         <button
                             type="button"
-                            class="dropdown-item align-items-center active"
+                            class="align-items-center dropdown-item active"
                             data-bs-theme-value="light"
                             aria-pressed="false">
-                            <span><i class="icon-base bx bx-sun icon-md me-3" data-icon="sun"></i>Light</span>
+                            <span><i class="me-3 icon-base bx bx-sun icon-md" data-icon="sun"></i>Light</span>
                         </button>
                     </li>
                     <li>
                         <button
                             type="button"
-                            class="dropdown-item align-items-center"
+                            class="align-items-center dropdown-item"
                             data-bs-theme-value="dark"
                             aria-pressed="true">
-                            <span><i class="icon-base bx bx-moon icon-md me-3" data-icon="moon"></i>Dark</span>
+                            <span><i class="me-3 icon-base bx bx-moon icon-md" data-icon="moon"></i>Dark</span>
                         </button>
                     </li>
                     <li>
                         <button
                             type="button"
-                            class="dropdown-item align-items-center"
+                            class="align-items-center dropdown-item"
                             data-bs-theme-value="system"
                             aria-pressed="false">
-                            <span><i class="icon-base bx bx-desktop icon-md me-3" data-icon="desktop"></i>System</span>
+                            <span><i class="me-3 icon-base bx bx-desktop icon-md" data-icon="desktop"></i>System</span>
                         </button>
                     </li>
                 </ul>
@@ -98,48 +98,48 @@ $profile_url = getProfileURL($role);
             <!-- / Style Switcher-->
 
             <!-- Quick links  -->
-            <li class="nav-item dropdown-shortcuts navbar-dropdown dropdown me-2 me-xl-0">
+            <li class="me-2 me-xl-0 nav-item dropdown-shortcuts navbar-dropdown dropdown">
                 <a
                     class="nav-link dropdown-toggle hide-arrow"
                     href="javascript:void(0);"
                     data-bs-toggle="dropdown"
                     data-bs-auto-close="outside"
                     aria-expanded="false">
-                    <i class="icon-base bx bx-grid-alt icon-md"></i>
+                    <i class="bx-grid-alt icon-base bx icon-md"></i>
                 </a>
-                <div class="dropdown-menu dropdown-menu-end p-0">
-                    <div class="dropdown-menu-header border-bottom">
+                <div class="p-0 dropdown-menu dropdown-menu-end">
+                    <div class="border-bottom dropdown-menu-header">
 
                     </div>
                     <div class="dropdown-shortcuts-list scrollable-container">
-                        <div class="row row-bordered overflow-visible g-0">
+                        <div class="row-bordered overflow-visible row g-0">
                             <div class="dropdown-shortcuts-item col">
-                                <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                                    <i class="icon-base bx bx-calendar icon-26px text-heading"></i>
+                                <span class="mb-3 rounded-circle dropdown-shortcuts-icon">
+                                    <i class="text-heading icon-base bx bx-calendar icon-26px"></i>
                                 </span>
                                 <a href="app-calendar.html" class="stretched-link">Calendar</a>
                                 <small>Registered Visitors</small>
                             </div>
                             <div class="dropdown-shortcuts-item col">
-                                <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                                    <i class="icon-base bx bx-food-menu icon-26px text-heading"></i>
+                                <span class="mb-3 rounded-circle dropdown-shortcuts-icon">
+                                    <i class="text-heading icon-base bx bx-food-menu icon-26px"></i>
                                 </span>
                                 <a href="/student/billing" class="stretched-link">Billings</a>
                                 <small>View Your Bills</small>
                             </div>
                         </div>
 
-                        <div class="row row-bordered overflow-visible g-0">
+                        <div class="row-bordered overflow-visible row g-0">
                             <div class="dropdown-shortcuts-item col">
-                                <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                                    <i class="icon-base bx bx-pie-chart-alt-2 icon-26px text-heading"></i>
+                                <span class="mb-3 rounded-circle dropdown-shortcuts-icon">
+                                    <i class="text-heading icon-base bx bx-pie-chart-alt-2 icon-26px"></i>
                                 </span>
                                 <a href="index.html" class="stretched-link">Dashboard<a />
                                     <small>Your Dashboard</small>
                             </div>
                             <div class="dropdown-shortcuts-item col">
-                                <span class="dropdown-shortcuts-icon rounded-circle mb-3">
-                                    <i class="icon-base bx bx-cog icon-26px text-heading"></i>
+                                <span class="mb-3 rounded-circle dropdown-shortcuts-icon">
+                                    <i class="text-heading icon-base bx bx-cog icon-26px"></i>
                                 </span>
                                 <a href="pages-account-settings-account.html" class="stretched-link">Setting</a>
                                 <small>Account Settings</small>
@@ -152,7 +152,7 @@ $profile_url = getProfileURL($role);
             <!-- Quick links -->
 
             <!-- Notification -->
-            <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-2">
+            <li class="me-3 me-xl-2 nav-item dropdown-notifications navbar-dropdown dropdown">
                 <a
                     class="nav-link dropdown-toggle hide-arrow"
                     href="javascript:void(0);"
@@ -161,21 +161,21 @@ $profile_url = getProfileURL($role);
                     aria-expanded="false">
                     <span class="position-relative">
                         <i class="icon-base bx bx-bell icon-md"></i>
-                        <span class="badge rounded-pill bg-danger badge-dot badge-notifications border"></span>
+                        <span class="bg-danger border rounded-pill badge badge-dot badge-notifications"></span>
                     </span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end p-0">
-                    <li class="dropdown-menu-header border-bottom">
-                        <div class="dropdown-header d-flex align-items-center py-3">
-                            <h6 class="mb-0 me-auto">Notification</h6>
-                            <div class="d-flex align-items-center h6 mb-0">
-                                <span class="badge bg-label-primary me-2">8 New</span>
+                <ul class="p-0 dropdown-menu dropdown-menu-end">
+                    <li class="border-bottom dropdown-menu-header">
+                        <div class="d-flex align-items-center py-3 dropdown-header">
+                            <h6 class="me-auto mb-0">Notification</h6>
+                            <div class="d-flex align-items-center mb-0 h6">
+                                <span class="bg-label-primary me-2 badge">8 New</span>
                                 <a
                                     href="javascript:void(0)"
-                                    class="dropdown-notifications-all p-2"
+                                    class="p-2 dropdown-notifications-all"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top"
-                                    title="Mark all as read"><i class="icon-base bx bx-envelope-open text-heading"></i></a>
+                                    title="Mark all as read"><i class="text-heading icon-base bx bx-envelope-open"></i></a>
                             </div>
                         </div>
                     </li>
@@ -189,8 +189,8 @@ $profile_url = getProfileURL($role);
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <h6 class="small mb-0">Congratulation Lettie 🎉</h6>
-                                        <small class="mb-1 d-block text-body">Won the monthly best seller gold badge</small>
+                                        <h6 class="mb-0 small">Congratulation Lettie 🎉</h6>
+                                        <small class="d-block mb-1 text-body">Won the monthly best seller gold badge</small>
                                         <small class="text-body-secondary">1h ago</small>
                                     </div>
                                     <div class="flex-shrink-0 dropdown-notifications-actions">
@@ -203,12 +203,12 @@ $profile_url = getProfileURL($role);
                                 <div class="d-flex">
                                     <div class="flex-shrink-0 me-3">
                                         <div class="avatar">
-                                            <span class="avatar-initial rounded-circle bg-label-danger">CF</span>
+                                            <span class="bg-label-danger rounded-circle avatar-initial">CF</span>
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <h6 class="small mb-0">Charles Franklin</h6>
-                                        <small class="mb-1 d-block text-body">Accepted your connection</small>
+                                        <h6 class="mb-0 small">Charles Franklin</h6>
+                                        <small class="d-block mb-1 text-body">Accepted your connection</small>
                                         <small class="text-body-secondary">12hr ago</small>
                                     </div>
                                     <div class="flex-shrink-0 dropdown-notifications-actions">
@@ -225,8 +225,8 @@ $profile_url = getProfileURL($role);
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <h6 class="small mb-0">New Message ✉️</h6>
-                                        <small class="mb-1 d-block text-body">You have new message from Natalie</small>
+                                        <h6 class="mb-0 small">New Message ✉️</h6>
+                                        <small class="d-block mb-1 text-body">You have new message from Natalie</small>
                                         <small class="text-body-secondary">1h ago</small>
                                     </div>
                                     <div class="flex-shrink-0 dropdown-notifications-actions">
@@ -239,12 +239,12 @@ $profile_url = getProfileURL($role);
                                 <div class="d-flex">
                                     <div class="flex-shrink-0 me-3">
                                         <div class="avatar">
-                                            <span class="avatar-initial rounded-circle bg-label-success"><i class="icon-base bx bx-cart"></i></span>
+                                            <span class="bg-label-success rounded-circle avatar-initial"><i class="icon-base bx bx-cart"></i></span>
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <h6 class="small mb-0">Whoo! You have new order 🛒</h6>
-                                        <small class="mb-1 d-block text-body">ACME Inc. made new order $1,154</small>
+                                        <h6 class="mb-0 small">Whoo! You have new order 🛒</h6>
+                                        <small class="d-block mb-1 text-body">ACME Inc. made new order $1,154</small>
                                         <small class="text-body-secondary">1 day ago</small>
                                     </div>
                                     <div class="flex-shrink-0 dropdown-notifications-actions">
@@ -261,8 +261,8 @@ $profile_url = getProfileURL($role);
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <h6 class="small mb-0">Application has been approved 🚀</h6>
-                                        <small class="mb-1 d-block text-body">Your ABC project application has been approved.</small>
+                                        <h6 class="mb-0 small">Application has been approved 🚀</h6>
+                                        <small class="d-block mb-1 text-body">Your ABC project application has been approved.</small>
                                         <small class="text-body-secondary">2 days ago</small>
                                     </div>
                                     <div class="flex-shrink-0 dropdown-notifications-actions">
@@ -275,12 +275,12 @@ $profile_url = getProfileURL($role);
                                 <div class="d-flex">
                                     <div class="flex-shrink-0 me-3">
                                         <div class="avatar">
-                                            <span class="avatar-initial rounded-circle bg-label-success"><i class="icon-base bx bx-pie-chart-alt"></i></span>
+                                            <span class="bg-label-success rounded-circle avatar-initial"><i class="icon-base bx bx-pie-chart-alt"></i></span>
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <h6 class="small mb-0">Monthly report is generated</h6>
-                                        <small class="mb-1 d-block text-body">July monthly financial report is generated </small>
+                                        <h6 class="mb-0 small">Monthly report is generated</h6>
+                                        <small class="d-block mb-1 text-body">July monthly financial report is generated </small>
                                         <small class="text-body-secondary">3 days ago</small>
                                     </div>
                                     <div class="flex-shrink-0 dropdown-notifications-actions">
@@ -297,8 +297,8 @@ $profile_url = getProfileURL($role);
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <h6 class="small mb-0">Send connection request</h6>
-                                        <small class="mb-1 d-block text-body">Peter sent you connection request</small>
+                                        <h6 class="mb-0 small">Send connection request</h6>
+                                        <small class="d-block mb-1 text-body">Peter sent you connection request</small>
                                         <small class="text-body-secondary">4 days ago</small>
                                     </div>
                                     <div class="flex-shrink-0 dropdown-notifications-actions">
@@ -315,8 +315,8 @@ $profile_url = getProfileURL($role);
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <h6 class="small mb-0">New message from Jane</h6>
-                                        <small class="mb-1 d-block text-body">Your have new message from Jane</small>
+                                        <h6 class="mb-0 small">New message from Jane</h6>
+                                        <small class="d-block mb-1 text-body">Your have new message from Jane</small>
                                         <small class="text-body-secondary">5 days ago</small>
                                     </div>
                                     <div class="flex-shrink-0 dropdown-notifications-actions">
@@ -329,12 +329,12 @@ $profile_url = getProfileURL($role);
                                 <div class="d-flex">
                                     <div class="flex-shrink-0 me-3">
                                         <div class="avatar">
-                                            <span class="avatar-initial rounded-circle bg-label-warning"><i class="icon-base bx bx-error"></i></span>
+                                            <span class="bg-label-warning rounded-circle avatar-initial"><i class="icon-base bx bx-error"></i></span>
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <h6 class="small mb-0">CPU is running high</h6>
-                                        <small class="mb-1 d-block text-body">CPU Utilization Percent is currently at 88.63%,</small>
+                                        <h6 class="mb-0 small">CPU is running high</h6>
+                                        <small class="d-block mb-1 text-body">CPU Utilization Percent is currently at 88.63%,</small>
                                         <small class="text-body-secondary">5 days ago</small>
                                     </div>
                                     <div class="flex-shrink-0 dropdown-notifications-actions">
@@ -347,7 +347,7 @@ $profile_url = getProfileURL($role);
                     </li>
                     <li class="border-top">
                         <div class="d-grid p-4">
-                            <a class="btn btn-primary btn-sm d-flex" href="javascript:void(0);">
+                            <a class="d-flex btn btn-primary btn-sm" href="javascript:void(0);">
                                 <small class="align-middle">View all notifications</small>
                             </a>
                         </div>
@@ -358,7 +358,7 @@ $profile_url = getProfileURL($role);
             <!-- User -->
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a
-                    class="nav-link dropdown-toggle hide-arrow p-0"
+                    class="p-0 nav-link dropdown-toggle hide-arrow"
                     href="javascript:void(0);"
                     data-bs-toggle="dropdown">
                     <div class="avatar avatar-online">
@@ -371,7 +371,7 @@ $profile_url = getProfileURL($role);
                             <div class="d-flex">
                                 <div class="flex-shrink-0 me-3">
                                     <div class="avatar avatar-online">
-                                        <img src="../../assets/img/avatars/1.png" alt class="w-px-40 h-auto rounded-circle" />
+                                        <img src="../../assets/img/avatars/1.png" alt class="w-px-40 rounded-circle h-auto" />
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">
@@ -386,25 +386,25 @@ $profile_url = getProfileURL($role);
                         </a>
                     </li>
                     <li>
-                        <div class="dropdown-divider my-1"></div>
+                        <div class="my-1 dropdown-divider"></div>
                     </li>
                     <li>
                         <a class="dropdown-item" href="<?= $profile_url; ?>">
-                            <i class="icon-base bx bx-user icon-md me-3"></i><span>My Profile</span>
+                            <i class="me-3 icon-base bx bx-user icon-md"></i><span>My Profile</span>
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item" href="pages-account-settings-account.html">
-                            <i class="icon-base bx bx-cog icon-md me-3"></i><span>Settings</span>
+                            <i class="me-3 icon-base bx bx-cog icon-md"></i><span>Settings</span>
                         </a>
                     </li>
 
                     <li>
-                        <div class="dropdown-divider my-1"></div>
+                        <div class="my-1 dropdown-divider"></div>
                     </li>
                     <li>
                         <a class="dropdown-item" href="/logout">
-                            <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Log Out</span>
+                            <i class="me-3 icon-base bx bx-power-off icon-md"></i><span>Log Out</span>
                         </a>
                     </li>
                 </ul>

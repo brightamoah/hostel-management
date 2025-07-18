@@ -6,4 +6,4 @@ $controller = new AnnouncementController();
 header('Content-Type: application/json');
 $announcements = $controller->getAnnouncements();
 $_SESSION['totalAnnouncements'] = count($announcements);
-echo json_encode( $announcements);
+echo json_encode($announcements);
