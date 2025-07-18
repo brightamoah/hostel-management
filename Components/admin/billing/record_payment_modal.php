@@ -7,9 +7,10 @@
             </div>
             <div class="modal-body">
                 <form id="recordPaymentForm" class="row g-3">
+                    <?= set_csrf() ?>
                     <input type="hidden" id="paymentBillingId" name="billing_id">
                     <div class="col-12">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
                             <div>
                                 <span class="fw-semibold">Invoice #:</span>
                                 <span id="paymentInvoiceNumber"></span>
@@ -32,20 +33,19 @@
                     <div class="col-md-6">
                         <label for="paymentMethod" class="form-label">Payment Method</label>
                         <select id="paymentMethod" name="payment_method" class="form-select" required>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="Credit Card">Credit Card</option>
-                            <option value="Mobile Money">Mobile Money</option>
                             <option value="Cash">Cash</option>
-                            <option value="Cheque">Cheque</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Mobile Money">Mobile Money</option>
                         </select>
                     </div>
                     <div class="col-md-6">
                         <label for="transactionId" class="form-label">Transaction ID</label>
                         <input type="text" class="form-control" id="transactionId" name="transaction_reference" placeholder="Enter ID" required>
                     </div>
-                    <div class="col-12">
-                        <label for="paymentNotes" class="form-label">Payment Notes</label>
-                        <textarea class="form-control" id="paymentNotes" name="payment_notes" rows="2" placeholder="Enter any notes about this payment"></textarea>
+                    <div class="col-md-6">
+                        <label for="paymentPurpose" class="form-label">Purpose</label>
+                        <input type="text" class="form-control" id="paymentPurpose" name="purpose" readonly>
                     </div>
                 </form>
             </div>

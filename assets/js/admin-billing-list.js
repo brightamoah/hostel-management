@@ -15,7 +15,6 @@
    };
 
    const formatDate = (date) => {
-      //use intl
       return new Intl.DateTimeFormat("en-US", {
          year: "numeric",
          month: "long",
@@ -59,12 +58,6 @@
                rowClass: "row mx-3 my-0 justify-content-between",
                features: [
                   {
-                     search: {
-                        placeholder: "Search Billing",
-                        text: "_INPUT_",
-                     },
-                  },
-                  {
                      buttons: [
                         {
                            extend: "collection",
@@ -79,12 +72,7 @@
                                  exportOptions: {
                                     columns: [1, 2, 3, 4, 5, 6, 7],
                                     format: {
-                                       body: function (
-                                          data,
-                                          row,
-                                          column,
-                                          node
-                                       ) {
+                                       body: function (data) {
                                           return data.replace(/<[^>]+>/g, "");
                                        },
                                     },
@@ -97,12 +85,7 @@
                                  exportOptions: {
                                     columns: [1, 2, 3, 4, 5, 6, 7],
                                     format: {
-                                       body: function (
-                                          data,
-                                          row,
-                                          column,
-                                          node
-                                       ) {
+                                       body: function (data) {
                                           return data.replace(/<[^>]+>/g, "");
                                        },
                                     },
@@ -115,12 +98,7 @@
                                  exportOptions: {
                                     columns: [1, 2, 3, 4, 5, 6, 7],
                                     format: {
-                                       body: function (
-                                          data,
-                                          row,
-                                          column,
-                                          node
-                                       ) {
+                                       body: function (data) {
                                           let cleanData = data.replace(
                                              /<[^>]+>/g,
                                              ""
@@ -896,6 +874,7 @@
                                  errorMessage =
                                     "Server error occurred. Please try again.";
                               }
+                              console.log("Error parsing response:", e);
                            }
                            Swal.fire({
                               icon: "error",
@@ -914,8 +893,71 @@
             // Record payment
             $(document).on("click", ".record-payment", function () {
                const billingId = $(this).data("billing-id");
-               $("#recordPaymentBillingId").val(billingId);
-               $("#recordPaymentModal").modal("show");
+
+               // Get billing details for the payment modal
+               $.ajax({
+                  url: `/admin/billing/${billingId}`,
+                  method: "GET",
+                  success: function (response) {
+                     if (response.data) {
+                        const billing = response.data;
+
+                        // Set form values
+                        $("#paymentBillingId").val(billingId);
+                        $("#paymentInvoiceNumber").text(
+                           `INV-${String(billingId).padStart(6, "0")}`
+                        );
+                        $("#outstandingAmount").text(
+                           formatCurrency(billing.outstanding_balance)
+                        );
+
+                        // Set the payment amount to the outstanding balance by default
+                        $("#paymentAmount").val(
+                           billing.outstanding_balance.toFixed(2)
+                        );
+
+                        // Set purpose based on billing type (readonly)
+                        $("#paymentPurpose").val(billing.mapped_purpose);
+
+                        // Set current date as default
+                        const currentDate = new Date();
+                        const formattedDate =
+                           currentDate.getFullYear() +
+                           "-" +
+                           String(currentDate.getMonth() + 1).padStart(2, "0") +
+                           "-" +
+                           String(currentDate.getDate()).padStart(2, "0") +
+                           " " +
+                           String(currentDate.getHours()).padStart(2, "0") +
+                           ":" +
+                           String(currentDate.getMinutes()).padStart(2, "0") +
+                           ":" +
+                           String(currentDate.getSeconds()).padStart(2, "0");
+                        $("#paymentDate").val(formattedDate);
+
+                        // Generate default transaction reference
+                        const defaultTxnRef = `TXN-INV-${String(
+                           billingId
+                        ).padStart(6, "0")}`;
+                        $("#transactionId").val(defaultTxnRef);
+
+                        $("#recordPaymentModal").modal("show");
+                     } else {
+                        Swal.fire({
+                           icon: "error",
+                           title: "Error",
+                           text: "Failed to load billing details.",
+                        });
+                     }
+                  },
+                  error: function () {
+                     Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to load billing details.",
+                     });
+                  },
+               });
             });
 
             // Send reminder
@@ -1203,6 +1245,14 @@
          $("#statusFilter").select2();
          $("#filterBuilding").select2();
 
+         // Initialize Select2 for payment method in record payment modal
+         $("#paymentMethod").select2({
+            placeholder: "Select payment method",
+            allowClear: false,
+            width: "100%",
+            dropdownParent: $("#recordPaymentModal .modal-content"),
+         });
+
          $("#editInvoiceType").select2({
             placeholder: "Select invoice type",
             allowClear: true,
@@ -1232,23 +1282,6 @@
 
       // Initialize flatpickr properly
       if (typeof flatpickr !== "undefined") {
-         // Due date filter
-         flatpickr("#filterDueDate", {
-            enableTime: false,
-            dateFormat: "Y-m-d",
-            altInput: true,
-            altFormat: "F j, Y",
-            allowInput: true,
-            onClose: function (selectedDates, dateStr) {
-               if (dt && dateStr) {
-                  // Convert date to proper format for searching
-                  dt.api().column(4).search(dateStr).draw(); // Using column index 4 for due date
-               } else if (dt) {
-                  dt.api().column(4).search("").draw();
-               }
-            },
-         });
-
          flatpickr("#paymentDate", {
             enableTime: true,
             dateFormat: "Y-m-d H:i:s",
@@ -1559,6 +1592,7 @@
                   }
                } catch (e) {
                   // If JSON parsing fails, use default message
+                  console.error("Error parsing response:", e);
                }
             }
 
@@ -1689,6 +1723,99 @@
          complete: function () {
             submitButton.prop("disabled", false);
             submitButton.html("Send Reminder");
+         },
+      });
+   });
+
+   // Reset record payment form when modal is closed
+   $("#recordPaymentModal").on("hidden.bs.modal", function () {
+      $("#recordPaymentForm")[0].reset();
+      $("#paymentInvoiceNumber").text("");
+      $("#outstandingAmount").text("");
+      $("#paymentPurpose").val(""); // Reset purpose (now readonly input)
+      $("#paymentMethod").val("Cash").trigger("change"); // Reset payment method to default
+      const submitButton = $('button[form="recordPaymentForm"]');
+      submitButton.prop("disabled", false);
+      submitButton.html("Record Payment");
+   });
+
+   // Record payment form submission
+   $("#recordPaymentForm").on("submit", function (e) {
+      e.preventDefault();
+      const formData = $(this).serialize();
+      const submitButton = $('button[form="recordPaymentForm"]');
+
+      // Validate payment amount
+      const paymentAmount = parseFloat($("#paymentAmount").val());
+      const outstandingAmountText = $("#outstandingAmount").text();
+      const outstandingAmount = parseFloat(
+         outstandingAmountText.replace(/[^\d.-]/g, "")
+      );
+
+      if (paymentAmount <= 0) {
+         Swal.fire({
+            icon: "warning",
+            title: "Invalid Amount",
+            text: "Please enter a valid payment amount greater than 0.",
+         });
+         return;
+      }
+
+      if (paymentAmount > outstandingAmount) {
+         Swal.fire({
+            icon: "warning",
+            title: "Payment Exceeds Outstanding Balance",
+            text: `Payment amount (${formatCurrency(
+               paymentAmount
+            )}) cannot exceed outstanding balance (${formatCurrency(
+               outstandingAmount
+            )}).`,
+         });
+         return;
+      }
+
+      $.ajax({
+         url: "/admin/billing/record-payment",
+         method: "POST",
+         data: formData,
+         beforeSend: function () {
+            submitButton.prop("disabled", true);
+            submitButton.html(
+               '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Recording...'
+            );
+         },
+         success: function (response) {
+            if (response.success) {
+               Swal.fire({
+                  icon: "success",
+                  title: "Success",
+                  text: "Payment recorded successfully!",
+               });
+               $("#recordPaymentModal").modal("hide");
+               $("#recordPaymentForm")[0].reset();
+            } else {
+               Swal.fire({
+                  icon: "error",
+                  title: "Error",
+                  text: response.error || "Failed to record payment",
+               });
+            }
+            dt.ajax.reload(null, false);
+         },
+         error: function (xhr) {
+            let errorMessage = "Failed to record payment";
+            if (xhr.responseJSON && xhr.responseJSON.error) {
+               errorMessage = xhr.responseJSON.error;
+            }
+            Swal.fire({
+               icon: "error",
+               title: "Error",
+               text: errorMessage,
+            });
+         },
+         complete: function () {
+            submitButton.prop("disabled", false);
+            submitButton.html("Record Payment");
          },
       });
    });

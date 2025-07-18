@@ -41,6 +41,19 @@ class Billing
         $result = $this->db->query($query);
         $data = [];
         while ($row = $result->fetch_assoc()) {
+            // Map billing_type to payment purpose
+            $billing_type_to_purpose = [
+                'Hostel Fee' => 'Hostel Fee',
+                'Security Deposit' => 'Security Deposit',
+                'Utility Fee' => 'Other',
+                'Maintenance Fee' => 'Maintenance Charge',
+                'Late Payment Penalty' => 'Penalty',
+                'Other' => 'Other'
+            ];
+
+            $billing_type = $row['billing_type'];
+            $mapped_purpose = $billing_type_to_purpose[$billing_type] ?? 'Other';
+
             $data['details'] = [
                 'billing_id' => $row['billing_id'],
                 'student_name' => $row['first_name'] . ' ' . $row['last_name'],
@@ -53,6 +66,9 @@ class Billing
                 'date_due' => $row['date_due'],
                 'status' => $row['status'],
                 'paid_amount' => $row['paid_amount'],
+                'billing_type' => $billing_type,
+                'mapped_purpose' => $mapped_purpose,
+                'outstanding_balance' => floatval($row['amount']) - floatval($row['paid_amount']),
                 'purpose' => $row['purpose'] ?? 'Hostel Fee',
                 'academic_period' => $row['academic_period'] ?? 'Not specified',
             ];
@@ -142,8 +158,7 @@ class Billing
     {
         $search = isset($request['search']['value']) ? $this->db->real_escape_string($request['search']['value']) : '';
         $status = isset($request['columns'][6]['search']['value']) ? $this->db->real_escape_string($request['columns'][6]['search']['value']) : '';
-        $dueDate = isset($request['columns'][5]['search']['value']) ? $this->db->real_escape_string($request['columns'][5]['search']['value']) : '';
-        $building = isset($request['columns'][2]['search']['value']) ? $this->db->real_escape_string($request['columns'][2]['search']['value']) : '';
+        $building = isset($request['columns'][7]['search']['value']) ? $this->db->real_escape_string($request['columns'][7]['search']['value']) : '';
 
         $where = [];
         if ($search) {
@@ -151,9 +166,6 @@ class Billing
         }
         if ($status) {
             $where[] = "b.status = '$status'";
-        }
-        if ($dueDate) {
-            $where[] = "DATE(b.date_due) = '$dueDate'";
         }
         if ($building) {
             $where[] = "r.building = '$building'";
@@ -765,11 +777,19 @@ class Billing
         $payment_date = $this->db->real_escape_string($data['payment_date']);
         $payment_method = $this->db->real_escape_string($data['payment_method']);
         $transaction_reference = $this->db->real_escape_string($data['transaction_reference']);
-        $payment_notes = $this->db->real_escape_string($data['payment_notes'] ?? '');
         $status = 'Completed';
 
+        // Validate required fields
+        if (!$billing_id || !$amount || !$payment_date || !$payment_method || !$transaction_reference) {
+            return ['success' => false, 'error' => 'All fields are required'];
+        }
+
+        if ($amount <= 0) {
+            return ['success' => false, 'error' => 'Payment amount must be greater than zero'];
+        }
+
         // Get billing details
-        $billingQuery = "SELECT amount, paid_amount, student_id FROM billing WHERE billing_id = ?";
+        $billingQuery = "SELECT amount, paid_amount, student_id, billing_type FROM billing WHERE billing_id = ?";
 
         $stmt = $this->db->prepare($billingQuery);
         $stmt->bind_param('i', $billing_id);
@@ -782,37 +802,54 @@ class Billing
         $billing = $billingResult->fetch_assoc();
         $stmt->close();
 
-
         $student_id = $billing['student_id'];
-        $new_paid_amount = floatval($billing['paid_amount']) + $amount;
+        $current_paid_amount = floatval($billing['paid_amount']);
+        $total_amount = floatval($billing['amount']);
+        $new_paid_amount = $current_paid_amount + $amount;
+
+        // Map billing_type to payment purpose
+        $billing_type_to_purpose = [
+            'Hostel Fee' => 'Hostel Fee',
+            'Security Deposit' => 'Security Deposit',
+            'Utility Fee' => 'Other',
+            'Maintenance Fee' => 'Maintenance Charge',
+            'Late Payment Penalty' => 'Penalty',
+            'Other' => 'Other'
+        ];
+
+        $billing_type = $billing['billing_type'];
+        $mapped_purpose = $billing_type_to_purpose[$billing_type] ?? 'Other';
+
+        // Check if payment exceeds outstanding balance
+        $outstanding_balance = $total_amount - $current_paid_amount;
+        if ($amount > $outstanding_balance) {
+            return ['success' => false, 'error' => 'Payment amount exceeds outstanding balance'];
+        }
 
         // Update billing status
-        $total_amount = floatval($billing['amount']);
         $new_status = $new_paid_amount >= $total_amount ? 'Fully Paid' : 'Partially Paid';
 
         $this->db->begin_transaction();
         try {
-            // Insert payment
+            // Insert payment using mapped purpose from billing type
             $paymentQuery = "
-                INSERT INTO payments (student_id, billing_id, amount, payment_date, transaction_reference, payment_method, status, payment_notes)
+                INSERT INTO payments (student_id, billing_id, amount, payment_date, transaction_reference, payment_method, purpose, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ";
             $stmt = $this->db->prepare($paymentQuery);
             $stmt->bind_param(
-                'iiddssss',
+                'iidsssss',
                 $student_id,
                 $billing_id,
                 $amount,
                 $payment_date,
                 $transaction_reference,
                 $payment_method,
-                $status,
-                $payment_notes
+                $mapped_purpose,
+                $status
             );
             $stmt->execute();
             $stmt->close();
-
-            // $this->db->query($paymentQuery);
 
             // Update billing
             $updateBillingQuery = "
@@ -1001,5 +1038,55 @@ class Billing
         }
         $stmt->close();
         return ['success' => false, 'error' => 'Student email not found'];
+    }
+
+    /**
+     * Get billing details for payment modal
+     */
+    public function getBillingDetails($billing_id)
+    {
+        $billing_id = $this->db->real_escape_string($billing_id);
+
+        $query = "SELECT billing_id, amount, paid_amount, billing_type FROM billing WHERE billing_id = ?";
+        $stmt = $this->db->prepare($query);
+        $stmt->bind_param('i', $billing_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if (!$result || $result->num_rows == 0) {
+            $stmt->close();
+            return ['success' => false, 'error' => 'Invoice not found'];
+        }
+
+        $billing = $result->fetch_assoc();
+        $stmt->close();
+
+        // Map billing_type to payment purpose
+        $billing_type_to_purpose = [
+            'Hostel Fee' => 'Hostel Fee',
+            'Security Deposit' => 'Security Deposit',
+            'Utility Fee' => 'Other',
+            'Maintenance Fee' => 'Maintenance Charge',
+            'Late Payment Penalty' => 'Penalty',
+            'Other' => 'Other'
+        ];
+
+        $billing_type = $billing['billing_type'];
+        $mapped_purpose = $billing_type_to_purpose[$billing_type] ?? 'Other';
+
+        $total_amount = floatval($billing['amount']);
+        $paid_amount = floatval($billing['paid_amount']);
+        $outstanding_balance = $total_amount - $paid_amount;
+
+        return [
+            'success' => true,
+            'data' => [
+                'billing_id' => $billing['billing_id'],
+                'total_amount' => $total_amount,
+                'paid_amount' => $paid_amount,
+                'outstanding_balance' => $outstanding_balance,
+                'purpose' => $mapped_purpose
+            ]
+        ];
     }
 }

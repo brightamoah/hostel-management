@@ -257,4 +257,80 @@ class BillingController
         }
         exit();
     }
+
+    public function recordPayment()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !is_csrf_valid()) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid request or CSRF token']);
+            http_response_code(403);
+            exit;
+        }
+
+        $user_id = $_SESSION['user']['user_id'] ?? null;
+        $user_role = $_SESSION['user']['role'] ?? null;
+
+        if (!$user_id) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'User not authenticated']);
+            http_response_code(401);
+            exit;
+        }
+
+        if ($user_role !== 'Admin') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'You do not have permission to perform this action']);
+            http_response_code(403);
+            exit;
+        }
+
+        $data = [
+            'billing_id' => $_POST['billing_id'] ?? '',
+            'amount' => $_POST['amount'] ?? '',
+            'payment_date' => $_POST['payment_date'] ?? '',
+            'payment_method' => $_POST['payment_method'] ?? '',
+            'transaction_reference' => $_POST['transaction_reference'] ?? '',
+        ];
+
+        try {
+            $result = $this->billingModel->recordPayment($data);
+
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Failed to record payment: ' . $e->getMessage()]);
+            http_response_code(500);
+        }
+        exit();
+    }
+
+    public function getBillingDetails($billing_id)
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid request method']);
+            http_response_code(405);
+            exit;
+        }
+
+        $user_id = $_SESSION['user']['user_id'] ?? null;
+        if (!$user_id) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'User not authenticated']);
+            http_response_code(401);
+            exit;
+        }
+
+        try {
+            $result = $this->billingModel->getBillingDetails($billing_id);
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Failed to get billing details: ' . $e->getMessage()]);
+            http_response_code(500);
+        }
+        exit();
+    }
 }
