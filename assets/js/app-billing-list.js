@@ -109,16 +109,23 @@
                      full.status === "Unpaid" ||
                      full.status === "Partially Paid"
                   ) {
+                     const outstandingAmount = (
+                        full.amount - (full.paid_amount || 0)
+                     ).toFixed(2);
                      return `
-                                <button class="btn btn-sm btn-primary pay-billing-btn"
-                                    data-billing-id="${full.billing_id}"
-                                    data-amount="${full.amount}"
-                                    data-description="${full.description}"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#paymentConfirmationModal">
-                                    <i class="bx bx-credit-card me-1"></i>Pay Now
-                                </button>
-                            `;
+                         <button class="btn btn-sm btn-primary pay-billing-btn d-flex align-items-center gap-1"
+               data-billing-id="${full.billing_id}"
+               data-amount="${outstandingAmount}"
+               data-description="${full.description || ""}"
+               data-purpose="${full.billing_type}"
+               data-billing-type="${full.billing_type || "General"}"
+               data-bs-toggle="modal"
+               data-bs-target="#paymentConfirmationModal"
+               style="white-space:nowrap;">
+               <i class="bx bx-credit-card"></i>
+               <span class="d-none d-md-inline">Pay Now</span>
+            </button>
+                     `;
                   }
                   return "";
                },
@@ -135,10 +142,39 @@
                }),
                renderer: function (api, rowIdx, columns) {
                   const data = columns
-                     .map(function (col) {
-                        return col.title !== "" && col.title !== "Actions"
-                           ? `<tr><td>${col.title}:</td><td>${col.data}</td></tr>`
-                           : "";
+                     .map(function (col, index) {
+                        if (index === 0 || col.title === "") {
+                           return "";
+                        }
+
+                        if (index === 6) {
+                           // Actions column
+                           const rowData = api.row(rowIdx).data();
+                           if (
+                              rowData.status === "Unpaid" ||
+                              rowData.status === "Partially Paid"
+                           ) {
+                              return `
+                                 <tr>
+                                    <td>Actions:</td>
+                                    <td>
+                                       <button class="btn btn-sm btn-primary pay-billing-btn d-flex align-items-center gap-1"
+                                          data-billing-id="${rowData.billing_id}"
+                                          data-amount="${rowData.amount}"
+                                          data-description="${rowData.description}"
+                                          data-bs-toggle="modal"
+                                          data-bs-target="#paymentConfirmationModal">
+                                          <i class="bx bx-credit-card"></i>
+                                          Pay Now
+                                       </button>
+                                    </td>
+                                 </tr>
+                              `;
+                           }
+                           return "";
+                        }
+
+                        return `<tr><td>${col.title}:</td><td>${col.data}</td></tr>`;
                      })
                      .join("");
                   return data ? `<table class="table">${data}</table>` : false;
@@ -153,6 +189,14 @@
          },
          initComplete: function () {
             const api = this.api();
+
+            if ($.fn.select2) {
+               $("#statusFilter").select2({
+                  placeholder: "All Statuses",
+                  allowClear: true,
+                  width: "100%",
+               });
+            }
 
             $("#billingSearch").on("keyup", function () {
                api.search(this.value).draw();
@@ -169,34 +213,109 @@
                const billingId = $(this).data("billing-id");
                const amount = $(this).data("amount");
                const description = $(this).data("description");
+               const purpose = $(this).data("purpose");
+               const billingType = $(this).data("billing-type");
+
+               console.log("Payment button clicked:", {
+                  billingId,
+                  amount,
+                  description,
+                  purpose,
+                  billingType,
+               });
 
                $("#confirmBillingId").text(`#${billingId}`);
                $("#confirmAmount").text(`GH₵${Number(amount).toFixed(2)}`);
                $("#confirmDescription").text(description);
-               $(".confirm-pay-btn").data("billing-id", billingId);
+               $("#confirmPurpose").text(purpose);
+               $("#confirmBillingType").text(billingType);
+
+               $(".confirm-pay-btn").data({
+                  "billing-id": billingId,
+                  amount: amount,
+                  description: description,
+                  purpose: purpose,
+                  "billing-type": billingType,
+               });
             });
 
             $(document).on("click", ".confirm-pay-btn", function () {
                const billingId = $(this).data("billing-id");
+               const amount = $(this).data("amount");
+               const description = $(this).data("description");
+               const purpose = $(this).data("purpose");
+               const billingType = $(this).data("billing-type");
+
+               console.log("Confirm pay clicked:", {
+                  billingId,
+                  amount,
+                  description,
+                  purpose,
+                  billingType,
+               });
+
+               if (!billingId) {
+                  Swal.fire({
+                     icon: "error",
+                     title: "Error",
+                     text: "Billing ID is missing",
+                  });
+                  return;
+               }
+
+               Swal.fire({
+                  title: "Initializing Payment...",
+                  text: "Please wait while we set up your payment",
+                  allowOutsideClick: false,
+                  didOpen: () => {
+                     Swal.showLoading();
+                  },
+               });
 
                $.ajax({
-                  url: `/student/pay-billing/${billingId}`,
+                  url: `/student/billing/${billingId}/pay`,
                   method: "POST",
                   data: {
                      billing_id: billingId,
                      csrf: csrfToken,
                   },
                   success: function (response) {
+                     console.log("Payment response:", response);
                      $("#paymentConfirmationModal").modal("hide");
                      if (response.success) {
-                        Swal.fire({
-                           icon: "success",
-                           title: "Success",
-                           text: "Payment initiated successfully! Redirecting to payment gateway...",
-                           timer: 2000,
-                        }).then(() => {
-                           location.reload();
-                        });
+                        if (response.authorization_url) {
+                           // Redirect to Paystack
+                           Swal.fire({
+                              title: "Redirecting to Payment...",
+                              html: `
+                     <div class="text-start">
+                        <p><strong>Purpose:</strong> ${purpose}</p>
+                        <p><strong>Amount:</strong> GH₵${parseFloat(
+                           amount
+                        ).toFixed(2)}</p>
+                        <p><strong>Reference:</strong> ${
+                           response.reference || "Generating..."
+                        }</p>
+                     </div>
+                     <hr>
+                     <p class="text-center">You will be redirected to Paystack to complete your payment.</p>
+                  `,
+                              icon: "info",
+                              timer: 3000,
+                              showConfirmButton: false,
+                           }).then(() => {
+                              window.location.href = response.authorization_url;
+                           });
+                        } else {
+                           Swal.fire({
+                              icon: "success",
+                              title: "Success",
+                              text: "Payment initiated successfully!",
+                              timer: 2000,
+                           }).then(() => {
+                              location.reload();
+                           });
+                        }
                      } else {
                         Swal.fire({
                            icon: "error",
