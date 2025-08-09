@@ -5,16 +5,24 @@ document.addEventListener("DOMContentLoaded", function () {
    bodyBg = config.colors.bodyBg;
    headingColor = config.colors.headingColor;
 
-
-    const csrfToken =
-       document
-          .querySelector('meta[name="csrf-token"]')
-          ?.getAttribute("content") || "";
+   const csrfToken =
+      document
+         .querySelector('meta[name="csrf-token"]')
+         ?.getAttribute("content") || "";
 
    const dt_user_table = document.querySelector(".datatables-users");
    const statusObj = {
       0: { title: "Unverified", class: "bg-label-warning" },
       1: { title: "Verified", class: "bg-label-success" },
+   };
+
+   const residentStatusObj = {
+      'Active': { title: "Active", class: "bg-label-success" },
+      'Inactive': { title: "Inactive", class: "bg-label-secondary" },
+      'Suspended': { title: "Suspended", class: "bg-label-danger" },
+      'Graduated': { title: "Graduated", class: "bg-label-info" },
+      'Withdrawn': { title: "Withdrawn", class: "bg-label-warning" },
+      'N/A': { title: "N/A", class: "bg-label-dark" }
    };
 
    let dt_user;
@@ -92,7 +100,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }).then((result) => {
          if (result.isConfirmed) {
             // Create form data object with CSRF token
-            const formData = new URLSearchParams();;
+            const formData = new URLSearchParams();
             formData.append("user_id", userId);
             formData.append("new_role", newRole);
             formData.append("csrf", csrfToken);
@@ -192,7 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
                responsivePriority: 2,
                render: () => "",
             },
-            
+
             {
                targets: 1,
                responsivePriority: 3,
@@ -238,7 +246,12 @@ document.addEventListener("DOMContentLoaded", function () {
             {
                targets: 3,
                render: function (data) {
-                  return data || "N/A";
+                  const status = data || "N/A";
+                  return `
+                     <span class="badge ${residentStatusObj[status].class}" text-capitalized>
+                         ${residentStatusObj[status].title}
+                     </span>
+                  `;
                },
             },
             {
@@ -273,7 +286,7 @@ document.addEventListener("DOMContentLoaded", function () {
                },
             },
          ],
-       
+
          order: [[2, "desc"]],
          layout: {
             topStart: {
@@ -390,6 +403,7 @@ document.addEventListener("DOMContentLoaded", function () {
          },
          initComplete: function () {
             const api = this.api();
+
             const createFilter = (
                columnIndex,
                containerClass,
@@ -420,21 +434,6 @@ document.addEventListener("DOMContentLoaded", function () {
                      option.textContent = value;
                      select.appendChild(option);
                   });
-
-               select.addEventListener("change", function () {
-                  const val = this.value;
-                  if (val === "") {
-                     column.search("").draw();
-                  } else {
-                     column
-                        .search(
-                           "^" + $.fn.dataTable.util.escapeRegex(val) + "$",
-                           true,
-                           false
-                        )
-                        .draw();
-                  }
-               });
             };
             createFilter(2, ".user_role", "UserRole", "Select Role");
             createFilter(
@@ -443,6 +442,43 @@ document.addEventListener("DOMContentLoaded", function () {
                "UserStatus",
                "Select Resident Status"
             );
+
+            if ($.fn.select2) {
+               const userRole = $("#UserRole");
+               const userStatus = $("#UserStatus");
+
+               userRole.select2({
+                  placeholder: "Filter by Role",
+                  allowClear: true,
+                  width: "100%",
+               });
+
+               userStatus.select2({
+                  placeholder: "Filter by Status",
+                  allowClear: true,
+                  width: "100%",
+               });
+
+               userRole.on('change', function() {
+                    const val = $(this).val();
+                    const column = api.column(2);
+                    if (val === "") {
+                        column.search("").draw();
+                    } else {
+                        column.search("^" + $.fn.dataTable.util.escapeRegex(val) + "$", true, false).draw();
+                    }
+               });
+
+               userStatus.on('change', function() {
+                    const val = $(this).val();
+                    const column = api.column(3);
+                    if (val === "") {
+                        column.search("").draw();
+                    } else {
+                        column.search("^" + $.fn.dataTable.util.escapeRegex(val) + "$", true, false).draw();
+                    }
+               });
+            }
          },
       });
 
@@ -492,7 +528,7 @@ document.addEventListener("DOMContentLoaded", function () {
                      );
                      offcanvas.hide();
                      dt_user.ajax.reload();
-                     location.reload()
+                     location.reload();
                   });
                } else {
                   Swal.fire({
