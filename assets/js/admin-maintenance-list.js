@@ -422,6 +422,26 @@
          initComplete: function () {
             const api = this.api();
 
+            if ($.fn.select2) {
+               $("#typeFilter").select2({
+                  placeholder: "Filter by Type",
+                  allowClear: true,
+                  width: "100%",
+               });
+
+               $("#priorityFilter").select2({
+                  placeholder: "Filter by Priority",
+                  allowClear: true,
+                  width: "100%",
+               });
+
+               $("#statusFilter").select2({
+                  placeholder: "Filter by Status",
+                  allowClear: true,
+                  width: "100%",
+               });
+            }
+
             // Initialize tooltips
             const tooltipTriggerList = [].slice.call(
                document.querySelectorAll('[data-bs-toggle="tooltip"]')
