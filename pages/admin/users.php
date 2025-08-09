@@ -163,7 +163,7 @@ require_once __DIR__ . "/../../app/admin/users_stats.php"
                                 <div class="row mb-4">
                                     <div class="col-md-4 user_role"></div>
                                     <div class="col-md-4 user_status"></div>
-                                    <div class="col-md-4 user_plan"></div>
+                                    <div class="col-md-4"></div>
                                 </div>
                                 <table class="table datatables-users">
                                     <thead>
