@@ -17,12 +17,12 @@ document.addEventListener("DOMContentLoaded", function () {
    };
 
    const residentStatusObj = {
-      'Active': { title: "Active", class: "bg-label-success" },
-      'Inactive': { title: "Inactive", class: "bg-label-secondary" },
-      'Suspended': { title: "Suspended", class: "bg-label-danger" },
-      'Graduated': { title: "Graduated", class: "bg-label-info" },
-      'Withdrawn': { title: "Withdrawn", class: "bg-label-warning" },
-      'N/A': { title: "N/A", class: "bg-label-dark" }
+      Active: { title: "Active", class: "bg-label-success" },
+      Inactive: { title: "Inactive", class: "bg-label-secondary" },
+      Suspended: { title: "Suspended", class: "bg-label-danger" },
+      Graduated: { title: "Graduated", class: "bg-label-info" },
+      Withdrawn: { title: "Withdrawn", class: "bg-label-warning" },
+      "N/A": { title: "N/A", class: "bg-label-dark" },
    };
 
    let dt_user;
@@ -175,6 +175,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
    if (dt_user_table) {
       dt_user = new DataTable(dt_user_table, {
+         responsive: true,
          ajax: {
             url: "/admin/users-data",
             dataSrc: "data",
@@ -196,14 +197,15 @@ document.addEventListener("DOMContentLoaded", function () {
          ],
          columnDefs: [
             {
-               targets: 0,
-               responsivePriority: 2,
-               render: () => "",
+               targets: "user_id:name",
+               render: function (data) {
+                  return `<span class="fw-medium">${data}</span>`;
+               },
             },
 
             {
                targets: 1,
-               responsivePriority: 3,
+               responsivePriority: 1,
                render: function (data, type, full) {
                   const name = full.name;
                   const email = full.email;
@@ -229,6 +231,7 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             {
                targets: 2,
+               responsivePriority: 2,
                data: "role",
                render: function (data, type, full, meta) {
                   if (type === "filter" || type === "sort") return data;
@@ -245,8 +248,14 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             {
                targets: 3,
-               render: function (data) {
+               responsivePriority: 4,
+               render: function (data, type) {
                   const status = data || "N/A";
+                  // Return raw data for filtering and sorting
+                  if (type === "filter" || type === "sort") {
+                     return status;
+                  }
+                  // Return formatted HTML for display
                   return `
                      <span class="badge ${residentStatusObj[status].class}" text-capitalized>
                          ${residentStatusObj[status].title}
@@ -255,8 +264,18 @@ document.addEventListener("DOMContentLoaded", function () {
                },
             },
             {
+               targets: 4,
+               responsivePriority: 5,
+            },
+            {
                targets: 5,
-               render: function (data) {
+               responsivePriority: 6,
+               render: function (data, type) {
+                  // Return raw data for filtering and sorting
+                  if (type === "filter" || type === "sort") {
+                     return data;
+                  }
+                  // Return formatted HTML for display
                   return `
                      <span class="badge ${statusObj[data].class}" text-capitalized>
                          ${statusObj[data].title}
@@ -267,6 +286,7 @@ document.addEventListener("DOMContentLoaded", function () {
             {
                targets: -1,
                title: "Actions",
+               responsivePriority: 3,
                searchable: false,
                orderable: false,
                render: function (data, type, full) {
@@ -367,40 +387,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   '<i class="icon-base bx bx-chevron-left icon-18px"></i>',
             },
          },
-         responsive: {
-            details: {
-               display: DataTable.Responsive.display.modal({
-                  header: function (row) {
-                     const data = row.data();
-                     return "Details of " + data.name;
-                  },
-               }),
-               type: "column",
-               renderer: function (api, rowIdx, columns) {
-                  const data = columns
-                     .map(function (col) {
-                        if (col.columnIndex === 0) return "";
-                        return col.title !== ""
-                           ? `<tr data-dt-row="${col.rowIndex}" data-dt-column="${col.columnIndex}">
-                                 <td>${col.title}:</td>
-                                 <td>${col.data}</td>
-                              </tr>`
-                           : "";
-                     })
-                     .join("");
-                  if (data) {
-                     const div = document.createElement("div");
-                     div.classList.add("table-responsive");
-                     const table = document.createElement("table");
-                     table.classList.add("table");
-                     table.innerHTML = `<tbody>${data}</tbody>`;
-                     div.appendChild(table);
-                     return div;
-                  }
-                  return false;
-               },
-            },
-         },
+
          initComplete: function () {
             const api = this.api();
 
@@ -418,7 +405,7 @@ document.addEventListener("DOMContentLoaded", function () {
                document.querySelector(containerClass).appendChild(select);
                const uniqueValues = new Map();
 
-               column.data().each(function (value, index) {
+               column.data().each(function (value) {
                   if (value === null || value === undefined || value === "") {
                      uniqueValues.set("N/A", "N/A");
                   } else {
@@ -459,24 +446,37 @@ document.addEventListener("DOMContentLoaded", function () {
                   width: "100%",
                });
 
-               userRole.on('change', function() {
-                    const val = $(this).val();
-                    const column = api.column(2);
-                    if (val === "") {
-                        column.search("").draw();
-                    } else {
-                        column.search("^" + $.fn.dataTable.util.escapeRegex(val) + "$", true, false).draw();
-                    }
+               userRole.on("change", function () {
+                  const val = $(this).val();
+                  const column = api.column(2);
+                  if (val === "") {
+                     column.search("").draw();
+                  } else {
+                     column
+                        .search(
+                           "^" + $.fn.dataTable.util.escapeRegex(val) + "$",
+                           true,
+                           false
+                        )
+                        .draw();
+                  }
                });
 
-               userStatus.on('change', function() {
-                    const val = $(this).val();
-                    const column = api.column(3);
-                    if (val === "") {
-                        column.search("").draw();
-                    } else {
-                        column.search("^" + $.fn.dataTable.util.escapeRegex(val) + "$", true, false).draw();
-                    }
+               userStatus.on("change", function () {
+                  const val = $(this).val();
+                  const column = api.column(3);
+                  if (val === "") {
+                     column.search("").draw();
+                  } else {
+                     // Search by exact match on the raw data, not the rendered HTML
+                     column
+                        .search(
+                           "^" + $.fn.dataTable.util.escapeRegex(val) + "$",
+                           true,
+                           false
+                        )
+                        .draw();
+                  }
                });
             }
          },
@@ -493,7 +493,25 @@ document.addEventListener("DOMContentLoaded", function () {
          const role = target.dataset.role;
 
          if (target.classList.contains("view-details")) {
-            handleViewDetails(userId, role);
+            const responsiveModal =
+               document.querySelector(".dtr-bs-modal.show");
+            if (responsiveModal) {
+               const modal = bootstrap.Modal.getInstance(responsiveModal);
+               if (modal) {
+                  responsiveModal.addEventListener(
+                     "hidden.bs.modal",
+                     () => {
+                        handleViewDetails(userId, role);
+                     },
+                     { once: true }
+                  );
+                  modal.hide();
+               } else {
+                  handleViewDetails(userId, role);
+               }
+            } else {
+               handleViewDetails(userId, role);
+            }
          } else if (target.classList.contains("toggle-role")) {
             handleToggleRole(userId, role);
          } else if (target.classList.contains("delete-record")) {
