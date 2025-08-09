@@ -3,7 +3,7 @@ require_once "./app/controllers/visitors/visitor_stats.php";
 ?>
 
 <!doctype html>
-<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact"
+<html lang="en" class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact"
     dir="ltr"
     data-skin="default"
     data-assets-path="../../assets/"
@@ -54,14 +54,14 @@ require_once "./app/controllers/visitors/visitor_stats.php";
 
 <body>
     <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
             <?php include_once "./Components/sidebar.php" ?>
-            <div class="menu-mobile-toggler d-xl-none rounded-1">
-                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+            <div class="rounded-1 menu-mobile-toggler d-xl-none">
+                <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
                     <i class="bx bx-menu icon-base"></i>
-                    <i class="bx bx-chevron-right icon-base"></i>
+                    <i class="bx-chevron-right bx icon-base"></i>
                 </a>
             </div>
             <!-- / Menu -->
@@ -75,23 +75,23 @@ require_once "./app/controllers/visitors/visitor_stats.php";
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-                    <div class="container-xxl flex-grow-1 container-p-y">
-                        <div class="row g-6 mb-6">
+                    <div class="flex-grow-1 container-p-y container-xxl">
+                        <div class="mb-6 row g-6">
                             <div class="col-sm-6 col-xl-3">
-                                <div class="card">
+                                <div class="card-border-shadow-primary card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start justify-content-between">
                                             <div class="content-left">
                                                 <span class="text-heading">Total Visitors</span>
                                                 <div class="d-flex align-items-center my-1">
-                                                    <h4 class="mb-0 me-2"><?php echo $totalVisitors; ?></h4>
-                                                    <p class="text-success mb-0">(+<?php echo $totalVisitors > 0 ? round(($totalVisitors - ($totalVisitors * 0.71)) / $totalVisitors * 100) : 0; ?>%)</p>
+                                                    <h4 class="me-2 mb-0"><?php echo $totalVisitors; ?></h4>
+                                                    <p class="mb-0 text-success">(+<?php echo $totalVisitors > 0 ? round(($totalVisitors - ($totalVisitors * 0.71)) / $totalVisitors * 100) : 0; ?>%)</p>
                                                 </div>
                                                 <small class="mb-0">All Registered Visitors</small>
                                             </div>
                                             <div class="avatar">
-                                                <span class="avatar-initial rounded bg-label-primary">
-                                                    <i class="icon-base bx bx-group icon-lg"></i>
+                                                <span class="bg-label-primary rounded avatar-initial">
+                                                    <i class="bx-group icon-base bx icon-lg"></i>
                                                 </span>
                                             </div>
                                         </div>
@@ -99,19 +99,19 @@ require_once "./app/controllers/visitors/visitor_stats.php";
                                 </div>
                             </div>
                             <div class="col-sm-6 col-xl-3">
-                                <div class="card">
+                                <div class="card-border-shadow-info card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start justify-content-between">
                                             <div class="content-left">
                                                 <span class="text-heading">Approved Visitors</span>
                                                 <div class="d-flex align-items-center my-1">
-                                                    <h4 class="mb-0 me-2"><?php echo $approvedVisitors; ?></h4>
-                                                    <p class="text-success mb-0">(+<?php echo $approvedVisitors > 0 ? round(($approvedVisitors - ($approvedVisitors * 0.82)) / $approvedVisitors * 100) : 0; ?>%)</p>
+                                                    <h4 class="me-2 mb-0"><?php echo $approvedVisitors; ?></h4>
+                                                    <p class="mb-0 text-success">(+<?php echo $approvedVisitors > 0 ? round(($approvedVisitors - ($approvedVisitors * 0.82)) / $approvedVisitors * 100) : 0; ?>%)</p>
                                                 </div>
                                                 <small class="mb-0">Approved by Admin</small>
                                             </div>
                                             <div class="avatar">
-                                                <span class="avatar-initial rounded bg-label-info">
+                                                <span class="bg-label-info rounded avatar-initial">
                                                     <i class="icon-base bx bx-check-circle icon-lg"></i>
                                                 </span>
                                             </div>
@@ -120,19 +120,19 @@ require_once "./app/controllers/visitors/visitor_stats.php";
                                 </div>
                             </div>
                             <div class="col-sm-6 col-xl-3">
-                                <div class="card">
+                                <div class="card-border-shadow-success card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start justify-content-between">
                                             <div class="content-left">
                                                 <span class="text-heading">Checked-In Visitors</span>
                                                 <div class="d-flex align-items-center my-1">
-                                                    <h4 class="mb-0 me-2"><?php echo $checkedInVisitors; ?></h4>
-                                                    <p class="text-danger mb-0">(<?php echo $checkedInVisitors > 0 ? round(($checkedInVisitors * 0.86 - $checkedInVisitors) / $checkedInVisitors * 100) : 0; ?>%)</p>
+                                                    <h4 class="me-2 mb-0"><?php echo $checkedInVisitors; ?></h4>
+                                                    <p class="mb-0 text-danger">(<?php echo $checkedInVisitors > 0 ? round(($checkedInVisitors * 0.86 - $checkedInVisitors) / $checkedInVisitors * 100) : 0; ?>%)</p>
                                                 </div>
                                                 <small class="mb-0">Currently Checked-In</small>
                                             </div>
                                             <div class="avatar">
-                                                <span class="avatar-initial rounded bg-label-success">
+                                                <span class="bg-label-success rounded avatar-initial">
                                                     <i class="icon-base bx bx-log-in-circle icon-lg"></i>
                                                 </span>
                                             </div>
@@ -141,19 +141,19 @@ require_once "./app/controllers/visitors/visitor_stats.php";
                                 </div>
                             </div>
                             <div class="col-sm-6 col-xl-3">
-                                <div class="card">
+                                <div class="card-border-shadow-warning card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start justify-content-between">
                                             <div class="content-left">
                                                 <span class="text-heading">Pending Visitors</span>
                                                 <div class="d-flex align-items-center my-1">
-                                                    <h4 class="mb-0 me-2"><?php echo $pendingVisitors; ?></h4>
-                                                    <p class="text-success mb-0">(+<?php echo $pendingVisitors > 0 ? round(($pendingVisitors - $pendingVisitors * 0.58) / $pendingVisitors * 100) : 0; ?>%)</p>
+                                                    <h4 class="me-2 mb-0"><?php echo $pendingVisitors; ?></h4>
+                                                    <p class="mb-0 text-success">(+<?php echo $pendingVisitors > 0 ? round(($pendingVisitors - $pendingVisitors * 0.58) / $pendingVisitors * 100) : 0; ?>%)</p>
                                                 </div>
                                                 <small class="mb-0">Awaiting Approval</small>
                                             </div>
                                             <div class="avatar">
-                                                <span class="avatar-initial rounded bg-label-warning">
+                                                <span class="bg-label-warning rounded avatar-initial">
                                                     <i class="icon-base bx bx-time icon-lg"></i>
                                                 </span>
                                             </div>
@@ -164,9 +164,9 @@ require_once "./app/controllers/visitors/visitor_stats.php";
                         </div>
 
                         <div class="card">
-                            <div class="card-header border-bottom">
-                                <h5 class="card-title mb-0">Visitor Log</h5>
-                                <div class="d-flex justify-content-between align-items-center row pt-4 gap-md-0 g-6">
+                            <div class="border-bottom card-header">
+                                <h5 class="mb-0 card-title">Visitor Log</h5>
+                                <div class="d-flex align-items-center justify-content-between gap-md-0 pt-4 row g-6">
                                     <div class="col-md-4">
                                         <select id="statusFilter" class="form-select">
                                             <option value="">All Statuses</option>
@@ -191,15 +191,15 @@ require_once "./app/controllers/visitors/visitor_stats.php";
                                             <option value="future">Future Visits</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-4 text-end">
+                                    <div class="text-end col-md-4">
                                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerVisitorModal">
-                                            <i class="bx bx-plus icon-base me-1"></i> Register Visitor
+                                            <i class="me-1 bx bx-plus icon-base"></i> Register Visitor
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-datatable table-responsive">
-                                <table class="datatables-visitors table border-top">
+                            <div class="table-responsive card-datatable">
+                                <table class="table border-top datatables-visitors">
                                     <thead>
                                         <tr>
                                             <th></th> <!-- Control column -->
@@ -300,76 +300,76 @@ require_once "./app/controllers/visitors/visitor_stats.php";
                                         <h5 class="modal-title" id="visitorModalLabel">Visitor Details</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
-                                    <div class="modal-body text-center p-4">
-                                        <div id="visitorAvatar" class="avatar avatar-xl d-flex align-items-center justify-content-center rounded-circle bg-primary text-white mb-3 mx-auto" style="width: 80px; height: 80px;">
+                                    <div class="p-4 text-center modal-body">
+                                        <div id="visitorAvatar" class="d-flex align-items-center justify-content-center bg-primary mx-auto mb-3 rounded-circle text-white avatar avatar-xl" style="width: 80px; height: 80px;">
                                             <span id="visitorInitials" style="font-size: 2rem;"></span>
                                         </div>
                                         <h5 id="visitorName" class="mb-1"></h5>
-                                        <p id="visitorRelation" class="text-muted mb-2"></p>
-                                        <p id="visitorId" class="text-muted mb-3">
-                                            <i class="bx bx-id-card me-1"></i> ID: <span></span>
+                                        <p id="visitorRelation" class="mb-2 text-muted"></p>
+                                        <p id="visitorId" class="mb-3 text-muted">
+                                            <i class="me-1 bx bx-id-card"></i> ID: <span></span>
                                         </p>
-                                        <div class="card shadow-none mb-3">
-                                            <div class="card-body p-3">
-                                                <ul class="list-unstyled mb-0">
+                                        <div class="shadow-none mb-3 card">
+                                            <div class="p-3 card-body">
+                                                <ul class="mb-0 list-unstyled">
                                                     <li class="mb-3">
-                                                        <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="d-flex align-items-center justify-content-between">
                                                             <div>
-                                                                <i class="bx bx-phone me-2 text-primary"></i>
+                                                                <i class="me-2 text-primary bx bx-phone"></i>
                                                                 <span class="fw-semibold">Phone</span>
                                                             </div>
                                                             <span id="visitorPhone" class="text-end"></span>
                                                         </div>
                                                     </li>
                                                     <li class="mb-3">
-                                                        <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="d-flex align-items-center justify-content-between">
                                                             <div>
-                                                                <i class="bx bx-calendar me-2 text-primary"></i>
+                                                                <i class="me-2 text-primary bx bx-calendar"></i>
                                                                 <span class="fw-semibold">Visit Date</span>
                                                             </div>
                                                             <span id="visitorVisitDate" class="text-end"></span>
                                                         </div>
                                                     </li>
                                                     <li class="mb-3">
-                                                        <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="d-flex align-items-center justify-content-between">
                                                             <div>
-                                                                <i class="bx bx-log-in-circle me-2 text-primary"></i>
+                                                                <i class="me-2 text-primary bx bx-log-in-circle"></i>
                                                                 <span class="fw-semibold">Check-In</span>
                                                             </div>
                                                             <span id="visitorCheckIn" class="text-end"></span>
                                                         </div>
                                                     </li>
                                                     <li class="mb-3">
-                                                        <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="d-flex align-items-center justify-content-between">
                                                             <div>
-                                                                <i class="bx bx-log-out-circle me-2 text-primary"></i>
+                                                                <i class="me-2 text-primary bx bx-log-out-circle"></i>
                                                                 <span class="fw-semibold">Check-Out</span>
                                                             </div>
                                                             <span id="visitorCheckOut" class="text-end"></span>
                                                         </div>
                                                     </li>
                                                     <li class="mb-3">
-                                                        <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="d-flex align-items-center justify-content-between">
                                                             <div>
-                                                                <i class="bx bx-info-circle me-2 text-primary"></i>
+                                                                <i class="me-2 text-primary bx bx-info-circle"></i>
                                                                 <span class="fw-semibold">Status</span>
                                                             </div>
                                                             <span id="visitorStatus" class="badge"></span>
                                                         </div>
                                                     </li>
                                                     <li class="mb-3">
-                                                        <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="d-flex align-items-center justify-content-between">
                                                             <div>
-                                                                <i class="bx bx-briefcase me-2 text-primary"></i>
+                                                                <i class="me-2 text-primary bx bx-briefcase"></i>
                                                                 <span class="fw-semibold">Purpose</span>
                                                             </div>
                                                             <span id="visitorPurpose" class="text-end"></span>
                                                         </div>
                                                     </li>
                                                     <li class="mb-0">
-                                                        <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="d-flex align-items-center justify-content-between">
                                                             <div>
-                                                                <i class="bx bx-user me-2 text-primary"></i>
+                                                                <i class="me-2 text-primary bx bx-user"></i>
                                                                 <span class="fw-semibold">Student ID</span>
                                                             </div>
                                                             <span id="visitorStudentId" class="text-end"></span>

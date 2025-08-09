@@ -4,13 +4,13 @@
    const dt_complaints_table = document.querySelector(".datatables-complaints");
 
    if (dt_complaints_table) {
-      //   const csrfToken =
-      //      document
-      //         .querySelector('meta[name="csrf-token"]')
-      //         ?.getAttribute("content") || "";
+      const csrfToken =
+         document.querySelector('input[name="csrf"]').value || "";
 
-      const dt = new DataTable(dt_complaints_table, {
-         ajax: "/student/complaint-data",
+      let _dt;
+
+      _dt = new DataTable(dt_complaints_table, {
+         ajax: "/admin/complaints-data",
          layout: {
             topStart: {
                rowClass: "row mx-3 my-0 justify-content-between",
@@ -35,6 +35,7 @@
          },
          columns: [
             { data: "complaint_id" },
+            { data: "student_name" },
             { data: "complaint_type" },
             { data: "description" },
             { data: "priority" },
@@ -50,7 +51,13 @@
                },
             },
             {
-               targets: 2, // Description
+               targets: 1, // Student Name
+               render: function (data) {
+                  return `<span>${data}</span>`;
+               },
+            },
+            {
+               targets: 3, // Description
                render: function (data) {
                   const maxLength = 50;
                   return data.length > maxLength
@@ -59,7 +66,7 @@
                },
             },
             {
-               targets: 3, // Priority
+               targets: 4, // Priority
                render: function (data) {
                   const priorityObj = {
                      Low: { class: "bg-label-success", title: "Low" },
@@ -78,7 +85,7 @@
                },
             },
             {
-               targets: 4, // Status
+               targets: 5, // Status
                render: function (data) {
                   const statusObj = {
                      Pending: { class: "bg-label-warning", title: "Pending" },
@@ -97,13 +104,13 @@
                },
             },
             {
-               targets: 5, // Submitted
+               targets: 6, // Submitted
                render: function (data) {
                   return moment(data).format("MMM D, YYYY");
                },
             },
             {
-               targets: 6, // Actions
+               targets: 7, // Actions
                searchable: false,
                orderable: false,
                render: function (data, type, full) {
@@ -150,70 +157,70 @@
          initComplete: function () {
             const api = this.api();
 
-            // Initialize select2 for filters
-            if ($.fn.select2) {
-               $("#typeFilter").select2({
-                  placeholder: "Filter by Type",
-                  allowClear: true,
-                  width: "100%",
-               });
-               $("#priorityFilter").select2({
-                  placeholder: "Filter by Priority",
-                  allowClear: true,
-                  width: "100%",
-               });
-               $("#statusFilter").select2({
-                  placeholder: "Filter by Status",
-                  allowClear: true,
-                  width: "100%",
-               });
-               $("#complaintType").select2({
-                  placeholder: "Select Complaint Type",
-                  allowClear: true,
-                  dropdownParent: $("#newComplaintModal"),
-                  width: "100%",
-               });
-               $("#roomId").select2({
-                  placeholder: "Select Room",
-                  allowClear: true,
-                  dropdownParent: $("#newComplaintModal"),
-                  width: "100%",
-               });
-               $("#priority").select2({
-                  placeholder: "Select Priority",
-                  allowClear: true,
-                  dropdownParent: $("#newComplaintModal"),
-                  width: "100%",
-               });
-            }
-
-            // Search box
-            $("#complaintSearch").on("keyup", function () {
-               api.search(this.value).draw();
-            });
-
             // Type filter
             $("#typeFilter").on("change", function () {
+               const val = $(this).val();
+               api.column(2)
+                  .search(val ? "^" + val + "$" : "", true, false)
+                  .draw();
+            });
+
+            $("#typeFilter").select2({
+               placeholder: "All Types",
+               allowClear: true,
+            });
+
+            // Priority filter
+            $("#priorityFilter").on("change", function () {
+               const val = $(this).val();
+               api.column(4)
+                  .search(val ? "^" + val + "$" : "", true, false)
+                  .draw();
+            });
+
+            $("#priorityFilter").select2({
+               placeholder: "All Priorities",
+               allowClear: true,
+            });
+
+            // Status filter
+            $("#statusFilter").on("change", function () {
+               const val = $(this).val();
+               api.column(5)
+                  .search(val ? "^" + val + "$" : "", true, false)
+                  .draw();
+            });
+
+            $("#statusFilter").select2({
+               placeholder: "All Statuses",
+               allowClear: true,
+            });
+
+            // Student filter
+            $("#studentFilter").on("change", function () {
                const val = $(this).val();
                api.column(1)
                   .search(val ? "^" + val + "$" : "", true, false)
                   .draw();
             });
 
-            // Priority filter
-            $("#priorityFilter").on("change", function () {
-               const val = $(this).val();
-               api.column(3)
-                  .search(val ? "^" + val + "$" : "", true, false)
-                  .draw();
+            // Initialize Select2 for student filter
+            $("#studentFilter").select2({
+               placeholder: "All Students",
+               allowClear: true,
             });
 
-            // Status filter
-            $("#statusFilter").on("change", function () {
-               const val = $(this).val();
-               api.column(4)
-                  .search(val ? "^" + val + "$" : "", true, false)
-                  .draw();
+            $("#status").select2({
+               placeholder: "Select Status",
+               allowClear: true,
+               dropdownParent: $("#updateStatusModal"),
+            });
+
+            // Initialize Select2 for action taken in add response modal
+            $("#actionTaken").select2({
+               placeholder: "Select Action",
+               allowClear: true,
+               dropdownParent: $("#addResponseModal"),
             });
 
             // Initialize tooltips
@@ -230,11 +237,14 @@
                const complaintId = $(this).data("complaint-id");
 
                $.ajax({
-                  url: `/student/complaint/${complaintId}`,
+                  url: `/admin/complaint/${complaintId}`,
                   method: "GET",
                   success: function (data) {
                      // Populate modal fields
                      $("#modalComplaintId").text(data.complaint_id);
+                     $("#modalComplaintStudent").text(
+                        data.student_name || "Unknown"
+                     );
                      $("#modalComplaintType").text(data.complaint_type);
                      $("#modalComplaintRoom").text(
                         data.room_number
@@ -271,17 +281,16 @@
                         `Submitted ${moment(data.submitted_at).fromNow()}`
                      );
 
-                     // Show/hide follow-up button
-                     $("#followUpBtn").css(
-                        "display",
-                        data.status === "Resolved" || data.status === "Rejected"
-                           ? "none"
-                           : "inline-block"
-                     );
+                     // Set complaint ID for status/response forms
+                     $("#statusComplaintId").val(complaintId);
+                     $("#responseComplaintId").val(complaintId);
 
-                     // Fetch responses
+                     // Set the status select to the current complaint status
+                     $("#status").val(data.status).trigger("change");
+
+                     // Fetch responses (correct endpoint)
                      $.ajax({
-                        url: `/student/complaint/${complaintId}/response`,
+                        url: `/admin/complaint/${complaintId}/responses`,
                         method: "GET",
                         success: function (responseData) {
                            const responses = responseData.data || [];
@@ -345,31 +354,34 @@
                });
             });
 
-            // Handle form submission
-            $("#newComplaintForm").on("submit", function (e) {
+            // Handle status update form submission
+            $("#updateStatusForm").on("submit", function (e) {
                e.preventDefault();
+               const formData = $(this).serialize() + "&csrf=" + csrfToken;
                $.ajax({
-                  url: "/complaint/submit",
+                  url:
+                     "/admin/complaint/" +
+                     $("#statusComplaintId").val() +
+                     "/status",
                   method: "POST",
-                  //   data: $(this).serialize() + "&csrf=" + csrfToken,
-                  data: $(this).serialize(),
+                  data: formData,
                   success: function (response) {
                      if (response.success) {
                         Swal.fire({
                            icon: "success",
-                           title: "Complaint Submitted",
-                           text: "Your complaint has been submitted successfully!",
+                           title: "Status Updated",
+                           text: "Complaint status has been updated successfully!",
                            timer: 1500,
                         }).then(() => {
-                           $("#newComplaintModal").modal("hide");
-                           location.reload();
+                           $("#updateStatusModal").modal("hide");
+                           $("#complaintDetailsModal").modal("hide");
                            api.ajax.reload();
                         });
                      } else {
                         Swal.fire({
                            icon: "error",
                            title: "Error",
-                           text: response.error || "Failed to submit complaint",
+                           text: response.error || "Failed to update status",
                         });
                      }
                   },
@@ -377,18 +389,52 @@
                      Swal.fire({
                         icon: "error",
                         title: "Error",
-                        text: "Submission failed",
+                        text: "Status update failed",
                      });
                   },
                });
             });
 
-            // Handle follow-up button (mock; implement in production)
-            $("#followUpBtn").on("click", function () {
-               Swal.fire({
-                  icon: "info",
-                  title: "Follow-up",
-                  text: "This feature is not yet implemented. Please contact support for follow-ups.",
+            // Handle response form submission
+            $("#addResponseForm").on("submit", function (e) {
+               e.preventDefault();
+               const formData = $(this).serialize() + "&csrf=" + csrfToken;
+               $.ajax({
+                  url:
+                     "/admin/complaint/" +
+                     $("#responseComplaintId").val() +
+                     "/response",
+                  method: "POST",
+                  data: formData,
+                  success: function (response) {
+                     if (response.success) {
+                        Swal.fire({
+                           icon: "success",
+                           title: "Response Added",
+                           text: "Your response has been added successfully!",
+                           timer: 1500,
+                        }).then(() => {
+                           $("#addResponseModal").modal("hide");
+                           $("#complaintDetailsModal").modal("hide");
+                           $("#addResponseForm")[0].reset();
+                           $("#actionTaken").val(null).trigger("change");
+                           api.ajax.reload();
+                        });
+                     } else {
+                        Swal.fire({
+                           icon: "error",
+                           title: "Error",
+                           text: response.error || "Failed to add response",
+                        });
+                     }
+                  },
+                  error: function () {
+                     Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Response submission failed",
+                     });
+                  },
                });
             });
          },

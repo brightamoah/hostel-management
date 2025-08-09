@@ -12,6 +12,11 @@ class Complaint
         $this->conn = $this->db->connect();
     }
 
+    public function getConnection()
+    {
+        return $this->conn;
+    }
+
     /**
      * Fetch all complaints for a student
      * @param int $student_id
@@ -147,11 +152,23 @@ class Complaint
             $stmt = $this->conn->prepare($query);
             $stmt->bind_param("ssi", $status, $status, $complaint_id);
             $success = $stmt->execute();
+            $affected = $this->conn->affected_rows;
             $stmt->close();
-            if ($success && $this->conn->affected_rows > 0) {
+            if ($success && $affected > 0) {
                 return ['success' => true];
             }
-            return ['success' => false, 'error' => "Complaint not found or no changes made"];
+            // If no rows affected, check if complaint exists (could be same status)
+            $check = $this->conn->prepare("SELECT complaint_id FROM complaints WHERE complaint_id = ?");
+            $check->bind_param("i", $complaint_id);
+            $check->execute();
+            $result = $check->get_result();
+            $exists = $result && $result->num_rows > 0;
+            $check->close();
+            if ($success && $exists) {
+                // No changes made, but complaint exists, treat as success
+                return ['success' => true, 'message' => 'No changes made (status was already set)'];
+            }
+            return ['success' => false, 'error' => "Complaint not found"];
         } catch (Exception $e) {
             return ['success' => false, 'error' => "Failed to update status: " . $e->getMessage()];
         }
@@ -216,7 +233,8 @@ class Complaint
         return $errors;
     }
 
-    public function getPendingComplaint($student_id){
+    public function getPendingComplaint($student_id)
+    {
         $query = "SELECT COUNT(*) AS pending_complaints FROM complaints WHERE status = 'Pending' AND student_id = $student_id";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -226,7 +244,8 @@ class Complaint
         return $row['pending_complaints'] ?? 0;
     }
 
-    public function getResolvedComplaint($student_id){
+    public function getResolvedComplaint($student_id)
+    {
         $query = "SELECT COUNT(*) AS resolved_complaints FROM complaints WHERE status = 'Resolved' AND student_id = $student_id";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -237,7 +256,8 @@ class Complaint
         return $result;
     }
 
-    public function getInProgressComplaint($student_id){
+    public function getInProgressComplaint($student_id)
+    {
         $query = "SELECT COUNT(*) AS in_progress_complaints FROM complaints WHERE status = 'In-Progress' AND student_id = $student_id";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -248,6 +268,117 @@ class Complaint
         return $result;
     }
 
+    // Fetch total complaints for all students
+    public function getTotalComplaint()
+    {
+        $query = "SELECT COUNT(*) AS total_complaints FROM complaints";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+        return $row['total_complaints'] ?? 0;
+    }
+
+    public function getPendingComplaintCount()
+    {
+        $query = "SELECT COUNT(*) AS pending_complaints FROM complaints WHERE status = 'Pending'";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+        return $row['pending_complaints'] ?? 0;
+    }
+
+    public function getResolvedComplaintCount()
+    {
+        $query = "SELECT COUNT(*) AS resolved_complaints FROM complaints WHERE status = 'Resolved'";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+        return $row['resolved_complaints'] ?? 0;
+    }
+
+    public function getInProgressComplaintCount()
+    {
+        $query = "SELECT COUNT(*) AS in_progress_complaints FROM complaints WHERE status = 'In-Progress'";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+        return $row['in_progress_complaints'] ?? 0;
+    }
+
+    public function getAllStudents()
+    {
+        $query = "SELECT student_id, CONCAT(first_name, ' ', last_name) AS student_name FROM students ORDER BY student_name";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $students = $result->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $students;
+    }
+
+
+    /**
+     * Summary of getAllComplaints
+     * @return array
+     */
+    public function getAllComplaints()
+    {
+        $query = "
+        SELECT c.complaint_id, c.complaint_type, c.description, c.priority, c.status, 
+               c.submitted_at, r.room_number, r.building, 
+               CONCAT(s.first_name, ' ', s.last_name) AS student_name
+        FROM complaints c
+        LEFT JOIN rooms r ON c.room_id = r.room_id
+        JOIN students s ON c.student_id = s.student_id
+        ORDER BY c.complaint_id DESC
+    ";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $complaints = $result->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $complaints;
+    }
+
+    /**
+     * Get complaint by ID for Admin
+     */
+    public function getComplaintByIdAdmin($complaint_id)
+    {
+        $query = "
+        SELECT c.complaint_id, c.complaint_type, c.description, c.priority, c.status, 
+               c.submitted_at, r.room_number, r.building, 
+               CONCAT(s.first_name, ' ', s.last_name) AS student_name
+        FROM complaints c
+        LEFT JOIN rooms r ON c.room_id = r.room_id
+        JOIN students s ON c.student_id = s.student_id
+        WHERE c.complaint_id = ?
+        ORDER BY c.complaint_id DESC
+    ";
+        try {
+            $stmt = $this->conn->prepare($query);
+            $stmt->bind_param("i", $complaint_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $complaint = $result->fetch_assoc();
+            $stmt->close();
+
+            if ($complaint) {
+                return ['success' => true, 'data' => $complaint];
+            }
+            return ['success' => false, 'error' => "Complaint not found"];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => "Failed to fetch complaint: " . $e->getMessage()];
+        }
+    }
 
     public function __destruct()
     {

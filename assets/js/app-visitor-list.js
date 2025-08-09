@@ -240,6 +240,20 @@
             },
          },
          initComplete: function () {
+            if ($.fn.select2) {
+               $("#statusFilter").select2({
+                  placeholder: "All Statuses",
+                  allowClear: true,
+                  width: "100%",
+               });
+
+               $("#dateFilter").select2({
+                  placeholder: "All Dates",
+                  allowClear: true,
+                  width: "100%",
+               });
+            }
+
             $("#visitorSearch").on("keyup", function () {
                dt.search(this.value).draw();
             });
@@ -624,9 +638,24 @@
             const visitorId = e.target
                .closest(".delete-visitor")
                .getAttribute("data-id");
+
+            // Get the row data to check visitor status
+            const row = dt.row(e.target.closest("tr"));
+            const rowData = row.data();
+
+            if (rowData.status !== "Pending") {
+               Swal.fire({
+                  icon: "warning",
+                  title: "Cannot Delete Visitor",
+                  text: `You can only delete visitors with 'Pending' status. This visitor's status is '${rowData.status}'.`,
+                  confirmButtonColor: "#3085d6",
+               });
+               return;
+            }
+
             Swal.fire({
                title: "Are you sure?",
-               text: `Do you want to delete visitor with ID: ${visitorId}?`,
+               text: `Do you want to delete visitor with Name: ${rowData.visitor_name} and ID: ${visitorId}?`,
                icon: "warning",
                showCancelButton: true,
                confirmButtonColor: "#3085d6",

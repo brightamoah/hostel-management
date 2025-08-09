@@ -6,7 +6,7 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
 ?>
 
 <!DOCTYPE html>
-<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
+<html lang="en" class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
@@ -86,14 +86,14 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
 </head>
 
 <body>
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
-            <?php include_once __DIR__. "/../../Components/sidebar.php"; ?>
-            <div class="menu-mobile-toggler d-xl-none rounded-1">
-                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+            <?php include_once __DIR__ . "/../../Components/sidebar.php"; ?>
+            <div class="rounded-1 menu-mobile-toggler d-xl-none">
+                <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
                     <i class="bx bx-menu icon-base"></i>
-                    <i class="bx bx-chevron-right icon-base"></i>
+                    <i class="bx-chevron-right bx icon-base"></i>
                 </a>
             </div>
             <!-- / Menu -->
@@ -101,90 +101,90 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
             <!-- Layout container -->
             <div class="layout-page">
                 <!-- Navbar -->
-                <?php include_once __DIR__. "/../../Components/admin/header.php" ?>
+                <?php include_once __DIR__ . "/../../Components/admin/header.php" ?>
                 <!-- / Navbar -->
 
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-                    <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="flex-grow-1 container-p-y container-xxl">
                         <!-- Welcome Card -->
-                        <?php include_once __DIR__. "/../../Components/admin/dashboard_card.php" ?>
+                        <?php include_once __DIR__ . "/../../Components/admin/dashboard_card.php" ?>
 
                         <!-- Statistics Cards -->
-                        <div class="row mb-4">
-                            <div class="col-sm-6 col-lg-3 mb-4">
-                                <div class="card card-hover h-100">
+                        <div class="mb-4 row">
+                            <div class="mb-4 col-sm-6 col-lg-3">
+                                <div class="h-100 card card-hover">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start justify-content-between">
                                             <div>
-                                                <h5 class="card-title mb-0">Total Students</h5>
-                                                <h4 class="fw-bold mt-2 mb-1"><?= number_format($total_students) ?></h4>
+                                                <h5 class="mb-0 card-title">Total Students</h5>
+                                                <h4 class="mt-2 mb-1 fw-bold"><?= number_format($total_students) ?></h4>
                                                 <p class="card-text">Active residents</p>
                                             </div>
-                                            <div class="stat-icon bg-label-primary text-primary">
-                                                <i class="icon-base bx bx-group icon-xl"></i>
+                                            <div class="bg-label-primary text-primary stat-icon">
+                                                <i class="bx-group icon-base bx icon-xl"></i>
                                             </div>
                                         </div>
-                                        <div class="progress flex-grow-1 progress-card mt-2">
-                                            <div class="progress-bar bg-primary" style="width: 100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                        <div class="flex-grow-1 mt-2 progress progress-card">
+                                            <div class="bg-primary progress-bar" style="width: 100%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-sm-6 col-lg-3 mb-4">
-                                <div class="card card-hover h-100">
+                            <div class="mb-4 col-sm-6 col-lg-3">
+                                <div class="h-100 card card-hover">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start justify-content-between">
                                             <div>
-                                                <h5 class="card-title mb-0">Room Occupancy</h5>
-                                                <h4 class="fw-bold mt-2 mb-1"><?= number_format($occupancy_rate) ?>%</h4>
+                                                <h5 class="mb-0 card-title">Room Occupancy</h5>
+                                                <h4 class="mt-2 mb-1 fw-bold"><?= number_format($occupancy_rate) ?>%</h4>
                                                 <p class="card-text"><?= $occupied_rooms ?> of <?= $total_rooms ?> rooms</p>
                                             </div>
-                                            <div class="stat-icon bg-label-success text-success">
+                                            <div class="bg-label-success text-success stat-icon">
                                                 <i class="icon-base bx bx-home-circle icon-xl"></i>
                                             </div>
                                         </div>
-                                        <div class="progress flex-grow-1 progress-card mt-2">
-                                            <div class="progress-bar bg-success" style="width: <?= $occupancy_rate ?>%" role="progressbar" aria-valuenow="<?= $occupancy_rate ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                        <div class="flex-grow-1 mt-2 progress progress-card">
+                                            <div class="bg-success progress-bar" style="width: <?= $occupancy_rate ?>%" role="progressbar" aria-valuenow="<?= $occupancy_rate ?>" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-sm-6 col-lg-3 mb-4">
-                                <div class="card card-hover h-100">
+                            <div class="mb-4 col-sm-6 col-lg-3">
+                                <div class="h-100 card card-hover">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start justify-content-between">
                                             <div>
-                                                <h5 class="card-title mb-0">Available Rooms</h5>
-                                                <h4 class="fw-bold mt-2 mb-1"><?= number_format($available_rooms) ?></h4>
+                                                <h5 class="mb-0 card-title">Available Rooms</h5>
+                                                <h4 class="mt-2 mb-1 fw-bold"><?= number_format($available_rooms) ?></h4>
                                                 <p class="card-text">Ready for allocation</p>
                                             </div>
-                                            <div class="stat-icon bg-label-info text-info">
+                                            <div class="bg-label-info text-info stat-icon">
                                                 <i class="icon-base bx bx-door-open icon-xl"></i>
                                             </div>
                                         </div>
-                                        <div class="progress flex-grow-1 progress-card mt-2">
-                                            <div class="progress-bar bg-info" style="width: <?= ($available_rooms / $total_rooms) * 100 ?>%" role="progressbar" aria-valuenow="<?= ($available_rooms / $total_rooms) * 100 ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                        <div class="flex-grow-1 mt-2 progress progress-card">
+                                            <div class="bg-info progress-bar" style="width: <?= ($available_rooms / $total_rooms) * 100 ?>%" role="progressbar" aria-valuenow="<?= ($available_rooms / $total_rooms) * 100 ?>" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-sm-6 col-lg-3 mb-4">
-                                <div class="card card-hover h-100">
+                            <div class="mb-4 col-sm-6 col-lg-3">
+                                <div class="h-100 card card-hover">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start justify-content-between">
                                             <div>
-                                                <h5 class="card-title mb-0">Monthly Revenue</h5>
-                                                <h4 class="fw-bold mt-2 mb-1">GH₵ <?= number_format($recent_payments_sum, 2) ?></h4>
+                                                <h5 class="mb-0 card-title">Monthly Revenue</h5>
+                                                <h4 class="mt-2 mb-1 fw-bold">GH₵ <?= number_format($recent_payments_sum, 2) ?></h4>
                                                 <p class="card-text">Last 30 days</p>
                                             </div>
-                                            <div class="stat-icon bg-label-warning text-warning">
+                                            <div class="bg-label-warning text-warning stat-icon">
                                                 <i class="icon-base bx bx-money icon-xl"></i>
                                             </div>
                                         </div>
-                                        <div class="progress flex-grow-1 progress-card mt-2">
-                                            <div class="progress-bar bg-warning" style="width: <?= min(($recent_payments_count / 30) * 100, 100) ?>%" role="progressbar" aria-valuenow="<?= min(($recent_payments_count / 30) * 100, 100) ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                        <div class="flex-grow-1 mt-2 progress progress-card">
+                                            <div class="bg-warning progress-bar" style="width: <?= min(($recent_payments_count / 30) * 100, 100) ?>%" role="progressbar" aria-valuenow="<?= min(($recent_payments_count / 30) * 100, 100) ?>" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -192,14 +192,14 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
                         </div>
 
                         <!-- Charts & Status Row -->
-                        <div class="row mb-4">
+                        <div class="mb-4 row">
                             <!-- Occupancy Chart -->
-                            <div class="col-lg-8 mb-4">
-                                <div class="card h-100">
-                                    <div class="card-header d-flex align-items-center justify-content-between">
-                                        <h5 class="card-title mb-0">Hostel Occupancy Overview</h5>
+                            <div class="mb-4 col-lg-8">
+                                <div class="h-100 card">
+                                    <div class="d-flex align-items-center justify-content-between card-header">
+                                        <h5 class="mb-0 card-title">Hostel Occupancy Overview</h5>
                                         <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <button class="btn-outline-secondary btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                 Last 8 Months
                                             </button>
                                             <ul class="dropdown-menu">
@@ -216,35 +216,35 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
                             </div>
 
                             <!-- Maintenance Status -->
-                            <div class="col-lg-4 mb-4">
-                                <div class="card h-100 shadow-sm border-0">
+                            <div class="mb-4 col-lg-4">
+                                <div class="shadow-sm border-0 h-100 card">
                                     <!-- Card Header -->
-                                    <div class="card-header d-flex justify-content-between align-items-center py-3">
-                                        <h5 class="card-title m-0">
-                                            <i class='bx bx-clipboard me-2 text-primary'></i> Maintenance Status
+                                    <div class="d-flex align-items-center justify-content-between py-3 card-header">
+                                        <h5 class="m-0 card-title">
+                                            <i class='me-2 text-primary bx bx-clipboard'></i> Maintenance Status
                                         </h5>
-                                        <span class="badge bg-primary rounded-pill">
+                                        <span class="bg-primary rounded-pill badge">
                                             <?= $pending_maintenance + $in_progress_maintenance + $completed_maintenance ?> Total
                                         </span>
                                     </div>
 
                                     <!-- Card Body -->
-                                    <div class="card-body pt-4">
+                                    <div class="pt-4 card-body">
                                         <!-- Pending Status -->
-                                        <div class="maintenance-item mb-4">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="mb-4 maintenance-item">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
                                                 <div class="d-flex align-items-center">
-                                                    <div class="avatar avatar-sm me-2 rounded-circle">
-                                                        <i class="icon-base bx bx-time icon-lg text-center fs-4 text-warning"></i>
+                                                    <div class="me-2 rounded-circle avatar avatar-sm">
+                                                        <i class="text-warning text-center icon-base bx bx-time icon-lg fs-4"></i>
                                                     </div>
                                                     <span class="fw-medium">Pending</span>
                                                 </div>
-                                                <span class="badge bg-label-warning fw-semibold fs-6">
+                                                <span class="bg-label-warning badge fw-semibold fs-6">
                                                     <?= $pending_maintenance ?>
                                                 </span>
                                             </div>
-                                            <div class="progress rounded-pill" style="height: 8px;">
-                                                <div class="progress-bar bg-warning"
+                                            <div class="rounded-pill progress" style="height: 8px;">
+                                                <div class="bg-warning progress-bar"
                                                     style="width: <?= ($pending_maintenance / max(1, $pending_maintenance + $in_progress_maintenance + $completed_maintenance)) * 100 ?>%"
                                                     role="progressbar"
                                                     aria-valuenow="<?= $pending_maintenance ?>"
@@ -255,20 +255,20 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
                                         </div>
 
                                         <!-- In Progress Status -->
-                                        <div class="maintenance-item mb-4">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="mb-4 maintenance-item">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
                                                 <div class="d-flex align-items-center">
-                                                    <div class="avatar avatar-sm rounded-circle">
-                                                        <i class="icon-base bx bx-trending-up icon-lg text-center fs-4 text-info"></i>
+                                                    <div class="rounded-circle avatar avatar-sm">
+                                                        <i class="text-info text-center icon-base bx bx-trending-up icon-lg fs-4"></i>
                                                     </div>
                                                     <span class="fw-medium">In Progress</span>
                                                 </div>
-                                                <span class="badge bg-label-info fw-semibold fs-6">
+                                                <span class="bg-label-info badge fw-semibold fs-6">
                                                     <?= $in_progress_maintenance ?>
                                                 </span>
                                             </div>
-                                            <div class="progress rounded-pill" style="height: 8px;">
-                                                <div class="progress-bar bg-info"
+                                            <div class="rounded-pill progress" style="height: 8px;">
+                                                <div class="bg-info progress-bar"
                                                     style="width: <?= ($in_progress_maintenance / max(1, $pending_maintenance + $in_progress_maintenance + $completed_maintenance)) * 100 ?>%"
                                                     role="progressbar"
                                                     aria-valuenow="<?= $in_progress_maintenance ?>"
@@ -279,20 +279,20 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
                                         </div>
 
                                         <!-- Completed Status -->
-                                        <div class="maintenance-item mb-4">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="mb-4 maintenance-item">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
                                                 <div class="d-flex align-items-center">
-                                                    <div class="avatar avatar-sm me-2 rounded-circle">
-                                                        <i class="icon-base bx bx-check-circle icon-lg text-success"></i>
+                                                    <div class="me-2 rounded-circle avatar avatar-sm">
+                                                        <i class="text-success icon-base bx bx-check-circle icon-lg"></i>
                                                     </div>
                                                     <span class="fw-medium">Completed</span>
                                                 </div>
-                                                <span class="badge bg-label-success fw-semibold fs-6">
+                                                <span class="bg-label-success badge fw-semibold fs-6">
                                                     <?= $completed_maintenance ?>
                                                 </span>
                                             </div>
-                                            <div class="progress rounded-pill" style="height: 8px;">
-                                                <div class="progress-bar bg-success"
+                                            <div class="rounded-pill progress" style="height: 8px;">
+                                                <div class="bg-success progress-bar"
                                                     style="width: <?= ($completed_maintenance / max(1, $pending_maintenance + $in_progress_maintenance + $completed_maintenance)) * 100 ?>%"
                                                     role="progressbar"
                                                     aria-valuenow="<?= $completed_maintenance ?>"
@@ -303,10 +303,10 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
                                         </div>
 
                                         <!-- Completion Rate -->
-                                        <div class="bg-lighter p-3 rounded-2 mb-4">
-                                            <div class="d-flex justify-content-between align-items-center">
+                                        <div class="bg-lighter mb-4 p-3 rounded-2">
+                                            <div class="d-flex align-items-center justify-content-between">
                                                 <span class="fw-medium">Completion Rate</span>
-                                                <span class="fw-bold text-success">
+                                                <span class="text-success fw-bold">
                                                     <?= round(($completed_maintenance / max(1, $pending_maintenance + $in_progress_maintenance + $completed_maintenance)) * 100) ?>%
                                                 </span>
                                             </div>
@@ -314,8 +314,8 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
 
                                         <!-- Action Button -->
                                         <div class="text-center">
-                                            <a href="/admin/maintenance" class="btn btn-primary d-flex justify-content-center align-items-center mx-auto" style="width: fit-content; margin-top: 2rem;">
-                                                <i class="icon-base bx bx-wrench me-1 icon-lg"></i>
+                                            <a href="/admin/maintenance" class="d-flex align-items-center justify-content-center mx-auto btn btn-primary" style="width: fit-content; margin-top: 2rem;">
+                                                <i class="me-1 icon-base bx bx-wrench icon-lg"></i>
                                                 <span>Manage Maintenance</span>
                                             </a>
                                         </div>
@@ -324,15 +324,15 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
                             </div>
 
                             <!-- Recent Activity Tables -->
-                            <div class="row mb-4">
+                            <div class="mb-4 row">
                                 <!-- Recent Bookings -->
-                                <div class="col-lg-6 mb-4">
+                                <div class="mb-4 col-lg-6">
                                     <div class="card">
                                         <div class="card-header">
-                                            <h5 class="card-title mb-0">Recent Bookings</h5>
+                                            <h5 class="mb-0 card-title">Recent Bookings</h5>
                                         </div>
                                         <div class="card-body">
-                                            <div class="table-responsive table-nowrap">
+                                            <div class="table-nowrap table-responsive">
                                                 <table id="bookingsTable" class="table table-borderless">
                                                     <thead>
                                                         <tr>
@@ -354,7 +354,7 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
                                                                 </td>
                                                                 <td><?= date('d M Y', strtotime($booking['start_date'])) ?></td>
                                                                 <td class="text-center">
-                                                                    <span class="badge bg-label-success">
+                                                                    <span class="bg-label-success badge">
                                                                         <?= htmlspecialchars($booking['status']) ?>
                                                                     </span>
                                                                 </td>
@@ -368,19 +368,19 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
                                                     </tbody>
                                                 </table>
                                             </div>
-                                            <a href="/admin/bookings" class="btn btn-sm btn-label-primary mt-3">View All Bookings</a>
+                                            <a href="/admin/rooms" class="mt-3 btn btn-sm btn-label-primary">View All Bookings</a>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Recent Maintenance Requests -->
-                                <div class="col-lg-6 mb-4">
+                                <div class="mb-4 col-lg-6">
                                     <div class="card">
                                         <div class="card-header">
-                                            <h5 class="card-title mb-0">Recent Maintenance Requests</h5>
+                                            <h5 class="mb-0 card-title">Recent Maintenance Requests</h5>
                                         </div>
                                         <div class="card-body">
-                                            <div class="table-responsive table-nowrap">
+                                            <div class="table-nowrap table-responsive">
                                                 <table id="maintenanceTable" class="table table-borderless">
                                                     <thead>
                                                         <tr>
@@ -424,18 +424,18 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
                                                     </tbody>
                                                 </table>
                                             </div>
-                                            <a href="/admin/maintenance" class="btn btn-sm btn-label-primary mt-3">View All Requests</a>
+                                            <a href="/admin/maintenance" class="mt-3 btn btn-sm btn-label-primary">View All Requests</a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Recent Payments -->
-                            <div class="col-12 mb-4">
+                            <div class="mb-4 col-12">
                                 <div class="card">
-                                    <div class="card-header border-bottom">
-                                        <h5 class="card-title mb-0">Recent Payments</h5>
-                                        <div class="d-flex justify-content-between align-items-center row pt-4 gap-md-0 g-6">
+                                    <div class="border-bottom card-header">
+                                        <h5 class="mb-0 card-title">Recent Payments</h5>
+                                        <div class="d-flex align-items-center justify-content-between gap-md-0 pt-4 row g-6">
                                             <div class="col-md-4">
                                                 <select id="paymentStatusFilter" class="form-select">
                                                     <option value="">All Statuses</option>
@@ -444,13 +444,13 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
                                                     <option value="Failed">Failed</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-4 text-end">
-                                                <a href="/admin/payments" class="btn btn-primary">View All Payments</a>
+                                            <div class="text-end col-md-4">
+                                                <a href="/admin/billings" class="btn btn-primary">View All Payments</a>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="card-body">
-                                        <div class="table-responsive table-nowrap">
+                                        <div class="table-nowrap table-responsive">
                                             <table id="paymentsTable" class="table table-borderless">
                                                 <thead>
                                                     <tr>
@@ -513,57 +513,57 @@ require_once __DIR__ . "/../../app/controllers/Login.php";
                                             <h5 class="modal-title" id="paymentModalLabel">Payment Details</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
-                                        <div class="modal-body text-center p-4">
-                                            <div id="paymentAvatar" class="avatar avatar-xl d-flex align-items-center justify-content-center rounded-circle bg-primary text-white mb-3 mx-auto" style="width: 80px; height: 80px;">
+                                        <div class="p-4 text-center modal-body">
+                                            <div id="paymentAvatar" class="d-flex align-items-center justify-content-center bg-primary mx-auto mb-3 rounded-circle text-white avatar avatar-xl" style="width: 80px; height: 80px;">
                                                 <span id="paymentInitials" style="font-size: 2rem;"></span>
                                             </div>
                                             <h5 id="paymentStudentName" class="mb-1"></h5>
-                                            <p id="paymentId" class="text-muted mb-3">
-                                                <i class="bx bx-id-card me-1"></i> ID: <span></span>
+                                            <p id="paymentId" class="mb-3 text-muted">
+                                                <i class="me-1 bx bx-id-card"></i> ID: <span></span>
                                             </p>
-                                            <div class="card shadow-none mb-3">
-                                                <div class="card-body p-3">
-                                                    <ul class="list-unstyled mb-0">
+                                            <div class="shadow-none mb-3 card">
+                                                <div class="p-3 card-body">
+                                                    <ul class="mb-0 list-unstyled">
                                                         <li class="mb-3">
-                                                            <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="d-flex align-items-center justify-content-between">
                                                                 <div>
-                                                                    <i class="bx bx-money me-2 text-primary"></i>
+                                                                    <i class="me-2 text-primary bx bx-money"></i>
                                                                     <span class="fw-semibold">Amount</span>
                                                                 </div>
                                                                 <span id="paymentAmount" class="text-end"></span>
                                                             </div>
                                                         </li>
                                                         <li class="mb-3">
-                                                            <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="d-flex align-items-center justify-content-between">
                                                                 <div>
-                                                                    <i class="bx bx-briefcase me-2 text-primary"></i>
+                                                                    <i class="me-2 text-primary bx bx-briefcase"></i>
                                                                     <span class="fw-semibold">Purpose</span>
                                                                 </div>
                                                                 <span id="paymentPurpose" class="text-end"></span>
                                                             </div>
                                                         </li>
                                                         <li class="mb-3">
-                                                            <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="d-flex align-items-center justify-content-between">
                                                                 <div>
-                                                                    <i class="bx bx-calendar me-2 text-primary"></i>
+                                                                    <i class="me-2 text-primary bx bx-calendar"></i>
                                                                     <span class="fw-semibold">Payment Date</span>
                                                                 </div>
                                                                 <span id="paymentDate" class="text-end"></span>
                                                             </div>
                                                         </li>
                                                         <li class="mb-3">
-                                                            <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="d-flex align-items-center justify-content-between">
                                                                 <div>
-                                                                    <i class="bx bx-info-circle me-2 text-primary"></i>
+                                                                    <i class="me-2 text-primary bx bx-info-circle"></i>
                                                                     <span class="fw-semibold">Status</span>
                                                                 </div>
                                                                 <span id="paymentStatus" class="badge"></span>
                                                             </div>
                                                         </li>
                                                         <li class="mb-0">
-                                                            <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="d-flex align-items-center justify-content-between">
                                                                 <div>
-                                                                    <i class="bx bx-user me-2 text-primary"></i>
+                                                                    <i class="me-2 text-primary bx bx-user"></i>
                                                                     <span class="fw-semibold">Student ID</span>
                                                                 </div>
                                                                 <span id="paymentStudentId" class="text-end"></span>

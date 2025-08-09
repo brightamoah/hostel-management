@@ -1,4 +1,21 @@
 {
    "liveServer.settings.port": 5501,
-   "oxc.enable": true
+   "oxc.enable": true,
+   "cSpell.words": ["PAYSTACK"],
+   "sqltools.connections": [
+      {
+         "mysqlOptions": {
+            "authProtocol": "default",
+            "enableSsl": "Disabled"
+         },
+         "previewLimit": 50,
+         "server": "localhost",
+         "port": 3306,
+         "driver": "MySQL",
+         "name": "hostel",
+         "database": "hostel_management",
+         "username": "root",
+         "password": ""
+      }
+   ]
 }

@@ -117,7 +117,7 @@ $profile_url = getProfileURL($role);
                                 <span class="mb-3 rounded-circle dropdown-shortcuts-icon">
                                     <i class="text-heading icon-base bx bx-calendar icon-26px"></i>
                                 </span>
-                                <a href="app-calendar.html" class="stretched-link">Calendar</a>
+                                <a href="/student/visitors" class="stretched-link">Calendar</a>
                                 <small>Registered Visitors</small>
                             </div>
                             <div class="dropdown-shortcuts-item col">
@@ -134,14 +134,14 @@ $profile_url = getProfileURL($role);
                                 <span class="mb-3 rounded-circle dropdown-shortcuts-icon">
                                     <i class="text-heading icon-base bx bx-pie-chart-alt-2 icon-26px"></i>
                                 </span>
-                                <a href="index.html" class="stretched-link">Dashboard<a />
+                                <a href="/student/dashboard" class="stretched-link">Dashboard<a />
                                     <small>Your Dashboard</small>
                             </div>
                             <div class="dropdown-shortcuts-item col">
                                 <span class="mb-3 rounded-circle dropdown-shortcuts-icon">
                                     <i class="text-heading icon-base bx bx-cog icon-26px"></i>
                                 </span>
-                                <a href="pages-account-settings-account.html" class="stretched-link">Setting</a>
+                                <a href="/student/profile" class="stretched-link">Setting</a>
                                 <small>Account Settings</small>
                             </div>
                         </div>

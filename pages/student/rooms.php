@@ -6,7 +6,7 @@
 ?>
 
 <!doctype html>
-<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
+<html lang="en" class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
@@ -56,13 +56,13 @@
 </head>
 
 <body>
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <?php include_once "./Components/sidebar.php" ?>
-            <div class="menu-mobile-toggler d-xl-none rounded-1">
-                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+            <div class="rounded-1 menu-mobile-toggler d-xl-none">
+                <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
                     <i class="bx bx-menu icon-base"></i>
-                    <i class="bx bx-chevron-right icon-base"></i>
+                    <i class="bx-chevron-right bx icon-base"></i>
                 </a>
             </div>
 
@@ -70,12 +70,12 @@
                 <?php include_once "./Components/header.php" ?>
 
                 <div class="content-wrapper">
-                    <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="flex-grow-1 container-p-y container-xxl">
                         <!-- Rooms Table -->
                         <div class="card" id="roomsTable">
-                            <div class="card-header border-bottom">
-                                <h5 class="card-title mb-0">Available Rooms</h5>
-                                <div class="d-flex justify-content-between align-items-center row pt-4 gap-md-0 g-6">
+                            <div class="border-bottom card-header">
+                                <h5 class="mb-0 card-title">Available Rooms</h5>
+                                <div class="d-flex align-items-center justify-content-between gap-md-0 pt-4 row g-6">
                                     <div class="col-md-3">
                                         <input type="text" id="roomSearch" class="form-control" placeholder="Search rooms..." />
                                     </div>
@@ -105,8 +105,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-datatable table-responsive">
-                                <table class="datatables-rooms table border-top">
+                            <div class="table-responsive card-datatable">
+                                <table class="table border-top datatables-rooms">
                                     <thead>
                                         <tr>
                                             <th></th>
@@ -124,55 +124,58 @@
                             </div>
                         </div>
 
+
+
+
                         <!-- Room Details Modal -->
                         <div class="modal fade room-details-modal" id="roomDetailsModal" tabindex="-1" aria-hidden="true">
                             <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                                 <div class="modal-content">
-                                    <div class="modal-header bg-primary">
-                                        <h5 class="modal-title text-white" id="roomModalTitle">Room Details</h5>
+                                    <div class="bg-primary modal-header">
+                                        <h5 class="text-white modal-title" id="roomModalTitle">Room Details</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
                                         <div class="row">
                                             <!-- Room Overview Card -->
-                                            <div class="col-12 mb-4">
-                                                <div class="card shadow-none border">
+                                            <div class="mb-4 col-12">
+                                                <div class="shadow-none border card">
                                                     <div class="card-body">
-                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <div class="d-flex align-items-center justify-content-between mb-2">
                                                             <h5 class="mb-0" id="modalRoomNumberHeader"></h5>
-                                                            <span class="badge bg-label-primary" id="modalRoomTypeHeader"></span>
+                                                            <span class="bg-label-primary badge" id="modalRoomTypeHeader"></span>
                                                         </div>
-                                                        <p class="mb-0"><i class="bx bx-map-pin me-1"></i> <span id="modalBuildingHeader"></span>, Floor <span id="modalFloorHeader"></span></p>
+                                                        <p class="mb-0"><i class="me-1 bx bx-map-pin"></i> <span id="modalBuildingHeader"></span>, Floor <span id="modalFloorHeader"></span></p>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <!-- Room Details -->
                                             <div class="col-md-6">
-                                                <div class="card shadow-none border mb-4">
-                                                    <div class="card-header bg-transparent">
-                                                        <h6 class="mb-0"><i class="bx bx-info-circle me-2"></i>Room Information</h6>
+                                                <div class="shadow-none mb-4 border card">
+                                                    <div class="bg-transparent card-header">
+                                                        <h6 class="mb-0"><i class="me-2 bx bx-info-circle"></i>Room Information</h6>
                                                     </div>
-                                                    <div class="card-body pt-0">
+                                                    <div class="pt-0 card-body">
                                                         <div class="row">
-                                                            <div class="col-6 mb-3">
-                                                                <small class="text-muted d-block">Room Number</small>
+                                                            <div class="mb-3 col-6">
+                                                                <small class="d-block text-muted">Room Number</small>
                                                                 <span id="modalRoomNumber"></span>
                                                             </div>
-                                                            <div class="col-6 mb-3">
-                                                                <small class="text-muted d-block">Building</small>
+                                                            <div class="mb-3 col-6">
+                                                                <small class="d-block text-muted">Building</small>
                                                                 <span id="modalBuilding"></span>
                                                             </div>
-                                                            <div class="col-6 mb-3">
-                                                                <small class="text-muted d-block">Floor</small>
+                                                            <div class="mb-3 col-6">
+                                                                <small class="d-block text-muted">Floor</small>
                                                                 <span id="modalFloor"></span>
                                                             </div>
-                                                            <div class="col-6 mb-3">
-                                                                <small class="text-muted d-block">Room Type</small>
+                                                            <div class="mb-3 col-6">
+                                                                <small class="d-block text-muted">Room Type</small>
                                                                 <span id="modalRoomType"></span>
                                                             </div>
-                                                            <div class="col-6 mb-3">
-                                                                <small class="text-muted d-block">Amount: </small>
+                                                            <div class="mb-3 col-6">
+                                                                <small class="d-block text-muted">Amount: </small>
                                                                 <strong id="modalAmount"></strong>
                                                             </div>
                                                         </div>
@@ -182,27 +185,27 @@
 
                                             <!-- Occupancy Details -->
                                             <div class="col-md-6">
-                                                <div class="card shadow-none border mb-4">
-                                                    <div class="card-header bg-transparent">
-                                                        <h6 class="mb-0"><i class="bx bx-user me-2"></i>Occupancy</h6>
+                                                <div class="shadow-none mb-4 border card">
+                                                    <div class="bg-transparent card-header">
+                                                        <h6 class="mb-0"><i class="me-2 bx bx-user"></i>Occupancy</h6>
                                                     </div>
-                                                    <div class="card-body pt-0">
+                                                    <div class="pt-0 card-body">
                                                         <div class="row">
-                                                            <div class="col-12 mb-3">
-                                                                <small class="text-muted d-block">Status</small>
+                                                            <div class="mb-3 col-12">
+                                                                <small class="d-block text-muted">Status</small>
                                                                 <span id="modalStatus"></span>
                                                             </div>
-                                                            <div class="col-6 mb-3">
-                                                                <small class="text-muted d-block">Total Capacity</small>
+                                                            <div class="mb-3 col-6">
+                                                                <small class="d-block text-muted">Total Capacity</small>
                                                                 <span id="modalCapacity"></span>
                                                             </div>
-                                                            <div class="col-6 mb-3">
-                                                                <small class="text-muted d-block">Current Occupants</small>
+                                                            <div class="mb-3 col-6">
+                                                                <small class="d-block text-muted">Current Occupants</small>
                                                                 <span id="modalOccupancy"></span>
                                                             </div>
                                                         </div>
-                                                        <div class="progress mb-2" style="height: 8px">
-                                                            <div id="occupancyProgressBar" class="progress-bar bg-primary" style="width: 0%" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        <div class="mb-2 progress" style="height: 8px">
+                                                            <div id="occupancyProgressBar" class="bg-primary progress-bar" style="width: 0%" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                                         </div>
                                                         <small id="occupancyProgressText" class="text-muted">Available spaces</small>
                                                     </div>
@@ -211,11 +214,11 @@
 
                                             <!-- Features -->
                                             <div class="col-12">
-                                                <div class="card shadow-none border">
-                                                    <div class="card-header bg-transparent">
-                                                        <h6 class="mb-0"><i class="bx bx-star me-2"></i>Features & Amenities</h6>
+                                                <div class="shadow-none border card">
+                                                    <div class="bg-transparent card-header">
+                                                        <h6 class="mb-0"><i class="me-2 bx bx-star"></i>Features & Amenities</h6>
                                                     </div>
-                                                    <div class="card-body pt-0">
+                                                    <div class="pt-0 card-body">
                                                         <div id="modalFeatures" class="d-flex flex-wrap gap-1"></div>
                                                     </div>
                                                 </div>
@@ -225,7 +228,7 @@
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
                                         <button type="button" class="btn btn-primary book-room-btn-modal" data-bs-toggle="modal" data-bs-target="#bookingConfirmationModal">
-                                            <i class="bx bx-check-circle me-1"></i>Book This Room
+                                            <i class="me-1 bx bx-check-circle"></i>Book This Room
                                         </button>
                                     </div>
                                 </div>

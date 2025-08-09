@@ -183,7 +183,7 @@ class Student
     public function getBillings($user_id)
     {
         $query = "
-        SELECT billing_id, description, amount, date_due, status
+        SELECT billing_id, description, amount, date_due, status, billing_type, paid_amount, outstanding_amount
         FROM billing b
         JOIN students s ON b.student_id = s.student_id
         WHERE s.user_id = ?
@@ -203,123 +203,20 @@ class Student
         return $billings;
     }
 
-    // Initiate payment for a billing
-    public function initiatePayment($user_id, $billing_id)
-    {
-        $this->connection->begin_transaction();
-        try {
-            // Step 1: Verify billing exists and belongs to user
-            $query = "
-                SELECT b.billing_id, b.student_id, b.amount, b.status, s.student_id
-                FROM billing b
-                JOIN students s ON b.student_id = s.student_id
-                WHERE b.billing_id = ? AND s.user_id = ? AND b.status IN ('Unpaid', 'Partially Paid')";
-            $stmt = $this->connection->prepare($query);
-            if (!$stmt) {
-                throw new Exception("Prepare failed: " . $this->connection->error);
-            }
-            $stmt->bind_param("ii", $billing_id, $user_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $billing = $result->fetch_assoc();
-            $stmt->close();
-
-            if (!$billing) {
-                throw new Exception("Billing not found or not payable");
-            }
-
-            // Step 2: Create payment record
-            $payment_query = "
-                INSERT INTO payments (student_id, amount, transaction_reference, payment_method, purpose, status)
-                VALUES (?, ?, ?, ?, ?, 'Pending')";
-            $stmt = $this->connection->prepare($payment_query);
-            if (!$stmt) {
-                throw new Exception("Prepare failed: " . $this->connection->error);
-            }
-            $transaction_ref = "TXN" . time();
-            $payment_method = "Pending"; // To be updated by gateway
-            $purpose = "Hostel Fee";
-            $stmt->bind_param("idsss", $billing['student_id'], $billing['amount'], $transaction_ref, $payment_method, $purpose);
-            $stmt->execute();
-            $payment_id = $this->connection->insert_id;
-            $stmt->close();
-
-            // Step 3: Link payment to billing
-            $billing_update_query = "
-                UPDATE billing
-                SET payment_id = ?
-                WHERE billing_id = ?";
-            $stmt = $this->connection->prepare($billing_update_query);
-            if (!$stmt) {
-                throw new Exception("Prepare failed: " . $this->connection->error);
-            }
-            $stmt->bind_param("ii", $payment_id, $billing_id);
-            $stmt->execute();
-            $stmt->close();
-
-            // Commit transaction
-            $this->connection->commit();
-            return ['success' => true, 'payment_id' => $payment_id, 'transaction_ref' => $transaction_ref];
-        } catch (Exception $e) {
-            $this->connection->rollback();
-            error_log("Payment initiation failed: " . $e->getMessage());
-            throw new Exception("Payment initiation failed: " . $e->getMessage());
-        }
-    }
-
     // Confirm payment (for gateway callback or manual confirmation)
     public function confirmPayment($payment_id, $transaction_ref)
     {
         $this->connection->begin_transaction();
         try {
-            // Step 1: Verify payment exists and is Pending
-            $query = "
-                SELECT payment_id, student_id, amount
-                FROM payments
-                WHERE payment_id = ? AND transaction_reference = ? AND status = 'Pending'";
-            $stmt = $this->connection->prepare($query);
-            if (!$stmt) {
-                throw new Exception("Prepare failed: " . $this->connection->error);
-            }
-            $stmt->bind_param("is", $payment_id, $transaction_ref);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $payment = $result->fetch_assoc();
-            $stmt->close();
+            require_once __DIR__ . "/../../services/PaymentService.php";
+            $paymentService = new PaymentService();
 
-            if (!$payment) {
-                throw new Exception("Payment not found or not pending");
+            $result = $paymentService->verifyPayment($transaction_ref);
+            if ($result['success']) {
+                return ['success' => true, 'message' => 'Payment confirmed successfully'];
+            } else {
+                return ['success' => false, 'error' => $result['error'] ?? 'Payment verification failed'];
             }
-
-            // Step 2: Update payment status
-            $payment_update_query = "
-                UPDATE payments
-                SET status = 'Completed', payment_date = NOW()
-                WHERE payment_id = ?";
-            $stmt = $this->connection->prepare($payment_update_query);
-            if (!$stmt) {
-                throw new Exception("Prepare failed: " . $this->connection->error);
-            }
-            $stmt->bind_param("i", $payment_id);
-            $stmt->execute();
-            $stmt->close();
-
-            // Step 3: Update billing status
-            $billing_update_query = "
-                UPDATE billing
-                SET status = 'Fully Paid'
-                WHERE payment_id = ?";
-            $stmt = $this->connection->prepare($billing_update_query);
-            if (!$stmt) {
-                throw new Exception("Prepare failed: " . $this->connection->error);
-            }
-            $stmt->bind_param("i", $payment_id);
-            $stmt->execute();
-            $stmt->close();
-
-            // Commit transaction
-            $this->connection->commit();
-            return ['success' => true];
         } catch (Exception $e) {
             $this->connection->rollback();
             error_log("Payment confirmation failed: " . $e->getMessage());

@@ -4,6 +4,7 @@ require_once __DIR__ . "/../vendor/autoload.php";
 require_once __DIR__ . "/../app/models/PDFGenerator.php";
 // require_once __DIR__ . "/../api/admin/billings/EmailHandler.php";
 require_once __DIR__ . "/../utils/format_currency.php";
+require_once __DIR__ . "/../utils/load_env.php";
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -13,9 +14,18 @@ use PHPMailer\PHPMailer\SMTP;
 class EmailService
 {
     private $mailer;
+    private $email_host;
+    private $email_username;
+    private $email_password;
+    private $email_port;
 
     public function __construct()
     {
+        loadEnvFile();
+        $this->email_host = $_ENV["EMAIL_SERVICE_HOST"];
+        $this->email_username = $_ENV["EMAIL_SERVICE_USERNAME"];
+        $this->email_password = $_ENV["EMAIL_SERVICE_PASSWORD"];
+        $this->email_port = $_ENV["EMAIL_SERVICE_PORT"];
         $this->mailer = new PHPMailer(true);
         $this->configureMailer();
     }
@@ -24,12 +34,12 @@ class EmailService
     {
         try {
             $this->mailer->isSMTP();
-            $this->mailer->Host = 'smtp.gmail.com';
+            $this->mailer->Host = $this->email_host;
             $this->mailer->SMTPAuth = true;
-            $this->mailer->Username = 'kingshostelmgt@gmail.com';
-            $this->mailer->Password = 'fnuzctkvhqqdafjk';
+            $this->mailer->Username = $this->email_username;
+            $this->mailer->Password = $this->email_password;
             $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            $this->mailer->Port = 465;
+            $this->mailer->Port = $this->email_port;
             $this->mailer->setFrom('no-reply@kingshostelmgt.com', 'Kings Hostel Management');
             $this->mailer->isHTML(true);
         } catch (Exception $e) {
