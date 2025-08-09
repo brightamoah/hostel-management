@@ -1,11 +1,22 @@
 <?php
+require_once __DIR__ . "/../utils/load_env.php";
+
 class Database
 {
-    private $db_host = 'localhost';
-    private $db_user = 'root';
-    private $db_name = 'hostel_management';
-    private $db_password = '';
+    private $db_host;
+    private $db_user;
+    private $db_name;
+    private $db_password;
     private $connection;
+
+    public function __construct()
+    {
+        loadEnvFile();
+        $this->db_host = $_ENV['DATABASE_HOST'];
+        $this->db_name = $_ENV['DATABASE_NAME'];
+        $this->db_user = $_ENV['DATABASE_USER'];
+        $this->db_password = $_ENV['DATABASE_PASSWORD'];
+    }
 
     /**
      * Establishes a connection to the MySQL database using the provided credentials.
