@@ -3,7 +3,7 @@ require_once __DIR__ . "/../../app/admin/users_stats.php"
 ?>
 
 <!DOCTYPE html>
-<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact"
+<html lang="en" class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact"
     dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template"
     data-bs-theme="light">
 
@@ -56,7 +56,7 @@ require_once __DIR__ . "/../../app/admin/users_stats.php"
 
 <body>
     <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
             <?php include_once __DIR__ . "/../../Components/sidebar.php" ?>
@@ -71,16 +71,16 @@ require_once __DIR__ . "/../../app/admin/users_stats.php"
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-                    <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="flex-grow-1 container-p-y container-xxl">
 
                         <!-- Statistic Cards -->
-                        <div class="row g-6 mb-6">
+                        <div class="mb-6 row g-6">
                             <div class="col-sm-6 col-lg-3">
-                                <div class="card card-border-shadow-primary h-100">
+                                <div class="card-border-shadow-primary h-100 card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center mb-2">
-                                            <div class="avatar me-4">
-                                                <span class="avatar-initial rounded bg-label-primary"><i
+                                            <div class="me-4 avatar">
+                                                <span class="bg-label-primary rounded avatar-initial"><i
                                                         class="icon-base bx bx-user icon-lg"></i></span>
                                             </div>
                                             <h4 class="mb-0"><?php echo $totalUsers; ?></h4>
@@ -88,18 +88,18 @@ require_once __DIR__ . "/../../app/admin/users_stats.php"
                                         <p class="mb-2">Total Users</p>
                                         <p class="mb-0">
                                             <span
-                                                class="text-heading fw-medium me-2">+<?php echo round(($totalUsers / 100) * 10, 1); ?>%</span>
+                                                class="me-2 text-heading fw-medium">+<?php echo round(($totalUsers / 100) * 10, 1); ?>%</span>
                                             <span class="text-body-secondary">than last month</span>
                                         </p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-sm-6 col-lg-3">
-                                <div class="card card-border-shadow-success h-100">
+                                <div class="card-border-shadow-success h-100 card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center mb-2">
-                                            <div class="avatar me-4">
-                                                <span class="avatar-initial rounded bg-label-success"><i
+                                            <div class="me-4 avatar">
+                                                <span class="bg-label-success rounded avatar-initial"><i
                                                         class="icon-base bx bx-book-reader icon-lg"></i></span>
                                             </div>
                                             <h4 class="mb-0"><?php echo $totalStudents; ?></h4>
@@ -107,18 +107,18 @@ require_once __DIR__ . "/../../app/admin/users_stats.php"
                                         <p class="mb-2">Total Students</p>
                                         <p class="mb-0">
                                             <span
-                                                class="text-heading fw-medium me-2">+<?php echo round(($totalStudents / 100) * 5, 1); ?>%</span>
+                                                class="me-2 text-heading fw-medium">+<?php echo round(($totalStudents / 100) * 5, 1); ?>%</span>
                                             <span class="text-body-secondary">than last month</span>
                                         </p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-sm-6 col-lg-3">
-                                <div class="card card-border-shadow-danger h-100">
+                                <div class="card-border-shadow-danger h-100 card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center mb-2">
-                                            <div class="avatar me-4">
-                                                <span class="avatar-initial rounded bg-label-danger"><i
+                                            <div class="me-4 avatar">
+                                                <span class="bg-label-danger rounded avatar-initial"><i
                                                         class="icon-base bx bx-desktop icon-lg"></i></span>
                                             </div>
                                             <h4 class="mb-0"><?php echo $totalAdmins; ?></h4>
@@ -126,18 +126,18 @@ require_once __DIR__ . "/../../app/admin/users_stats.php"
                                         <p class="mb-2">Total Admins</p>
                                         <p class="mb-0">
                                             <span
-                                                class="text-heading fw-medium me-2"><?php echo $totalAdmins > 0 ? "+" . round(($totalAdmins / ($totalUsers + $totalStudents + $totalAdmins)) * 100, 1) . "%" : "0%"; ?></span>
+                                                class="me-2 text-heading fw-medium"><?php echo $totalAdmins > 0 ? "+" . round(($totalAdmins / ($totalUsers + $totalStudents + $totalAdmins)) * 100, 1) . "%" : "0%"; ?></span>
                                             <span class="text-body-secondary">of total users</span>
                                         </p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-sm-6 col-lg-3">
-                                <div class="card card-border-shadow-info h-100">
+                                <div class="card-border-shadow-info h-100 card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center mb-2">
-                                            <div class="avatar me-4">
-                                                <span class="avatar-initial rounded bg-label-info"><i
+                                            <div class="me-4 avatar">
+                                                <span class="bg-label-info rounded avatar-initial"><i
                                                         class="icon-base bx bx-home icon-lg"></i></span>
                                             </div>
                                             <h4 class="mb-0"><?php echo $activeStudents; ?></h4>
@@ -145,7 +145,7 @@ require_once __DIR__ . "/../../app/admin/users_stats.php"
                                         <p class="mb-2">Active Students</p>
                                         <p class="mb-0">
                                             <span
-                                                class="text-heading fw-medium me-2">+<?php echo round(($activeStudents / 100) * 8, 1); ?>%</span>
+                                                class="me-2 text-heading fw-medium">+<?php echo round(($activeStudents / 100) * 8, 1); ?>%</span>
                                             <span class="text-body-secondary">than last month</span>
                                         </p>
                                     </div>
@@ -157,13 +157,13 @@ require_once __DIR__ . "/../../app/admin/users_stats.php"
                         <!-- Users DataTable -->
                         <div class="card">
                             <div class="card-header">
-                                <h5 class="card-title mb-0">Users List</h5>
+                                <h5 class="mb-0 card-title">Users List</h5>
                             </div>
                             <div class="card-body">
-                                <div class="row mb-4">
-                                    <div class="col-md-4 user_role"></div>
+                                <div class="mb-4 row">
+                                    <div class="mb-3 col-md-4 user_role"></div>
                                     <div class="col-md-4 user_status"></div>
-                                    <div class="col-md-4"></div>
+
                                 </div>
                                 <table class="table datatables-users">
                                     <thead>
@@ -188,7 +188,7 @@ require_once __DIR__ . "/../../app/admin/users_stats.php"
                             aria-labelledby="offcanvasAddUserLabel">
                             <div class="offcanvas-header">
                                 <h5 id="offcanvasAddUserLabel" class="offcanvas-title">Add New User</h5>
-                                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
+                                <button type="button" class="text-reset btn-close" data-bs-dismiss="offcanvas"
                                     aria-label="Close"></button>
                             </div>
                             <div class="offcanvas-body">
