@@ -29,13 +29,15 @@ if (empty($student_email)) {
 
 try {
     $billingModel = new Billing();
-    $billingData = $billingModel->getBillingById($billing_id);
+    $billingDataResponse = $billingModel->getBillingById($billing_id);
 
-    if (!$billingData) {
+    if (!$billingDataResponse || !isset($billingDataResponse['details'])) {
         http_response_code(404);
         echo json_encode(['success' => false, 'error' => 'Billing record not found']);
         exit;
     }
+
+    $billingData = $billingDataResponse['details'];
 
     // Generate PDF
     $pdfGenerator = new PDFGenerator();

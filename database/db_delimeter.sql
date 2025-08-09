@@ -141,9 +141,9 @@ END
 
 $$ DELIMITER;
 
-
 -- Trigger to update the status of billings depending on the paid amount, due date, start date, and cancellation
-DELIMITER / /
+DELIMITER /
+/
 
 -- Drop existing triggers if they exist
 DROP TRIGGER IF EXISTS update_billing_status_before_insert;
@@ -171,7 +171,9 @@ BEGIN
         -- Set to Unpaid if no payment has been made
         SET NEW.status = 'Unpaid';
     END IF;
-END//
+END
+/
+/
 
 -- BEFORE UPDATE trigger
 CREATE TRIGGER update_billing_status_before_update
@@ -194,7 +196,9 @@ BEGIN
         -- Set to Unpaid if no payment has been made
         SET NEW.status = 'Unpaid';
     END IF;
-END//
+END
+/
+/
 
 DELIMITER;
 
@@ -217,3 +221,44 @@ BEGIN
 END
 /
 /
+
+SET GLOBAL event_scheduler = ON;
+
+-- Create an event to update overdue bills every day
+CREATE EVENT update_overdue_bills
+    ON SCHEDULE EVERY 1 HOUR
+    STARTS CURRENT_TIMESTAMP
+    DO
+      UPDATE billing
+      SET status = 'Overdue'
+      WHERE date_due < NOW()
+        AND paid_amount < amount
+        AND status = 'Unpaid';
+-- Only update bills currently marked as 'Unpaid'
+
+DROP EVENT IF EXISTS update_overdue_bills;
+
+DROP EVENT IF EXISTS add_monthly_late_fees;
+
+-- Create an event to update overdue bills with late fees every month
+DELIMITER / /
+
+CREATE EVENT add_monthly_late_fees
+ON SCHEDULE EVERY 1 MONTH
+STARTS CURRENT_TIMESTAMP
+DO
+  UPDATE billing
+  SET late_fee = late_fee + (amount * 0.05),  -- Add 5% of the original amount to the existing late_fee
+      status = 'Overdue' -- Ensure the status remains 'Overdue'
+  WHERE (status = 'Unpaid' OR status = 'Overdue') -- Check if the bill is unpaid or already overdue
+    AND date_due < NOW();
+//
+
+DELIMITER;
+-- Check if the bill is overdue
+
+-- list all events
+SHOW EVENTS;
+
+-- run an event immediately
+-- CALL add_monthly_late_fees(); -- Removed: Events cannot be called directly; they run on schedule.

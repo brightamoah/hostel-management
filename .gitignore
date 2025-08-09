@@ -1,0 +1,20 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# IDE specific files
+.vscode/
+.idea/
+
+# Environment variables
+.env
+
+# Log files
+*.log
+
+# Temporary files
+debug_session.php
+
+# OS specific files
+.DS_Store
+Thumbs.db

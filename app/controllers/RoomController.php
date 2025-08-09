@@ -135,12 +135,24 @@ class RoomController
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_csrf_valid()) {
             $room_id = $_POST['room_id'] ?? 0;
+
+            // First check if room has occupants before attempting deletion
+            $room = $this->roomModel->getRoomById($room_id);
+            if ($room && $room['current_occupancy'] > 0) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Cannot delete room with current occupants. Please relocate students first.'
+                ]);
+                exit();
+            }
+
             $result = $this->roomModel->deleteRoom($room_id);
             header('Content-Type: application/json');
             if ($result) {
                 echo json_encode(['success' => true, 'message' => 'Room deleted successfully']);
             } else {
-                echo json_encode(['success' => false, 'error' => 'Failed to delete room']);
+                echo json_encode(['success' => false, 'error' => 'Failed to delete room. Room may have occupants or active allocations.']);
             }
             exit();
         } else {

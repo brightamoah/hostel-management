@@ -1,40 +1,40 @@
 <div class="modal fade" id="viewInvoiceModal" tabindex="-1" aria-labelledby="viewInvoiceModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content shadow-lg border-0">
-            <div class="modal-header bg-primary border-0 justify-content-center align-items-center py-5">
-                <h4 class="modal-title fw-bold text-white d-flex align-items-center gap-2" id="viewInvoiceModalLabel">
+        <div class="shadow-lg border-0 modal-content">
+            <div class="align-items-center justify-content-center bg-primary py-5 border-0 modal-header">
+                <h4 class="d-flex align-items-center gap-2 text-white modal-title fw-bold" id="viewInvoiceModalLabel">
                     <i class="bx bx-file icon-xl"></i>
                     <span>Invoice Details</span>
                 </h4>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4">
-                <div class="invoice-preview-card mb-0 invoice-content">
+            <div class="p-4 modal-body">
+                <div class="mb-0 invoice-preview-card invoice-content">
                     <!-- Invoice Header -->
-                    <div class="invoice-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
-                        <div class="logo-details mb-3 mb-md-0">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center align-items-start justify-content-between mb-4 invoice-header">
+                        <div class="mb-3 mb-md-0 logo-details">
                             <div class="d-flex align-items-center justify-content-center">
-                                <div class="me-3 bg-primary bg-opacity-10 p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <div class="d-flex align-items-center justify-content-center bg-primary bg-opacity-10 me-3 p-3 rounded-circle" style="width: 80px; height: 80px;">
                                     <img src="../../../assets/img/logo-no-text.svg" alt="Kings Hostel Logo" width="60" style="display: block;">
                                 </div>
                                 <div>
-                                    <h4 class="mb-1 fw-bold text-primary">Kings Hostel</h4>
-                                    <p class="mb-0 text-muted"><i class="icon-base bx bx-map-pin me-1"></i>University Campus, Accra, Ghana</p>
+                                    <h4 class="mb-1 text-primary fw-bold">Kings Hostel</h4>
+                                    <p class="mb-0 text-muted"><i class="me-1 icon-base bx bx-map-pin"></i>University Campus, Accra, Ghana</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="invoice-details text-md-end">
+                        <div class="text-md-end invoice-details">
                             <div class="d-flex align-items-center gap-2 mb-3">
-                                <span class="badge bg-primary">INVOICE ID:</span>
-                                <h5 class="text-primary mb-0" id="modalInvoiceId"></h5>
+                                <span class="bg-primary badge">INVOICE ID:</span>
+                                <h5 class="mb-0 text-primary" id="modalInvoiceId"></h5>
                             </div>
                             <div class="d-flex flex-column">
                                 <div class="mb-2">
-                                    <span class="fw-medium text-muted"><i class="icon-base bx bx-calendar me-1"></i>Date Issued:</span>
+                                    <span class="text-muted fw-medium"><i class="me-1 icon-base bx bx-calendar"></i>Date Issued:</span>
                                     <span id="modalDateIssued" class="ms-1"></span>
                                 </div>
                                 <div>
-                                    <span class="fw-medium text-muted"><i class="icon-base bx bx-calendar-exclamation me-1"></i>Due Date:</span>
+                                    <span class="text-muted fw-medium"><i class="me-1 icon-base bx bx-calendar-exclamation"></i>Due Date:</span>
                                     <span id="modalDueDate" class="ms-1"></span>
                                 </div>
                             </div>
@@ -44,67 +44,67 @@
                     <hr class="border-dashed">
 
                     <!-- Billing Information -->
-                    <div class="row invoice-to mb-4">
-                        <div class="col-sm-6 mb-3 mb-sm-0">
-                            <div class="card shadow-lg border-0 h-100">
-                                <div class="card-body p-3">
-                                    <h5 class="small mb-2">
-                                        <i class="icon-base bx bx-user me-1"></i>Billed To: <span id="modalStudentName" class="ms-1 ml-2 mb-2 fw-bold text-primary text-uppercase"> </span>
+                    <div class="mb-4 row invoice-to">
+                        <div class="mb-3 mb-sm-0 col-sm-6">
+                            <div class="shadow-lg border-0 h-100 card">
+                                <div class="p-3 card-body">
+                                    <h5 class="mb-2 small">
+                                        <i class="me-1 icon-base bx bx-user"></i>Billed To: <span id="modalStudentName" class="ms-1 mb-2 ml-2 text-primary text-uppercase fw-bold"> </span>
                                     </h5>
-                                    <p class="mb-2 text-muted"><i class="icon-base bx bx-id-card me-1"></i><span id="modalStudentId"></span></p>
-                                    <p class="mb-2 text-muted"><i class="icon-base bx bx-phone me-1"></i><span id="modalStudentPhone"></span></p>
-                                    <p class="mb-0 text-muted"><i class="icon-base bx bx-envelope me-1"></i><span id="modalStudentEmail"></span></p>
+                                    <p class="mb-2 text-muted"><i class="me-1 icon-base bx bx-id-card"></i><span id="modalStudentId"></span></p>
+                                    <p class="mb-2 text-muted"><i class="me-1 icon-base bx bx-phone"></i><span id="modalStudentPhone"></span></p>
+                                    <p class="mb-0 text-muted"><i class="me-1 icon-base bx bx-envelope"></i><span id="modalStudentEmail"></span></p>
                                 </div>
                             </div>
                         </div>
                         <div class="col-sm-6">
-                            <div class="card border-0 shadow-lg h-100">
-                                <div class="card-body p-3">
-                                    <h5 class="small mb-2">
-                                        <i class="icon-base bx bx-building me-1"></i>From: <span class="ms-1 mb-0 fw-bold text-uppercase text-primary ">Kings Hostel Management</span>
+                            <div class="shadow-lg border-0 h-100 card">
+                                <div class="p-3 card-body">
+                                    <h5 class="mb-2 small">
+                                        <i class="me-1 icon-base bx bx-building"></i>From: <span class="ms-1 mb-0 text-primary text-uppercase fw-bold">Kings Hostel Management</span>
                                     </h5>
 
-                                    <p class="mb-2 text-muted"><i class="icon-base bx bx-map-pin me-1"></i>University Campus, Accra</p>
-                                    <p class="mb-2 text-muted"><i class="icon-base bx bx-envelope me-1"></i>kingshostelmgt@gmail.com</p>
-                                    <p class="mb-0 text-muted"><i class="icon-base bx bx-phone me-1"></i>+233 30 277 8899</p>
+                                    <p class="mb-2 text-muted"><i class="me-1 icon-base bx bx-map-pin"></i>University Campus, Accra</p>
+                                    <p class="mb-2 text-muted"><i class="me-1 icon-base bx bx-envelope"></i>kingshostelmgt@gmail.com</p>
+                                    <p class="mb-0 text-muted"><i class="me-1 icon-base bx bx-phone"></i>+233 549 684 848</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Invoice Items -->
-                    <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-body p-0">
+                    <div class="shadow-sm mb-4 border-0 card">
+                        <div class="p-0 card-body">
                             <div class="table-responsive">
                                 <table class="table table-borderless mb-0" id="modalInvoiceItems">
                                     <thead class="bg-primary bg-opacity-20">
                                         <tr>
                                             <th scope="col" class="ps-4 rounded-start-5 text-white fw-bold">#</th>
-                                            <th scope="col" class=" text-white fw-bold">Description</th>
-                                            <th scope="col" class="text-end pe-4 rounded-end-5 text-white fw-bold">Amount</th>
+                                            <th scope="col" class="text-white fw-bold">Description</th>
+                                            <th scope="col" class="pe-4 rounded-end-5 text-white text-end fw-bold">Amount</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
                                     <tfoot class="border-top">
                                         <tr>
-                                            <td colspan="2" class="text-end fw-semibold text-muted ps-4">Subtotal:</td>
-                                            <td class="text-end pe-4" id="modalSubtotal"></td>
+                                            <td colspan="2" class="ps-4 text-muted text-end fw-semibold">Subtotal:</td>
+                                            <td class="pe-4 text-end" id="modalSubtotal"></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="2" class="text-end fw-semibold text-muted ps-4">Tax (0%):</td>
-                                            <td class="text-end pe-4">₵0.00</td>
+                                            <td colspan="2" class="ps-4 text-muted text-end fw-semibold">Late Payment Fee (5% per month):</td>
+                                            <td class="pe-4 text-end" id="modalLatePaymentFee">GH₵0.00</td>
                                         </tr>
                                         <tr class="border-top">
-                                            <td colspan="2" class="text-end fw-bold ps-4">Total:</td>
-                                            <td class="text-end fw-bold pe-4" id="modalTotal"></td>
+                                            <td colspan="2" class="ps-4 text-end fw-bold">Total:</td>
+                                            <td class="pe-4 text-end fw-bold" id="modalTotal"></td>
                                         </tr>
-                                        <tr class=" mb-2">
-                                            <td colspan="2" class="text-end fw-bold ps-4 rounded-start-5">Amount Paid:</td>
-                                            <td class="text-end fw-bold text-success pe-4 rounded-end-5" id="modalAmountPaid"></td>
+                                        <tr class="mb-2">
+                                            <td colspan="2" class="ps-4 rounded-start-5 text-end fw-bold">Amount Paid:</td>
+                                            <td class="pe-4 rounded-end-5 text-success text-end fw-bold" id="modalAmountPaid"></td>
                                         </tr>
                                         <tr class="">
-                                            <td colspan="2" class="text-end fw-bold ps-4 rounded-start-5">Balance Due:</td>
-                                            <td class="text-end fw-bold text-warning pe-4 rounded-end-5" id="modalBalanceDue"></td>
+                                            <td colspan="2" class="ps-4 rounded-start-5 text-end fw-bold">Balance Due:</td>
+                                            <td class="pe-4 rounded-end-5 text-warning text-end fw-bold" id="modalBalanceDue"></td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -114,30 +114,30 @@
 
                     <!-- Payment Information and Transaction History -->
                     <div class="row">
-                        <div class="col-md-7 mb-4 mb-md-0">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-primary bg-opacity-10 border-0">
+                        <div class="mb-4 mb-md-0 col-md-7">
+                            <div class="shadow-sm border-0 h-100 card">
+                                <div class="bg-primary bg-opacity-10 border-0 card-header">
                                     <h6 class="mb-0 fw-bold">
-                                        <i class="icon-base bx bx-credit-card me-1"></i>Payment Information
+                                        <i class="me-1 icon-base bx bx-credit-card"></i>Payment Information
                                     </h6>
                                 </div>
-                                <div class="card-body p-0">
+                                <div class="p-0 card-body">
                                     <table class="table table-hover mb-0">
                                         <tbody>
                                             <tr>
-                                                <td class="ps-4"><i class="icon-base bx bxs-bank me-2 text-primary"></i>Bank Name:</td>
+                                                <td class="ps-4"><i class="me-2 text-primary icon-base bx bxs-bank"></i>Bank Name:</td>
                                                 <td class="fw-medium">Ghana Commercial Bank</td>
                                             </tr>
                                             <tr>
-                                                <td class="ps-4"><i class="icon-base bx bx-user me-2 text-primary"></i>Account Name:</td>
+                                                <td class="ps-4"><i class="me-2 text-primary icon-base bx bx-user"></i>Account Name:</td>
                                                 <td class="fw-medium">Kings Hostel Management</td>
                                             </tr>
                                             <tr>
-                                                <td class="ps-4"><i class="icon-base bx bx-hash me-2 text-primary"></i>Account Number:</td>
+                                                <td class="ps-4"><i class="me-2 text-primary icon-base bx bx-hash"></i>Account Number:</td>
                                                 <td class="fw-medium">1234567890</td>
                                             </tr>
                                             <tr>
-                                                <td class="ps-4"><i class="icon-base bx bx-mobile-alt me-2 text-primary"></i>Mobile Money:</td>
+                                                <td class="ps-4"><i class="me-2 text-primary icon-base bx bx-mobile-alt"></i>Mobile Money:</td>
                                                 <td class="fw-medium">+233 54 968 4848</td>
                                             </tr>
                                         </tbody>
@@ -146,20 +146,20 @@
                             </div>
                         </div>
                         <div class="col-md-5">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-primary bg-opacity-10 border-0">
+                            <div class="shadow-sm border-0 h-100 card">
+                                <div class="bg-primary bg-opacity-10 border-0 card-header">
                                     <h6 class="mb-0 fw-bold">
-                                        <i class="icon-base bx bx-history me-1"></i>Transaction History
+                                        <i class="me-1 icon-base bx bx-history"></i>Transaction History
                                     </h6>
                                 </div>
-                                <div class="card-body p-0">
+                                <div class="p-0 card-body">
                                     <div class="table-responsive">
                                         <table class="table table-hover mb-0" id="modalTransactionHistory">
                                             <thead class="">
                                                 <tr>
                                                     <th class="ps-4">Date</th>
                                                     <th>Method</th>
-                                                    <th class="text-end pe-4">Amount</th>
+                                                    <th class="pe-4 text-end">Amount</th>
                                                 </tr>
                                             </thead>
                                             <tbody></tbody>
@@ -171,30 +171,30 @@
                     </div>
 
                     <!-- Terms & Conditions -->
-                    <div class="card mt-4 border-0 bg-light bg-opacity-10">
-                        <div class="card-body p-3">
+                    <div class="bg-light bg-opacity-10 mt-4 border-0 card">
+                        <div class="p-3 card-body">
                             <div class="d-flex align-items-center mb-2">
-                                <i class="icon-base bx bx-file text-primary me-2 fs-5"></i>
-                                <h6 class="fw-bold mb-0">Terms & Conditions</h6>
+                                <i class="me-2 text-primary icon-base bx bx-file fs-5"></i>
+                                <h6 class="mb-0 fw-bold">Terms & Conditions</h6>
                             </div>
                             <div class="ps-4">
-                                <p class="small mb-1">1. Payment is due within 30 days of invoice date.</p>
-                                <p class="small mb-1">2. Late payments will incur a 5% penalty fee.</p>
-                                <p class="small mb-0">3. No refunds will be issued after the academic term begins.</p>
+                                <p class="mb-1 small">1. Payment is due within 30 days of invoice date.</p>
+                                <p class="mb-1 small">2. Late payments will incur a 5% penalty fee.</p>
+                                <p class="mb-0 small">3. No refunds will be issued after the academic term begins.</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer  border-0 p-4">
+            <div class="p-4 border-0 modal-footer">
                 <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">
-                    <i class="icon-base bx bx-x me-1"></i>Close
+                    <i class="me-1 icon-base bx bx-x"></i>Close
                 </button>
-                <button type="button" class="btn btn-outline-primary me-1 download-invoice" id="downloadInvoiceBtn" data-billing-id="">
-                    <i class="icon-base bx bx-download me-1"></i>Download
+                <button type="button" class="me-1 btn-outline-primary btn download-invoice" id="downloadInvoiceBtn" data-billing-id="">
+                    <i class="me-1 icon-base bx bx-download"></i>Download
                 </button>
                 <button type="button" class="btn btn-primary send-invoice" id="emailInvoiceBtn" data-student-email="" data-billing-id="">
-                    <i class="icon-base bx bx-send me-1"></i>Email Invoice
+                    <i class="me-1 icon-base bx bx-send"></i>Email Invoice
                 </button>
             </div>
         </div>

@@ -3,7 +3,7 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
 ?>
 
 <!doctype html>
-<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact"
+<html lang="en" class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact"
     dir="ltr"
     data-skin="default"
     data-assets-path="../../assets/"
@@ -55,8 +55,8 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
         /* Example styling for preview purposes */
         body {
             font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-            background-color: #f5f5f9;
-            color: #697a8d;
+            /* background-color: #f5f5f9;
+            color: #697a8d; */
         }
 
         .demo-wrapper {
@@ -78,14 +78,14 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
 
 <body>
     <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
             <?php include_once "./Components/sidebar.php" ?>
-            <div class="menu-mobile-toggler d-xl-none rounded-1">
-                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+            <div class="rounded-1 menu-mobile-toggler d-xl-none">
+                <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
                     <i class="bx bx-menu icon-base"></i>
-                    <i class="bx bx-chevron-right icon-base"></i>
+                    <i class="bx-chevron-right bx icon-base"></i>
                 </a>
             </div>
             <!-- / Menu -->
@@ -99,23 +99,23 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-                    <div class="container-xxl flex-grow-1 container-p-y">
-                        <div class="row g-6 mb-6">
+                    <div class="flex-grow-1 container-p-y container-xxl">
+                        <div class="mb-6 row g-6">
                             <div class="col-sm-6 col-xl-3">
-                                <div class="card card-border-shadow-primary">
+                                <div class="card-border-shadow-primary card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start justify-content-between">
                                             <div class="content-left">
                                                 <span class="text-heading">Total Visitors</span>
                                                 <div class="d-flex align-items-center my-1">
-                                                    <h4 class="mb-0 me-2"><?php echo $totalVisitors; ?></h4>
-                                                    <p class="text-success mb-0">(+<?php echo $totalVisitors > 0 ? round(($totalVisitors - $totalVisitors * 0.71) / $totalVisitors * 100) : 0; ?>%)</p>
+                                                    <h4 class="me-2 mb-0"><?php echo $totalVisitors; ?></h4>
+                                                    <p class="mb-0 text-success">(+<?php echo $totalVisitors > 0 ? round(($totalVisitors - $totalVisitors * 0.71) / $totalVisitors * 100) : 0; ?>%)</p>
                                                 </div>
                                                 <small class="mb-0">All Registered Visitors</small>
                                             </div>
                                             <div class="avatar">
-                                                <span class="avatar-initial rounded bg-label-primary">
-                                                    <i class="icon-base bx bx-group icon-lg"></i>
+                                                <span class="bg-label-primary rounded avatar-initial">
+                                                    <i class="bx-group icon-base bx icon-lg"></i>
                                                 </span>
                                             </div>
                                         </div>
@@ -123,19 +123,19 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                 </div>
                             </div>
                             <div class="col-sm-6 col-xl-3">
-                                <div class="card card-border-shadow-info">
+                                <div class="card-border-shadow-info card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start justify-content-between">
                                             <div class="content-left">
                                                 <span class="text-heading">Approved Visitors</span>
                                                 <div class="d-flex align-items-center my-1">
-                                                    <h4 class="mb-0 me-2"><?php echo $approvedVisitors; ?></h4>
-                                                    <p class="text-success mb-0">(+<?php echo $approvedVisitors > 0 ? round(($approvedVisitors - $approvedVisitors * 0.82) / $approvedVisitors * 100) : 0; ?>%)</p>
+                                                    <h4 class="me-2 mb-0"><?php echo $approvedVisitors; ?></h4>
+                                                    <p class="mb-0 text-success">(+<?php echo $approvedVisitors > 0 ? round(($approvedVisitors - $approvedVisitors * 0.82) / $approvedVisitors * 100) : 0; ?>%)</p>
                                                 </div>
                                                 <small class="mb-0">Approved by Admin</small>
                                             </div>
                                             <div class="avatar">
-                                                <span class="avatar-initial rounded bg-label-info">
+                                                <span class="bg-label-info rounded avatar-initial">
                                                     <i class="icon-base bx bx-check-circle icon-lg"></i>
                                                 </span>
                                             </div>
@@ -144,19 +144,19 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                 </div>
                             </div>
                             <div class="col-sm-6 col-xl-3">
-                                <div class="card card-border-shadow-success">
+                                <div class="card-border-shadow-success card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start justify-content-between">
                                             <div class="content-left">
                                                 <span class="text-heading">Checked-In Visitors</span>
                                                 <div class="d-flex align-items-center my-1">
-                                                    <h4 class="mb-0 me-2"><?php echo $checkedInVisitors; ?></h4>
-                                                    <p class="text-danger mb-0">(<?php echo $checkedInVisitors > 0 ? round(($checkedInVisitors * 0.86 - $checkedInVisitors) / $checkedInVisitors * 100) : 0; ?>%)</p>
+                                                    <h4 class="me-2 mb-0"><?php echo $checkedInVisitors; ?></h4>
+                                                    <p class="mb-0 text-danger">(<?php echo $checkedInVisitors > 0 ? round(($checkedInVisitors * 0.86 - $checkedInVisitors) / $checkedInVisitors * 100) : 0; ?>%)</p>
                                                 </div>
                                                 <small class="mb-0">Currently Checked-In</small>
                                             </div>
                                             <div class="avatar">
-                                                <span class="avatar-initial rounded bg-label-success">
+                                                <span class="bg-label-success rounded avatar-initial">
                                                     <i class="icon-base bx bx-log-in-circle icon-lg"></i>
                                                 </span>
                                             </div>
@@ -165,19 +165,19 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                 </div>
                             </div>
                             <div class="col-sm-6 col-xl-3">
-                                <div class="card card-border-shadow-warning">
+                                <div class="card-border-shadow-warning card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start justify-content-between">
                                             <div class="content-left">
                                                 <span class="text-heading">Pending Visitors</span>
                                                 <div class="d-flex align-items-center my-1">
-                                                    <h4 class="mb-0 me-2"><?php echo $pendingVisitors; ?></h4>
-                                                    <p class="text-success mb-0">(+<?php echo $pendingVisitors > 0 ? round(($pendingVisitors - $pendingVisitors * 0.58) / $pendingVisitors * 100) : 0; ?>%)</p>
+                                                    <h4 class="me-2 mb-0"><?php echo $pendingVisitors; ?></h4>
+                                                    <p class="mb-0 text-success">(+<?php echo $pendingVisitors > 0 ? round(($pendingVisitors - $pendingVisitors * 0.58) / $pendingVisitors * 100) : 0; ?>%)</p>
                                                 </div>
                                                 <small class="mb-0">Awaiting Approval</small>
                                             </div>
                                             <div class="avatar">
-                                                <span class="avatar-initial rounded bg-label-warning">
+                                                <span class="bg-label-warning rounded avatar-initial">
                                                     <i class="icon-base bx bx-time icon-lg"></i>
                                                 </span>
                                             </div>
@@ -188,9 +188,9 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                         </div>
 
                         <div class="card">
-                            <div class="card-header border-bottom">
-                                <h5 class="card-title mb-0">Visitor Log</h5>
-                                <div class="d-flex justify-content-between align-items-center row pt-4 gap-md-0 g-6">
+                            <div class="border-bottom card-header">
+                                <h5 class="mb-0 card-title">Visitor Log</h5>
+                                <div class="d-flex align-items-center justify-content-between gap-md-0 pt-4 row g-6">
                                     <div class="col-md-4">
                                         <select id="statusFilter" class="form-select">
                                             <option value="">All Statuses</option>
@@ -218,14 +218,14 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                     <div class="col-md-4">
                                         <input type="text" id="searchInput" class="form-control" placeholder="Search Visitor..." />
                                     </div>
-                                    <div class="col-md-4 text-end">
+                                    <div class="text-end col-md-4">
                                         <!-- CSRF token for admin actions -->
                                         <?php set_csrf(); ?>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-datatable table-responsive">
-                                <table class="datatables-visitors table border-top">
+                            <div class="table-responsive card-datatable">
+                                <table class="table border-top datatables-visitors">
                                     <thead>
                                         <tr>
                                             <th></th> <!-- Control column -->
@@ -247,39 +247,39 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                         <!-- Modernized Visitor Modal -->
                         <div class="modal fade" id="visitorModal" tabindex="-1" aria-labelledby="visitorModalLabel" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered modal-lg">
-                                <div class="modal-content shadow-lg border-0">
+                                <div class="shadow-lg border-0 modal-content">
                                     <!-- Header with gradient background -->
-                                    <div class="modal-header bg-primary bg-gradient text-white border-0 rounded-top">
+                                    <div class="bg-primary bg-gradient border-0 rounded-top text-white modal-header">
                                         <h5 class="modal-title fs-5 fw-semibold" id="visitorModalLabel">
-                                            <i class="bx bx-user-circle me-2"></i>Visitor Details
+                                            <i class="me-2 bx bx-user-circle"></i>Visitor Details
                                         </h5>
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
 
-                                    <div class="modal-body p-0">
+                                    <div class="p-0 modal-body">
                                         <!-- Top Card Section with Avatar and Basic Info -->
-                                        <div class="card shadow-none border-0 mb-0">
-                                            <div class="card-body bg-lighter py-4">
-                                                <div class="row align-items-center">
-                                                    <div class="col-lg-3 text-center mb-3 mb-lg-0">
-                                                        <div id="visitorAvatar" class="avatar avatar-xl d-flex align-items-center justify-content-center rounded-circle mb-3 mx-auto bg-primary bg-opacity-25 shadow-sm" style="width: 100px; height: 100px;">
+                                        <div class="shadow-none mb-0 border-0 card">
+                                            <div class="bg-lighter py-4 card-body">
+                                                <div class="align-items-center row">
+                                                    <div class="mb-3 mb-lg-0 text-center col-lg-3">
+                                                        <div id="visitorAvatar" class="d-flex align-items-center justify-content-center bg-primary bg-opacity-25 shadow-sm mx-auto mb-3 rounded-circle avatar avatar-xl" style="width: 100px; height: 100px;">
                                                             <span id="visitorInitials" class="text-primary fw-bold" style="font-size: 2.5rem;"></span>
                                                         </div>
                                                     </div>
-                                                    <div class="col-lg-5 text-center text-lg-start mb-3 mb-lg-0">
-                                                        <h4 id="visitorName" class="fw-semibold mb-1"></h4>
-                                                        <div class="d-flex align-items-center justify-content-center justify-content-lg-start">
-                                                            <div id="visitorStatus" class="badge bg-label-success me-2"></div>
+                                                    <div class="mb-3 mb-lg-0 text-lg-start text-center col-lg-5">
+                                                        <h4 id="visitorName" class="mb-1 fw-semibold"></h4>
+                                                        <div class="d-flex justify-content-lg-start align-items-center justify-content-center">
+                                                            <div id="visitorStatus" class="bg-label-success me-2 badge"></div>
                                                             <span id="visitorRelation" class="text-muted"></span>
                                                         </div>
                                                         <div class="mt-2">
                                                             <span class="text-muted">
-                                                                <i class="bx bx-id-card me-1"></i> ID: <span id="visitorId" class="fw-semibold"></span>
+                                                                <i class="me-1 bx bx-id-card"></i> ID: <span id="visitorId" class="fw-semibold"></span>
                                                             </span>
                                                         </div>
                                                     </div>
-                                                    <div class="col-lg-4 text-center text-lg-end">
-                                                        <div id="visitorActions" class="d-flex flex-wrap justify-content-center justify-content-lg-end gap-2"></div>
+                                                    <div class="text-lg-end text-center col-lg-4">
+                                                        <div id="visitorActions" class="d-flex flex-wrap justify-content-lg-end justify-content-center gap-2"></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -289,44 +289,44 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                         <ul class="nav nav-tabs nav-fill" id="visitorModalTab" role="tablist">
                                             <li class="nav-item" role="presentation">
                                                 <button class="nav-link active" id="visitor-info-tab" data-bs-toggle="tab" data-bs-target="#visitor-info" type="button" role="tab" aria-controls="visitor-info" aria-selected="true">
-                                                    <i class="bx bx-user me-1"></i> Visitor Info
+                                                    <i class="me-1 bx bx-user"></i> Visitor Info
                                                 </button>
                                             </li>
                                             <li class="nav-item" role="presentation">
                                                 <button class="nav-link" id="student-info-tab" data-bs-toggle="tab" data-bs-target="#student-info" type="button" role="tab" aria-controls="student-info" aria-selected="false">
-                                                    <i class="bx bx-book-reader me-1"></i> Student Info
+                                                    <i class="me-1 bx bx-book-reader"></i> Student Info
                                                 </button>
                                             </li>
                                             <li class="nav-item" role="presentation">
                                                 <button class="nav-link" id="visit-history-tab" data-bs-toggle="tab" data-bs-target="#visit-history" type="button" role="tab" aria-controls="visit-history" aria-selected="false">
-                                                    <i class="bx bx-history me-1"></i> Visit History
+                                                    <i class="me-1 bx bx-history"></i> Visit History
                                                 </button>
                                             </li>
                                         </ul>
 
                                         <!-- Tab Content -->
-                                        <div class="tab-content p-4" id="visitorModalTabContent">
+                                        <div class="p-4 tab-content" id="visitorModalTabContent">
                                             <!-- Visitor Information Tab -->
                                             <div class="tab-pane fade show active" id="visitor-info" role="tabpanel" aria-labelledby="visitor-info-tab">
                                                 <div class="row g-4">
                                                     <div class="col-md-6">
-                                                        <div class="card shadow-sm h-100">
+                                                        <div class="shadow-sm h-100 card">
                                                             <div class="card-body">
-                                                                <h6 class="fw-semibold mb-3 d-flex align-items-center">
-                                                                    <span class="badge bg-label-primary rounded p-2 me-2"><i class="bx bx-phone"></i></span>
+                                                                <h6 class="d-flex align-items-center mb-3 fw-semibold">
+                                                                    <span class="bg-label-primary me-2 p-2 rounded badge"><i class="bx bx-phone"></i></span>
                                                                     Contact Information
                                                                 </h6>
                                                                 <div class="mb-3">
-                                                                    <small class="text-muted d-block mb-1">Phone Number</small>
+                                                                    <small class="d-block mb-1 text-muted">Phone Number</small>
                                                                     <div class="d-flex align-items-center">
-                                                                        <i class="bx bx-phone text-primary me-2"></i>
+                                                                        <i class="me-2 text-primary bx bx-phone"></i>
                                                                         <span id="visitorPhone" class="fw-semibold"></span>
                                                                     </div>
                                                                 </div>
                                                                 <div>
-                                                                    <small class="text-muted d-block mb-1">Visit Date</small>
+                                                                    <small class="d-block mb-1 text-muted">Visit Date</small>
                                                                     <div class="d-flex align-items-center">
-                                                                        <i class="bx bx-calendar text-primary me-2"></i>
+                                                                        <i class="me-2 text-primary bx bx-calendar"></i>
                                                                         <span id="visitorVisitDate" class="fw-semibold"></span>
                                                                     </div>
                                                                 </div>
@@ -335,16 +335,16 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                                     </div>
 
                                                     <div class="col-md-6">
-                                                        <div class="card shadow-sm h-100">
+                                                        <div class="shadow-sm h-100 card">
                                                             <div class="card-body">
-                                                                <h6 class="fw-semibold mb-3 d-flex align-items-center">
-                                                                    <span class="badge bg-label-info rounded p-2 me-2"><i class="bx bx-briefcase"></i></span>
+                                                                <h6 class="d-flex align-items-center mb-3 fw-semibold">
+                                                                    <span class="bg-label-info me-2 p-2 rounded badge"><i class="bx bx-briefcase"></i></span>
                                                                     Visit Purpose
                                                                 </h6>
                                                                 <div>
-                                                                    <small class="text-muted d-block mb-1">Reason for Visit</small>
+                                                                    <small class="d-block mb-1 text-muted">Reason for Visit</small>
                                                                     <div class="d-flex align-items-start">
-                                                                        <i class="bx bx-message-square-detail text-info me-2 mt-1"></i>
+                                                                        <i class="me-2 mt-1 text-info bx bx-message-square-detail"></i>
                                                                         <span id="visitorPurpose" class="fw-semibold"></span>
                                                                     </div>
                                                                 </div>
@@ -356,27 +356,27 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
 
                                             <!-- Student Information Tab -->
                                             <div class="tab-pane fade" id="student-info" role="tabpanel" aria-labelledby="student-info-tab">
-                                                <div class="card shadow-sm">
+                                                <div class="shadow-sm card">
                                                     <div class="card-body">
-                                                        <h6 class="fw-semibold mb-4 d-flex align-items-center">
-                                                            <span class="badge bg-label-success rounded p-2 me-2"><i class="bx bx-user"></i></span>
+                                                        <h6 class="d-flex align-items-center mb-4 fw-semibold">
+                                                            <span class="bg-label-success me-2 p-2 rounded badge"><i class="bx bx-user"></i></span>
                                                             Student Details
                                                         </h6>
 
                                                         <div class="row g-4">
                                                             <div class="col-md-6">
                                                                 <div class="mb-3">
-                                                                    <small class="text-muted d-block mb-1">Student Name</small>
+                                                                    <small class="d-block mb-1 text-muted">Student Name</small>
                                                                     <div class="d-flex align-items-center">
-                                                                        <i class="bx bx-user text-success me-2"></i>
+                                                                        <i class="me-2 text-success bx bx-user"></i>
                                                                         <span id="visitorStudentName" class="fw-semibold"></span>
                                                                     </div>
                                                                 </div>
 
                                                                 <div class="mb-3">
-                                                                    <small class="text-muted d-block mb-1">Student ID</small>
+                                                                    <small class="d-block mb-1 text-muted">Student ID</small>
                                                                     <div class="d-flex align-items-center">
-                                                                        <i class="bx bx-id-card text-success me-2"></i>
+                                                                        <i class="me-2 text-success bx bx-id-card"></i>
                                                                         <span id="visitorStudentId" class="fw-semibold"></span>
                                                                     </div>
                                                                 </div>
@@ -384,17 +384,17 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
 
                                                             <div class="col-md-6">
                                                                 <div class="mb-3">
-                                                                    <small class="text-muted d-block mb-1">Student Email</small>
+                                                                    <small class="d-block mb-1 text-muted">Student Email</small>
                                                                     <div class="d-flex align-items-center">
-                                                                        <i class="bx bx-envelope text-success me-2"></i>
-                                                                        <span id="visitorStudentEmail" class="fw-semibold text-truncate"></span>
+                                                                        <i class="me-2 text-success bx bx-envelope"></i>
+                                                                        <span id="visitorStudentEmail" class="text-truncate fw-semibold"></span>
                                                                     </div>
                                                                 </div>
 
                                                                 <div class="mb-3">
-                                                                    <small class="text-muted d-block mb-1">Student Phone</small>
+                                                                    <small class="d-block mb-1 text-muted">Student Phone</small>
                                                                     <div class="d-flex align-items-center">
-                                                                        <i class="bx bx-phone text-success me-2"></i>
+                                                                        <i class="me-2 text-success bx bx-phone"></i>
                                                                         <span id="visitorStudentPhone" class="fw-semibold"></span>
                                                                     </div>
                                                                 </div>
@@ -402,17 +402,17 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
 
                                                             <div class="col-12">
                                                                 <hr class="my-2">
-                                                                <h6 class="fw-semibold mb-3 d-flex align-items-center">
-                                                                    <span class="badge bg-label-warning rounded p-2 me-2"><i class="bx bx-building"></i></span>
+                                                                <h6 class="d-flex align-items-center mb-3 fw-semibold">
+                                                                    <span class="bg-label-warning me-2 p-2 rounded badge"><i class="bx bx-building"></i></span>
                                                                     Location Information
                                                                 </h6>
 
                                                                 <div class="row">
                                                                     <div class="col-md-6">
                                                                         <div class="mb-3 mb-md-0">
-                                                                            <small class="text-muted d-block mb-1">Building</small>
+                                                                            <small class="d-block mb-1 text-muted">Building</small>
                                                                             <div class="d-flex align-items-center">
-                                                                                <i class="bx bx-building text-warning me-2"></i>
+                                                                                <i class="me-2 text-warning bx bx-building"></i>
                                                                                 <span id="visitorBuilding" class="fw-semibold"></span>
                                                                             </div>
                                                                         </div>
@@ -420,9 +420,9 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
 
                                                                     <div class="col-md-6">
                                                                         <div>
-                                                                            <small class="text-muted d-block mb-1">Room</small>
+                                                                            <small class="d-block mb-1 text-muted">Room</small>
                                                                             <div class="d-flex align-items-center">
-                                                                                <i class="bx bx-door-open text-warning me-2"></i>
+                                                                                <i class="me-2 text-warning bx bx-door-open"></i>
                                                                                 <span id="visitorRoom" class="fw-semibold"></span>
                                                                             </div>
                                                                         </div>
@@ -436,10 +436,10 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
 
                                             <!-- Visit History Tab -->
                                             <div class="tab-pane fade" id="visit-history" role="tabpanel" aria-labelledby="visit-history-tab">
-                                                <div class="card shadow-sm">
+                                                <div class="shadow-sm card">
                                                     <div class="card-body">
-                                                        <h6 class="fw-semibold mb-3 d-flex align-items-center">
-                                                            <span class="badge bg-label-danger rounded p-2 me-2"><i class="bx bx-time"></i></span>
+                                                        <h6 class="d-flex align-items-center mb-3 fw-semibold">
+                                                            <span class="bg-label-danger me-2 p-2 rounded badge"><i class="bx bx-time"></i></span>
                                                             Check-In/Check-Out History
                                                         </h6>
 
@@ -448,13 +448,13 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                                                 <thead class="table-light">
                                                                     <tr>
                                                                         <th class="text-nowrap">
-                                                                            <i class="bx bx-log-in me-1 text-success"></i> Check-In Time
+                                                                            <i class="me-1 text-success bx bx-log-in"></i> Check-In Time
                                                                         </th>
                                                                         <th class="text-nowrap">
-                                                                            <i class="bx bx-log-out me-1 text-danger"></i> Check-Out Time
+                                                                            <i class="me-1 text-danger bx bx-log-out"></i> Check-Out Time
                                                                         </th>
                                                                         <th class="text-nowrap">
-                                                                            <i class="bx bx-timer me-1 text-primary"></i> Duration
+                                                                            <i class="me-1 text-primary bx bx-timer"></i> Duration
                                                                         </th>
                                                                     </tr>
                                                                 </thead>

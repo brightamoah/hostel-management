@@ -193,10 +193,54 @@ class Rooms
     public function deleteRoom($room_id)
     {
         if (!filter_var($room_id, FILTER_VALIDATE_INT) || $room_id <= 0) {
-            error_log("DeleteRoom - Invalid Room ID provided: " . $room_id);
+            error_log("DeleteRoom - Invalid Room ID provided: $room_id");
             return false;
         }
 
+        //Check if room has current occupants
+        $check_query = "SELECT current_occupancy FROM rooms WHERE room_id = ?";
+        $check_stmt = $this->conn->prepare($check_query);
+        if (!$check_stmt) {
+            error_log("DeleteRoom - Prepare Error (Check Occupancy): " . $this->conn->error);
+            return false;
+        }
+
+        $check_stmt->bind_param("i", $room_id);
+        $check_stmt->execute();
+        $result = $check_stmt->get_result();
+        $room_data = $result->fetch_assoc();
+        $check_stmt->close();
+
+        if (!$room_data) {
+            error_log("DeleteRoom - Room ID $room_id not found");
+            return false;
+        }
+
+        if ($room_data['current_occupancy'] > 0) {
+            error_log("DeleteRoom - Cannot delete Room ID $room_id: Room has {$room_data['current_occupancy']} current occupant(s)");
+            return false;
+        }
+
+        // check for any active allocations
+        $alloc_check_query = "SELECT COUNT(*) as active_count FROM allocations WHERE room_id = ? AND status = 'Active'";
+        $alloc_stmt = $this->conn->prepare($alloc_check_query);
+        if (!$alloc_stmt) {
+            error_log("DeleteRoom - Prepare Error (Check Allocations): " . $this->conn->error);
+            return false;
+        }
+
+        $alloc_stmt->bind_param("i", $room_id);
+        $alloc_stmt->execute();
+        $alloc_result = $alloc_stmt->get_result();
+        $alloc_data = $alloc_result->fetch_assoc();
+        $alloc_stmt->close();
+
+        if ($alloc_data['active_count'] > 0) {
+            error_log("DeleteRoom - Cannot delete Room ID $room_id: Room has {$alloc_data['active_count']} active allocation(s)");
+            return false;
+        }
+
+        // Proceed with deletion if room is empty
         $query = "DELETE FROM rooms WHERE room_id = ?";
         $stmt = $this->conn->prepare($query);
         if (!$stmt) {

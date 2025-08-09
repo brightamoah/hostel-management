@@ -3,7 +3,7 @@
 ?>
 
 <!doctype html>
-<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
+<html lang="en" class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
@@ -51,13 +51,13 @@
 </head>
 
 <body>
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <?php include_once "./Components/sidebar.php" ?>
-            <div class="menu-mobile-toggler d-xl-none rounded-1">
-                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+            <div class="rounded-1 menu-mobile-toggler d-xl-none">
+                <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
                     <i class="bx bx-menu icon-base"></i>
-                    <i class="bx bx-chevron-right icon-base"></i>
+                    <i class="bx-chevron-right bx icon-base"></i>
                 </a>
             </div>
 
@@ -65,12 +65,12 @@
                 <?php include_once "./Components/header.php" ?>
 
                 <div class="content-wrapper">
-                    <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="flex-grow-1 container-p-y container-xxl">
                         <!-- Billings Table -->
                         <div class="card" id="billingsTable">
-                            <div class="card-header border-bottom">
-                                <h5 class="card-title mb-0">Your Billings</h5>
-                                <div class="d-flex justify-content-between align-items-center row pt-4 gap-md-0 g-6">
+                            <div class="border-bottom card-header">
+                                <h5 class="mb-0 card-title">Your Billings</h5>
+                                <div class="d-flex align-items-center justify-content-between gap-md-0 pt-4 row g-6">
                                     <div class="col-md-3">
                                         <input type="text" id="billingSearch" class="form-control" placeholder="Search billings..." />
                                     </div>
@@ -86,8 +86,8 @@
                                     <div class="col-md-6"></div>
                                 </div>
                             </div>
-                            <div class="card-datatable table-responsive">
-                                <table class="datatables-billings table border-top">
+                            <div class="table-responsive card-datatable">
+                                <table class="table border-top datatables-billings">
                                     <thead>
                                         <tr>
                                             <th></th>
@@ -96,6 +96,7 @@
                                             <th>Amount (GH₵)</th>
                                             <th>Date Due</th>
                                             <th>Status</th>
+                                            <th>Outstanding (GH₵)</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -108,53 +109,105 @@
                             <div class="modal-dialog modal-dialog-centered" role="document">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h5 class="modal-title">Confirm Payment</h5>
+                                        <h5 class="modal-title">Payment Details</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <p>Are you sure you want to pay <strong id="confirmAmount"></strong> for billing <strong id="confirmBillingId"></strong> (<span id="confirmDescription"></span>)?</p>
-                                        <p>This will initiate the payment process.</p>
+                                        <form id="paymentForm">
+                                            <div class="row g-3">
+                                                <div class="col-12">
+                                                    <h6 class="mb-3">Billing Information</h6>
+                                                    <div class="dark:bg-light card">
+                                                        <div class="card-body">
+                                                            <p class="mb-1"><strong>Billing ID:</strong> <span id="confirmBillingId"></span></p>
+                                                            <p class="mb-1"><strong>Description:</strong> <span id="confirmDescription"></span></p>
+                                                            <p class="mb-1"><strong>Purpose:</strong> <span id="confirmPurpose"></span></p>
+                                                            <p class="mb-0"><strong>Outstanding Amount:</strong> <span id="confirmMaxAmount" class="text-danger"></span></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-12">
+                                                    <h6 class="mb-3">Payment Amount</h6>
+                                                </div>
+
+                                                <div class="col-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="paymentType" id="fullPayment" value="full" checked>
+                                                        <label class="form-check-label" for="fullPayment">
+                                                            <strong>Pay Full Amount:</strong> <span id="fullAmountDisplay"></span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="paymentType" id="partialPayment" value="partial">
+                                                        <label class="form-check-label" for="partialPayment">
+                                                            <strong>Partial Payment</strong>
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-12" id="partialAmountSection" style="display: none;">
+                                                    <label for="paymentAmount" class="form-label">Enter Amount (GH₵)</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">GH₵</span>
+                                                        <input type="number" class="form-control" id="paymentAmount"
+                                                            step="0.01" min="1" placeholder="Enter amount">
+                                                    </div>
+                                                    <div class="form-text">
+                                                        Minimum: GH₵1.00 | Maximum: <span id="maxAmountText"></span>
+                                                    </div>
+                                                    <div id="amountError" class="text-danger small" style="display: none;"></div>
+                                                </div>
+                                            </div>
+                                        </form>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="button" class="btn btn-primary confirm-pay-btn">Proceed to Pay</button>
+                                        <button type="button" class="btn btn-primary confirm-pay-btn">
+                                            <i class="me-1 bx bx-credit-card"></i>
+                                            Proceed to Pay
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <?php include_once "./Components/footer.php" ?>
-                    <div class="content-backdrop fade"></div>
+                        <?php include_once __DIR__ . "/../../Components/admin/billing/view_invoice.php"; ?>
+
+                        <?php include_once "./Components/footer.php" ?>
+                        <div class="content-backdrop fade"></div>
+                    </div>
                 </div>
             </div>
+
+            <div class="layout-overlay layout-menu-toggle"></div>
+            <div class="drag-target"></div>
         </div>
 
-        <div class="layout-overlay layout-menu-toggle"></div>
-        <div class="drag-target"></div>
-    </div>
-
-    <!-- Core JS -->
-    <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
-    <script src="../../assets/vendor/libs/popper/popper.js"></script>
-    <script src="../../assets/vendor/js/bootstrap.js"></script>
-    <script src="../../assets/vendor/libs/@algolia/autocomplete-js.js"></script>
-    <script src="../../assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
-    <script src="../../assets/vendor/libs/pickr/pickr.js"></script>
-    <script src="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-    <script src="../../assets/vendor/libs/hammer/hammer.js"></script>
-    <script src="../../assets/vendor/libs/i18n/i18n.js"></script>
-    <script src="../../assets/vendor/js/menu.js"></script>
-    <script src="../../assets/vendor/libs/moment/moment.js"></script>
-    <script src="../../assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
-    <script src="../../assets/vendor/libs/select2/select2.js"></script>
-    <script src="../../assets/vendor/libs/@form-validation/popular.js"></script>
-    <script src="../../assets/vendor/libs/@form-validation/bootstrap5.js"></script>
-    <script src="../../assets/vendor/libs/@form-validation/auto-focus.js"></script>
-    <script src="../../assets/vendor/libs/cleave-zen/cleave-zen.js"></script>
-    <script src="../../assets/js/main.js"></script>
-    <script src="../../assets/js/ui-modals.js"></script>
-    <script src="../../assets/js/app-billing-list.js"></script>
+        <!-- Core JS -->
+        <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
+        <script src="../../assets/vendor/libs/popper/popper.js"></script>
+        <script src="../../assets/vendor/js/bootstrap.js"></script>
+        <script src="../../assets/vendor/libs/@algolia/autocomplete-js.js"></script>
+        <script src="../../assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
+        <script src="../../assets/vendor/libs/pickr/pickr.js"></script>
+        <script src="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+        <script src="../../assets/vendor/libs/hammer/hammer.js"></script>
+        <script src="../../assets/vendor/libs/i18n/i18n.js"></script>
+        <script src="../../assets/vendor/js/menu.js"></script>
+        <script src="../../assets/vendor/libs/moment/moment.js"></script>
+        <script src="../../assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+        <script src="../../assets/vendor/libs/select2/select2.js"></script>
+        <script src="../../assets/vendor/libs/@form-validation/popular.js"></script>
+        <script src="../../assets/vendor/libs/@form-validation/bootstrap5.js"></script>
+        <script src="../../assets/vendor/libs/@form-validation/auto-focus.js"></script>
+        <script src="../../assets/vendor/libs/cleave-zen/cleave-zen.js"></script>
+        <script src="../../assets/js/main.js"></script>
+        <script src="../../assets/js/ui-modals.js"></script>
+        <script src="../../assets/js/app-billing-list.js"></script>
 </body>
 
 </html>

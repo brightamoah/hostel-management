@@ -174,6 +174,27 @@
          initComplete: function () {
             const api = this.api();
 
+            if ($.fn.select2) {
+               $("#buildingFilter").select2({
+                  placeholder: "All Buildings",
+                  allowClear: true,
+                  width: "100%",
+               });
+
+               $("#roomTypeFilter").select2({
+                  placeholder: "All Room Types",
+                  allowClear: true,
+                  width: "100%",
+               });
+
+               // Floor filter
+               $("#floorFilter").select2({
+                  placeholder: "All Floors",
+                  allowClear: true,
+                  width: "100%",
+               });
+            }
+
             // Search box
             $("#roomSearch").on("keyup", function () {
                api.search(this.value).draw();

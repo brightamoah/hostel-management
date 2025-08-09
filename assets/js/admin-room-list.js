@@ -58,12 +58,7 @@
                                  exportOptions: {
                                     columns: [1, 2, 3, 4, 5, 6, 7],
                                     format: {
-                                       body: function (
-                                          data,
-                                          row,
-                                          column,
-                                          node
-                                       ) {
+                                       body: function (data, row, column) {
                                           if (column === 4) {
                                              // Capacity column (index 5 in table, 4 in export)
                                              const full = dt.row(row).data();
@@ -90,12 +85,7 @@
                                  exportOptions: {
                                     columns: [1, 2, 3, 4, 5, 6, 7],
                                     format: {
-                                       body: function (
-                                          data,
-                                          row,
-                                          column,
-                                          node
-                                       ) {
+                                       body: function (data, row, column) {
                                           if (column === 4) {
                                              const full = dt.row(row).data();
                                              const available =
@@ -120,12 +110,7 @@
                                  exportOptions: {
                                     columns: [1, 2, 3, 4, 5, 6, 7],
                                     format: {
-                                       body: function (
-                                          data,
-                                          row,
-                                          column,
-                                          node
-                                       ) {
+                                       body: function (data, row, column) {
                                           if (column === 4) {
                                              const full = dt.row(row).data();
                                              const available =
@@ -311,6 +296,99 @@
          },
          initComplete: function () {
             const api = this.api();
+
+            if ($.fn.select2) {
+               $("#buildingFilter").select2({
+                  placeholder: "All Buildings",
+                  allowClear: true,
+                  width: "100%",
+               });
+
+               $("#roomTypeFilter").select2({
+                  placeholder: "All Room Types",
+                  allowClear: true,
+                  width: "100%",
+               });
+
+               $("#floorFilter").select2({
+                  placeholder: "All Floors",
+                  allowClear: true,
+                  width: "100%",
+               });
+
+               // Add Room Modal selects
+               $("#room_type").select2({
+                  placeholder: "Select Room Type",
+                  allowClear: false,
+                  width: "100%",
+                  dropdownParent: $("#addRoomModal"),
+               });
+
+               $("#status").select2({
+                  placeholder: "Select Status",
+                  allowClear: false,
+                  width: "100%",
+                  dropdownParent: $("#addRoomModal"),
+               });
+
+               // Edit Room Modal selects
+               $("#edit_room_type").select2({
+                  placeholder: "Select Room Type",
+                  allowClear: false,
+                  width: "100%",
+                  dropdownParent: $("#editRoomModal"),
+               });
+
+               $("#edit_status").select2({
+                  placeholder: "Select Status",
+                  allowClear: false,
+                  width: "100%",
+                  dropdownParent: $("#editRoomModal"),
+               });
+            }
+
+            // Auto-populate capacity based on room type
+            $("#room_type").on("change", function () {
+               const roomType = $(this).val();
+               const capacityMap = {
+                  Single: 1,
+                  Double: 2,
+                  Triple: 3,
+                  Quad: 4,
+               };
+
+               if (capacityMap[roomType]) {
+                  $("#capacity").val(capacityMap[roomType]);
+               }
+            });
+
+            // Auto-populate capacity for edit modal too
+            $("#edit_room_type").on("change", function () {
+               const roomType = $(this).val();
+               const capacityMap = {
+                  Single: 1,
+                  Double: 2,
+                  Triple: 3,
+                  Quad: 4,
+               };
+
+               if (capacityMap[roomType]) {
+                  $("#edit_capacity").val(capacityMap[roomType]);
+               }
+            });
+
+            // Reset form when add modal is hidden
+            $("#addRoomModal").on("hidden.bs.modal", function () {
+               $("#addRoomForm")[0].reset();
+               $("#room_type").val(null).trigger("change");
+               $("#status").val(null).trigger("change");
+            });
+
+            // Reset form when edit modal is hidden
+            $("#editRoomModal").on("hidden.bs.modal", function () {
+               $("#edit_room_type").val(null).trigger("change");
+               $("#edit_status").val(null).trigger("change");
+            });
 
             // Initialize tooltips
             const tooltipTriggerList = [].slice.call(
@@ -617,6 +695,19 @@
             // Delete room
             $(document).on("click", ".delete-room-btn", function () {
                const roomId = $(this).data("room-id");
+
+               // First check if room has occupants by looking at the table data
+               const rowData = dt.row($(this).closest("tr")).data();
+               if (rowData && rowData.current_occupancy > 0) {
+                  Swal.fire({
+                     icon: "warning",
+                     title: "Cannot Delete Room",
+                     text: `This room currently has ${rowData.current_occupancy} occupant(s). Please relocate students before deleting.`,
+                     confirmButtonText: "OK",
+                  });
+                  return;
+               }
+
                Swal.fire({
                   title: "Are you sure?",
                   text: "You won't be able to revert this!",

@@ -151,6 +151,43 @@
          initComplete: function () {
             const api = this.api();
 
+            // Initialize select2 for all select elements in the filters and modal
+            if ($.fn.select2) {
+               $("#typeFilter").select2({
+                  placeholder: "Filter by Type",
+                  allowClear: true,
+                  width: "100%",
+               });
+               $("#priorityFilter").select2({
+                  placeholder: "Filter by Priority",
+                  allowClear: true,
+                  width: "100%",
+               });
+               $("#statusFilter").select2({
+                  placeholder: "Filter by Status",
+                  allowClear: true,
+                  width: "100%",
+               });
+               $("#issueType").select2({
+                  placeholder: "Select Issue Type",
+                  allowClear: true,
+                  dropdownParent: $("#newMaintenanceModal"),
+                  width: "100%",
+               });
+               $("#roomId").select2({
+                  placeholder: "Select Room",
+                  allowClear: true,
+                  dropdownParent: $("#newMaintenanceModal"),
+                  width: "100%",
+               });
+               $("#priority").select2({
+                  placeholder: "Select Priority",
+                  allowClear: true,
+                  dropdownParent: $("#newMaintenanceModal"),
+                  width: "100%",
+               });
+            }
+
             // Search box
             $("#maintenanceSearch").on("keyup", function () {
                api.search(this.value).draw();
@@ -198,47 +235,57 @@
                   method: "GET",
                   success: function (data) {
                      // Populate modal fields
-                     $("#modalRequestId").text(data.request_id);
-                     $("#modalIssueType").text(data.issue_type);
+                     $("#modalRequestId").text(data.details.request_id);
+                     $("#modalIssueType").text(data.details.issue_type);
                      $("#modalRequestRoom").text(
-                        data.room_number
-                           ? `${data.room_number} - ${data.building}`
+                        data.details.room_number
+                           ? `${data.details.room_number} - ${data.details.building}`
                            : "Not specified"
                      );
-                     $("#modalRequestDescription").text(data.description);
+                     $("#modalRequestDescription").text(
+                        data.details.description
+                     );
                      $("#modalRequestPriority").html(
-                        `<span class="badge bg-label-${data.priority === "Emergency"
-                           ? "danger"
-                           : data.priority === "High"
+                        `<span class="badge bg-label-${
+                           data.details.priority === "Emergency"
+                              ? "danger"
+                              : data.details.priority === "High"
                               ? "warning"
-                              : data.priority === "Medium"
-                                 ? "info"
-                                 : "success"
-                        }">${data.priority}</span>`
+                              : data.details.priority === "Medium"
+                              ? "info"
+                              : "success"
+                        }">${data.details.priority}</span>`
                      );
                      $("#modalRequestStatus").html(
-                        `<span class="badge bg-label-${data.status === "Completed"
-                           ? "success"
-                           : data.status === "Rejected"
+                        `<span class="badge bg-label-${
+                           data.details.status === "Completed"
+                              ? "success"
+                              : data.details.status === "Rejected"
                               ? "danger"
-                              : data.status === "In-Progress"
-                                 ? "primary"
-                                 : data.status === "Assigned"
-                                    ? "info"
-                                    : "warning"
-                        }">${data.status}</span>`
+                              : data.details.status === "In-Progress"
+                              ? "primary"
+                              : data.details.status === "Assigned"
+                              ? "info"
+                              : "warning"
+                        }">${data.details.status}</span>`
                      );
                      $("#modalRequestDate").text(
-                        moment(data.request_date).format("MMM D, YYYY h:mm A")
+                        moment(data.details.request_date).format(
+                           "MMM D, YYYY h:mm A"
+                        )
                      );
                      $("#modalSubmittedTimeAgo").text(
-                        `Submitted ${moment(data.request_date).fromNow()}`
+                        `Submitted ${moment(
+                           data.details.request_date
+                        ).fromNow()}`
                      );
 
                      // Show/hide follow-up button
                      $("#followUpBtn").css(
                         "display",
-                        data.status === "Pending" ? "inline-block" : "none"
+                        data.details.status === "Pending"
+                           ? "inline-block"
+                           : "none"
                      );
 
                      // Mock responses (implement actual response fetching in production)
@@ -258,18 +305,20 @@
                         </span>
                         <div class="timeline-event">
                            <div class="timeline-header mb-1">
-                              <h6 class="mb-0">${r.role === "Admin"
-                                             ? "Staff Response"
-                                             : "Student Response"
-                                          }</h6>
+                              <h6 class="mb-0">${
+                                 r.role === "Admin"
+                                    ? "Staff Response"
+                                    : "Student Response"
+                              }</h6>
                               <small class="text-muted">${moment(
-                                             r.response_date
-                                          ).format("MMM D, YYYY h:mm A")}</small>
+                                 r.response_date
+                              ).format("MMM D, YYYY h:mm A")}</small>
                            </div>
                            <p class="mb-2">${r.response_text}</p>
                            <div class="d-flex justify-content-between align-items-center">
-                              <span class="badge bg-label-info">Role: ${r.role
-                                          }</span>
+                              <span class="badge bg-label-info">Role: ${
+                                 r.role
+                              }</span>
                               <span>${r.name}</span>
                            </div>
                         </div>

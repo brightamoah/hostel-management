@@ -22,6 +22,13 @@
       }).format(new Date(date));
    };
 
+   const formatDateSafe = (dateStr) => {
+      if (!dateStr) return "Not specified";
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return "Invalid date";
+      return formatDate(dateStr);
+   };
+
    if (dt_billing_table) {
       const csrfToken =
          document
@@ -475,7 +482,7 @@
                         return;
                      }
 
-                     const details = response.data;
+                     const details = response.data.details;
 
                      if (!details) {
                         Swal.fire({
@@ -485,6 +492,17 @@
                         });
                         return;
                      }
+
+                     console.table({
+                        Amount: details.amount,
+                        "Paid Amount": details.paid_amount,
+                        "Outstanding Balance": details.outstanding_balance,
+                        "Late Payment Fee": details.late_payment_fee,
+                        Total: formatCurrency(
+                           parseFloat(details.amount) +
+                              parseFloat(details.late_payment_fee)
+                        ),
+                     });
 
                      $("#downloadInvoiceBtn").data(
                         "billing-id",
@@ -517,9 +535,9 @@
 
                      // Format dates
                      $("#modalDateIssued").text(
-                        formatDate(details.date_issued)
+                        formatDateSafe(details.date_issued)
                      );
-                     $("#modalDueDate").text(formatDate(details.date_due));
+                     $("#modalDueDate").text(formatDateSafe(details.date_due));
 
                      // Build invoice items
                      const itemsTable = $("#modalInvoiceItems tbody");
@@ -538,12 +556,20 @@
 
                      // Update totals
                      $("#modalSubtotal").text(formatCurrency(details.amount));
-                     $("#modalTotal").text(formatCurrency(details.amount));
+                     $("#modalLatePaymentFee").text(
+                        formatCurrency(details.late_payment_fee)
+                     );
+                     $("#modalTotal").text(
+                        formatCurrency(
+                           Number(details.amount) +
+                              Number(details.late_payment_fee)
+                        )
+                     );
                      $("#modalAmountPaid").text(
                         formatCurrency(details.paid_amount)
                      );
                      $("#modalBalanceDue").text(
-                        formatCurrency(details.amount - details.paid_amount)
+                        formatCurrency(details.outstanding_balance)
                      );
 
                      // Update transaction history if available
@@ -552,15 +578,14 @@
                      );
                      transactionTable.empty();
 
-                     if (
-                        details.transactions &&
-                        details.transactions.length > 0
-                     ) {
-                        details.transactions.forEach(function (transaction) {
+                     const transactions = response.data.transactions || [];
+
+                     if (transactions && transactions.length > 0) {
+                        transactions.forEach(function (transaction) {
                            transactionTable.append(`
                               <tr>
-                                 <td>${moment(transaction.payment_date).format(
-                                    "MMM D, YYYY"
+                                 <td>${formatDate(
+                                    transaction.payment_date
                                  )}</td>
                                  <td>${transaction.payment_method}</td>
                                  <td>${formatCurrency(transaction.amount)}</td>
@@ -900,7 +925,9 @@
                   method: "GET",
                   success: function (response) {
                      if (response.data) {
-                        const billing = response.data;
+                        const billing = response.data.details;
+
+                        console.table(billing);
 
                         // Set form values
                         $("#paymentBillingId").val(billingId);
@@ -913,7 +940,7 @@
 
                         // Set the payment amount to the outstanding balance by default
                         $("#paymentAmount").val(
-                           billing.outstanding_balance.toFixed(2)
+                           Number(billing.outstanding_balance).toFixed(2)
                         );
 
                         // Set purpose based on billing type (readonly)
@@ -921,19 +948,10 @@
 
                         // Set current date as default
                         const currentDate = new Date();
-                        const formattedDate =
-                           currentDate.getFullYear() +
-                           "-" +
-                           String(currentDate.getMonth() + 1).padStart(2, "0") +
-                           "-" +
-                           String(currentDate.getDate()).padStart(2, "0") +
-                           " " +
-                           String(currentDate.getHours()).padStart(2, "0") +
-                           ":" +
-                           String(currentDate.getMinutes()).padStart(2, "0") +
-                           ":" +
-                           String(currentDate.getSeconds()).padStart(2, "0");
+                        const formattedDate = formatDateSafe(currentDate);
                         $("#paymentDate").val(formattedDate);
+
+                        console.log(formattedDate);
 
                         // Generate default transaction reference
                         const defaultTxnRef = `TXN-INV-${String(
@@ -980,14 +998,16 @@
                         return;
                      }
 
-                     const details = response.data;
+                     const details = response.data.details;
+
+                     console.log(details);
+
                      const dueDate = new Date(details.date_due);
                      const today = new Date();
                      const timeDiff = dueDate.getTime() - today.getTime();
                      const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
                      const status = details.status;
-                     const outstandingAmount =
-                        details.amount - details.paid_amount;
+                     const outstandingAmount = details.outstanding_balance;
 
                      // Populate invoice details
                      $("#reminderInvoiceDetails").text(

@@ -155,7 +155,6 @@ CREATE TABLE announcements (
     FOREIGN KEY (posted_by) REFERENCES admins (admin_id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
-
 -- Table structure for table `announcement_reads`
 -- This table tracks which students have read which announcements
 CREATE TABLE announcement_reads (
@@ -420,12 +419,10 @@ WHERE
     check_in_time IS NOT NULL
     OR check_out_time IS NOT NULL;
 
-
-    -- //alter the visitors table to remove checkintime and checkouttime columns 
+-- //alter the visitors table to remove checkintime and checkouttime columns
 ALTER TABLE visitors
-    DROP COLUMN check_in_time,
-    DROP COLUMN check_out_time;
-
+DROP COLUMN check_in_time,
+DROP COLUMN check_out_time;
 
 SHOW COLUMNS FROM visitors LIKE 'visit_date';
 
@@ -458,22 +455,21 @@ VALUES (
         'Approved'
     );
 
-    SHOW TABLES FROM hostel_management LIKE 'bill%';
+SHOW TABLES FROM hostel_management LIKE 'bill%';
 
-    -- Make date_due use the same format as date_issued (with time component)
+-- Make date_due use the same format as date_issued (with time component)
 ALTER TABLE billing MODIFY COLUMN date_due DATETIME NOT NULL;
-SHOW TABLES FROM hostel_management;
 
+SHOW TABLES FROM hostel_management;
 
 -- modify the allocation taable allocations to add allocation period enum
 ALTER TABLE allocations
-    ADD COLUMN academic_period ENUM(
-        'Semester 1',
-        'Semester 2',
-        'Entire Year',
-        'Vacation Period'
-    ) NOT NULL DEFAULT 'Semester 1';
-
+ADD COLUMN academic_period ENUM(
+    'Semester 1',
+    'Semester 2',
+    'Entire Year',
+    'Vacation Period'
+) NOT NULL DEFAULT 'Semester 1';
 
 ALTER TABLE billing
 ADD COLUMN billing_type ENUM(
@@ -497,3 +493,36 @@ ADD COLUMN payment_terms ENUM(
     'Immediate Payment'
 ) NOT NULL DEFAULT 'Net 30 Days';
 
+ALTER TABLE payments ADD COLUMN description TEXT NULL DEFAULT NULL;
+
+ALTER TABLE billing
+ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+ALTER TABLE billing
+ADD COLUMN outstanding_amount DECIMAL(10, 2) AS (
+    (amount - paid_amount) + late_fee
+) PERSISTENT;
+
+UPDATE billing
+SET
+    late_fee = late_fee + (amount * 0.05),
+    status = 'Overdue'
+WHERE (
+        status = 'Unpaid'
+        OR status = 'Overdue'
+    )
+    AND date_due < NOW();
+
+-- Drop the existing generated column if it exists
+-- ALTER TABLE billing DROP COLUMN outstanding_amount;
+
+ALTER TABLE billing ADD COLUMN late_fee DECIMAL(10, 2) DEFAULT 0.00;
+
+-- Re-add the outstanding_amount column to include late_fee in the calculation
+ALTER TABLE billing
+ADD COLUMN outstanding_amount DECIMAL(10, 2) AS (
+    GREATEST(
+        (amount + late_fee) - paid_amount,
+        0
+    )
+) PERSISTENT;

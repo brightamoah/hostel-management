@@ -17,7 +17,7 @@ get('/reset-password/$tkn', '/app/controllers/ResetPassword.php', ['guest']);
 
 // General Routes
 get('/layout', '/pages/layout.php');
-
+get('/paystack/callback', '/app/controllers/PaystackCallback.php');
 
 
 
@@ -29,6 +29,8 @@ get('/student/announcements-data', 'api/student/GetAnnouncements.php', ['auth'])
 get('/student/rooms-data', 'api/student/GetAvailableRooms.php', ['auth']);
 get('/student/room/$id', 'api/student/GetRoomById.php', ['auth']);
 get('/student/billing-data', 'api/student/GetBillings.php', ['auth']);
+get('/student/billing/$bill_id', 'api/student/billing/GetBillingById.php', ['auth']);
+
 get('/student/maintenance-data', 'api/student/GetAllMaintenance.php', ['auth']);
 get('/student/maintenance/$r_id', 'api/student/GetSpecificMaintenance.php', ['auth']);
 get('/student/maintenance/$r_id/response', 'api/student/GetMaintenanceResponse.php', ['auth']);
@@ -61,6 +63,9 @@ get('/admin/building-data', 'api/admin/billings/GetBuilding.php', ['auth', 'admi
 get('/admin/students-data', 'api/admin/billings/GetStudents.php', ['auth', 'admin']);
 get('/admin/generate-invoice-pdf', 'api/admin/billings/GeneratePDF.php', ['auth', 'admin']);
 get('/admin/email-invoice', 'api/admin/billings/EmailHandler.php', ['auth', 'admin']);
+get('/admin/complaints-data', 'api/admin/complaints/GetAllComplaint.php', ['auth', 'admin']);
+get('/admin/complaint/$c_id', 'api/admin/complaints/GetComplaintById.php', ['auth', 'admin']);
+get('/admin/complaint/$c_id/responses', 'api/admin/complaints/GetResponsesForComplaint.php', ['auth', 'admin']);
 
 
 
@@ -93,6 +98,9 @@ get('/student/announcements', '/pages/student/announcement.php', ['auth']);
 get('/student/rooms', '/pages/student/rooms.php', ['auth']);
 get('/student/visitors', '/pages/student/visitors.php', ['auth']);
 get('/student/book-room', '/pages/student/book_room.php', ['auth']);
+get('/student/payment-success', '/pages/student/payment-successful.php', ['auth']);
+get('/student/payment-failed', '/pages/student/payment-failed.php', ['auth']);
+
 // get('/student/data', '/app/controllers/student.php', ['auth']);
 
 
@@ -130,6 +138,9 @@ post('/admin/update-invoice/$billingId', 'api/admin/billings/UpdateBilling.php',
 post('/admin/delete-invoice/$billingId', 'api/admin/billings/DeleteInvoice.php', ['auth', 'admin']);
 post('/admin/billing/send-reminder', 'api/admin/billings/SendBillingReminder.php', ['auth', 'admin']);
 post('/admin/billing/record-payment', 'api/admin/billings/RecordPayment.php', ['auth', 'admin']);
+post('/admin/complaint/$c_id/status', 'api/admin/complaints/UpdateComplaintStatus.php', ['auth', 'admin']);
+post('/admin/complaint/$c_id/response', 'api/admin/complaints/AddComplaintResponse.php', ['auth', 'admin']);
+post('/student/billing/$bill_id/pay', 'api/student/billing/InitiatePayment.php', ['auth']);
 // post('/api/admin/fetch-targets', 'api/admin/announcement/fetchTargets.php', ['auth', 'admin']);
 
 // Room Management Routes (Admin)

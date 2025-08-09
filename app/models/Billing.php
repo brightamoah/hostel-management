@@ -28,52 +28,62 @@ class Billing
     {
         $id = $this->db->real_escape_string($id);
         $query = "
-            SELECT b.*, s.first_name, s.last_name, u.email, s.phone_number, 
+           SELECT b.*, s.first_name, s.last_name, u.email, s.phone_number, 
                     p.purpose, p.payment_method, p.payment_date, p.amount as payment_amount
             FROM billing b
             LEFT JOIN students s ON b.student_id = s.student_id
             LEFT JOIN allocations a ON b.allocation_id = a.allocation_id
-            LEFT JOIN payments p ON b.billing_id = p.billing_id
+            LEFT JOIN payments p ON b.billing_id = p.billing_id AND p.status = 'Completed'
             LEFT JOIN users u ON s.user_id = u.user_id
             WHERE b.billing_id = '$id'
+            ORDER BY p.payment_date DESC
         ";
 
         $result = $this->db->query($query);
-        $data = [];
+        $data = null;
+        $transactions = [];
+
         while ($row = $result->fetch_assoc()) {
-            // Map billing_type to payment purpose
-            $billing_type_to_purpose = [
-                'Hostel Fee' => 'Hostel Fee',
-                'Security Deposit' => 'Security Deposit',
-                'Utility Fee' => 'Other',
-                'Maintenance Fee' => 'Maintenance Charge',
-                'Late Payment Penalty' => 'Penalty',
-                'Other' => 'Other'
-            ];
+            if ($data === null) {
+                // Map billing_type to payment purpose
+                $billing_type_to_purpose = [
+                    'Hostel Fee' => 'Hostel Fee',
+                    'Security Deposit' => 'Security Deposit',
+                    'Utility Fee' => 'Other',
+                    'Maintenance Fee' => 'Maintenance Charge',
+                    'Late Payment Penalty' => 'Penalty',
+                    'Other' => 'Other'
+                ];
 
-            $billing_type = $row['billing_type'];
-            $mapped_purpose = $billing_type_to_purpose[$billing_type] ?? 'Other';
+                $billing_type = $row['billing_type'];
+                $mapped_purpose = $billing_type_to_purpose[$billing_type] ?? 'Other';
 
-            $data['details'] = [
-                'billing_id' => $row['billing_id'],
-                'student_name' => $row['first_name'] . ' ' . $row['last_name'],
-                'student_id' => $row['student_id'],
-                'student_email' => $row['email'],
-                'student_phone' => $row['phone_number'],
-                'amount' => $row['amount'],
-                'description' => $row['description'],
-                'date_issued' => $row['date_issued'],
-                'date_due' => $row['date_due'],
-                'status' => $row['status'],
-                'paid_amount' => $row['paid_amount'],
-                'billing_type' => $billing_type,
-                'mapped_purpose' => $mapped_purpose,
-                'outstanding_balance' => floatval($row['amount']) - floatval($row['paid_amount']),
-                'purpose' => $row['purpose'] ?? 'Hostel Fee',
-                'academic_period' => $row['academic_period'] ?? 'Not specified',
-            ];
+                $data['details'] = [
+                    'billing_id' => $row['billing_id'],
+                    'student_name' => $row['first_name'] . ' ' . $row['last_name'],
+                    'student_id' => $row['student_id'],
+                    'student_email' => $row['email'],
+                    'student_phone' => $row['phone_number'],
+                    'amount' => $row['amount'],
+                    'description' => $row['description'],
+                    'date_issued' => $row['date_issued'],
+                    'date_due' => $row['date_due'],
+                    'status' => $row['status'],
+                    'paid_amount' => $row['paid_amount'],
+                    'billing_type' => $billing_type,
+                    'mapped_purpose' => $mapped_purpose,
+                    'outstanding_balance' => $row['outstanding_amount'],
+                    'late_payment_fee' => $row['late_fee'],
+                    'purpose' => $row['purpose'] ?? 'Hostel Fee',
+                    'academic_period' => $row['academic_period'] ?? 'Not specified',
+                    'payment_terms' => $row['payment_terms'],
+                ];
+            }
+
+
+            // Add transaction if payment data exists
             if ($row['payment_date']) {
-                $data['details']['transactions'][] = [
+                $transactions[] = [
                     'payment_date' => $row['payment_date'],
                     'payment_method' => $row['payment_method'],
                     'amount' => $row['payment_amount'],
@@ -81,7 +91,15 @@ class Billing
             }
         }
 
-        return $data['details'] ?? null;
+        // Add all transactions to the data
+        if ($data !== null) {
+            return [
+                'details' => $data['details'],
+                'transactions' => $transactions
+            ];
+        }
+
+        return null;
     }
 
 

@@ -23,6 +23,22 @@ class ComplaintController
     }
 
     /**
+     * get all complaints for admin
+     * Handle GET /admin/complaints-data
+     */
+    public function getAllComplaints()
+    {
+        $this->requireAdmin();
+        try {
+            $complaints = $this->complaintModel->getAllComplaints();
+            $this->sendJsonResponse(['success' => true, 'data' => $complaints]);
+        } catch (Exception $e) {
+            $this->sendJsonResponse(['success' => false, 'error' => "Failed to fetch complaints: " . $e->getMessage()]);
+        }
+    }
+
+
+    /**
      * Handle GET /complaint/{id}
      */
     public function getComplaint($id)
@@ -32,6 +48,20 @@ class ComplaintController
 
         $result = $this->complaintModel->getComplaintById($id, $student_id)['data'] ?? null;
         $this->sendJsonResponse($result);
+    }
+
+    /**
+     * Handle GET /admin/complaint/{id}
+     */
+    public function getComplaintById($id)
+    {
+        $this->requireAdmin();
+        $result = $this->complaintModel->getComplaintByIdAdmin($id);
+        if (!$result['success']) {
+            $this->sendJsonResponse(['success' => false, 'error' => 'Complaint not found']);
+            return;
+        }
+        $this->sendJsonResponse($result['data']);
     }
 
 
@@ -55,6 +85,20 @@ class ComplaintController
     }
 
     /**
+     * Handle GET /admin/complaint/{id}/responses
+     */
+    public function getComplaintResponsesAdmin($complaint_id)
+    {
+        $this->requireAdmin();
+        $result = $this->complaintModel->getComplaintResponses($complaint_id);
+        if (!$result['success']) {
+            $this->sendJsonResponse(['success' => false, 'error' => 'Complaint not found']);
+            return;
+        }
+        $this->sendJsonResponse(['data' => $result['data']]);
+    }
+
+    /**
      * Handle POST /complaint/submit
      */
     public function submitComplaint()
@@ -72,7 +116,7 @@ class ComplaintController
             $this->sendJsonResponse(['success' => false, 'error' => 'Invalid CSRF token']);
             return;
         }
-        
+
 
         $data = [
             'complaint_type' => $_POST['complaint_type'] ?? '',
@@ -98,28 +142,73 @@ class ComplaintController
     {
         $this->requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->sendJsonResponse(['success' => false, 'error' => 'Method not allowed']);
-            return;
+            return $this->sendJsonResponse(['success' => false, 'error' => 'Method not allowed']);
         }
-
-        $status = $_POST['status'] ?? '';
+        if (!is_csrf_valid()) {
+            return $this->sendJsonResponse(['success' => false, 'error' => 'Invalid CSRF token.'], 403);
+        }
+        $status = $_POST['status'] ?? null;
+        if (!$status) {
+            return $this->sendJsonResponse(['success' => false, 'error' => 'Status is required.'], 400);
+        }
         $valid_statuses = ['Pending', 'In-Progress', 'Resolved', 'Rejected'];
         if (!in_array($status, $valid_statuses)) {
-            $this->sendJsonResponse(['success' => false, 'error' => 'Invalid status']);
-            return;
+            return $this->sendJsonResponse(['success' => false, 'error' => 'Invalid status']);
         }
-
+        $complaint = $this->complaintModel->getComplaintByIdAdmin($id);
+        if (!$complaint['success'] ?? false) {
+            return $this->sendJsonResponse(['success' => false, 'error' => $complaint['error'] ?? 'Complaint not found.'], 404);
+        }
+        $currentStatus = $complaint['data']['status'] ?? null;
+        if ($currentStatus === null) {
+            return $this->sendJsonResponse(['success' => false, 'error' => 'Complaint record is missing status field.'], 500);
+        }
+        if ($currentStatus === $status) {
+            return $this->sendJsonResponse(['success' => false, 'error' => "No changes made. Status is already $status."], 200);
+        }
         $result = $this->complaintModel->updateComplaintStatus($id, $status);
-        $this->sendJsonResponse($result);
+        if ($result['success'] ?? false) {
+            return $this->sendJsonResponse(['success' => true, 'message' => "Complaint status updated to $status."]);
+        }
+        return $this->sendJsonResponse(['success' => false, 'error' => $result['error'] ?? 'Failed to update complaint status. Please try again.'], 500);
     }
 
     /**
-     * (Optional) Handle POST /complaint/{id}/response - Admin
+     * Handle POST /complaint/{id}/response - Admin
      */
     public function addComplaintResponse($id)
     {
         $this->requireAdmin();
-        $admin_id = $_SESSION['user']['admin_id'] ?? 0;
+
+        // Get admin_id from database using user_id
+        $user_id = $_SESSION['user']['user_id'] ?? 0;
+        if ($user_id <= 0) {
+            $this->sendJsonResponse(['success' => false, 'error' => 'Invalid user session']);
+            return;
+        }
+
+        // Fetch admin_id from admins table
+        $admin_query = "SELECT admin_id FROM admins WHERE user_id = ?";
+        $stmt = $this->complaintModel->getConnection()->prepare($admin_query);
+        if (!$stmt) {
+            $this->sendJsonResponse(['success' => false, 'error' => 'Database error']);
+            return;
+        }
+
+
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $admin_data = $result->fetch_assoc();
+        $stmt->close();
+
+        if (!$admin_data || !$admin_data['admin_id']) {
+            $this->sendJsonResponse(['success' => false, 'error' => 'Admin record not found']);
+            return;
+        }
+
+        $admin_id = $admin_data['admin_id'];
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->sendJsonResponse(['success' => false, 'error' => 'Method not allowed']);
             return;

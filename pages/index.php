@@ -29,12 +29,12 @@ function getRoute()
 <!DOCTYPE html>
 <html
     lang="en"
-    class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact"
+    class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact"
     dir="ltr"
     data-skin="default"
     data-assets-path="../../assets/"
     data-template="front-pages"
-    data-bs-theme="light">
+    data-bs-theme="system">
 
 <head>
     <meta charset="UTF-8">
@@ -100,23 +100,23 @@ function getRoute()
     <div data-bs-spy="scroll" class="scrollspy-example" style="margin-top: -2rem;">
         <!-- Hero: Start -->
         <section id="hero-animation">
-            <div id="landingHero" class="section-py landing-hero position-relative">
+            <div id="landingHero" class="position-relative section-py landing-hero">
                 <img
                     src="../assets/img/front-pages/backgrounds/hero-bg.png"
                     alt="hero background"
-                    class="position-absolute top-20 start-50 translate-middle-x object-fit-cover w-100 h-100"
+                    class="top-20 position-absolute w-100 h-100 object-fit-cover translate-middle-x start-50"
                     data-speed="1" />
                 <div class="container">
-                    <div class="hero-text-box text-center position-relative">
+                    <div class="position-relative hero-text-box text-center">
                         <h1 class="text-primary hero-title display-6 fw-extrabold">
                             Welcome to Kings Hostel Management System
                         </h1>
-                        <h2 class="hero-sub-title h6 mb-6">
-                            Seamless Hostel Management for Everyone.<br class="d-none d-lg-block" />
+                        <h2 class="mb-6 hero-sub-title h6">
+                            Seamless Hostel Management for Everyone.<br class="d-lg-block d-none" />
                             Easily book rooms, manage tenants, and track payments.Whether you're a resident or an admin, our system keeps everything organized and hassle-free!
                         </h2>
-                        <div class="landing-hero-btn d-inline-block position-relative">
-                            <span class="hero-btn-item position-absolute d-none d-md-flex fw-medium">Join community
+                        <div class="d-inline-block position-relative landing-hero-btn">
+                            <span class="position-absolute d-md-flex hero-btn-item d-none fw-medium">Join community
                                 <img
                                     src="../assets/img/front-pages/icons/Join-community-arrow.png"
                                     alt="Join community arrow"
@@ -156,11 +156,11 @@ function getRoute()
     </div>
 
     <!-- Footer: Start -->
-    <footer class="landing-footer bg-body footer-text">
+    <footer class="bg-body landing-footer footer-text">
 
         <div class="footer-bottom py-3 py-md-5">
             <div
-                class="container d-flex flex-wrap justify-content-between flex-md-row flex-column text-center text-md-start">
+                class="d-flex flex-column flex-wrap flex-md-row justify-content-between text-md-start text-center container">
                 <div class="mb-2 mb-md-0">
                     <span class="footer-bottom-text">©
                         <script>

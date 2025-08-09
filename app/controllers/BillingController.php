@@ -3,17 +3,20 @@
 require_once __DIR__ . "/../models/Student.php";
 require_once __DIR__ . "/../../database/db.php";
 require_once __DIR__ . "/../models/Billing.php";
+require_once __DIR__ . "/../../services/PaymentService.php";
 
 
 class BillingController
 {
     private $studentModel;
     private $billingModel;
+    private $paymentService;
 
     public function __construct()
     {
         $this->studentModel = new Student(getDb());
         $this->billingModel = new Billing();
+        $this->paymentService = new PaymentService();
     }
 
     public function getBillings()
@@ -32,34 +35,6 @@ class BillingController
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
         exit();
-    }
-
-    public function payBilling($billing_id)
-    {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_csrf_valid()) {
-            header('Content-Type: application/json');
-            $user_id = $_SESSION['user']['user_id'] ?? null;
-            if (!$user_id) {
-                echo json_encode(['success' => false, 'error' => 'User not authenticated']);
-                exit();
-            }
-
-            try {
-                $result = $this->studentModel->initiatePayment($user_id, $billing_id);
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Payment initiated successfully',
-                    // 'payment_url' => $result['payment_url'] // Uncomment for actual gateway
-                ]);
-            } catch (Exception $e) {
-                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
-            }
-            exit();
-        } else {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'Invalid request or CSRF token']);
-            exit();
-        }
     }
 
     public function getBillingData()
@@ -329,6 +304,190 @@ class BillingController
         } catch (Exception $e) {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => 'Failed to get billing details: ' . $e->getMessage()]);
+            http_response_code(500);
+        }
+        exit();
+    }
+
+
+    public function initializePayment($billing_id)
+    {
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !is_csrf_valid()) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid request or CSRF token']);
+            http_response_code(403);
+            exit;
+        }
+
+        $user_id = $_SESSION['user']['user_id'] ?? null;
+        if (!$user_id) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'User not authenticated']);
+            http_response_code(401);
+            exit;
+        }
+
+        $student_id = $_SESSION['user']['student_id'] ?? null;
+        if (!$student_id) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Student record not found']);
+            http_response_code(404);
+            exit;
+        }
+
+        $user_email = $_SESSION['user']['email'] ?? null;
+        if (!$user_email) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'User email not found']);
+            http_response_code(404);
+            exit;
+        }
+
+        try {
+            $billingData = $this->billingModel->getBillingById($billing_id);
+            if (!$billingData || !isset($billingData['details'])) {
+                throw new Exception('Billing record not found');
+            }
+
+            $billing = $billingData['details'];
+
+            if ($billing['status'] === 'Fully Paid') {
+                throw new Exception('This invoice is already fully paid');
+            }
+
+            $outstandingAmount = floatval($billing['outstanding_balance']);
+
+            if ($outstandingAmount <= 0) {
+                throw new Exception('No outstanding amount to pay');
+            }
+
+            // Get custom payment amount from request, default to outstanding amount
+            $requestedAmount = floatval($_POST['payment_amount'] ?? $outstandingAmount);
+
+            // Validate requested amount
+            if ($requestedAmount < 1) {
+                throw new Exception('Payment amount must be at least GH₵1.00');
+            }
+
+            if ($requestedAmount > $outstandingAmount) {
+                throw new Exception('Payment amount cannot exceed outstanding balance of GH₵' . number_format($outstandingAmount, 2));
+            }
+
+            $billing_type_to_purpose = [
+                'Hostel Fee' => 'Hostel Fee',
+                'Security Deposit' => 'Security Deposit',
+                'Utility Fee' => 'Other',
+                'Maintenance Fee' => 'Maintenance Charge',
+                'Late Payment Penalty' => 'Penalty',
+                'Other' => 'Other'
+            ];
+
+            $billing_type = $billing['billing_type'] ?? 'Other';
+            $mapped_purpose = $billing_type_to_purpose[$billing_type] ?? 'Other';
+
+            $result = $this->paymentService->initializePayment(
+                $billing_id,
+                $student_id,
+                $requestedAmount,
+                $user_email,
+                $mapped_purpose,
+                $billing['description']
+            );
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            http_response_code(500);
+        }
+        exit();
+    }
+
+    public function verifyPayment()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            header("Location: /student/billing?error=" . urlencode('Invalid request method'));
+            exit;
+        }
+
+        $reference = $_GET['reference'] ?? $_GET['trxref'] ?? '';
+        if (!$reference) {
+            header("Location: /student/billing?error=" . urlencode('Payment reference is missing'));
+            exit;
+        }
+
+        try {
+            $result = $this->paymentService->verifyPayment($reference);
+
+            if ($result['success']) {
+
+                $payment = $this->paymentService->getPaymentByReference($reference);
+
+                if ($payment) {
+
+                    $_SESSION['payment_success'] = [
+                        'reference' => $reference,
+                        'amount' => $payment['amount'],
+                        'billing_id' => $payment['billing_id'],
+                        'payment_method' => $payment['payment_method'],
+                        'payment_date' => $payment['payment_date'],
+                        'purpose' => $payment['purpose'],
+                        'status' => $payment['status']
+                    ];
+
+                    // Redirect to success page with payment details
+                    header("Location: /student/payment-success?reference=" . urlencode($reference));
+                    exit;
+                }
+            }
+
+            $_SESSION['payment_error'] = [
+                'reference' => $reference,
+                'message' => 'Payment verification failed or was not successful'
+            ];
+
+            header("Location: /student/payment-failed?reference=" . urlencode($reference));
+            exit;
+        } catch (Exception $e) {
+            error_log("Payment verification error: " . $e->getMessage());
+
+            // Set error data in session
+            $_SESSION['payment_error'] = [
+                'reference' => $reference,
+                'message' => $e->getMessage()
+            ];
+
+            header("Location: /student/payment-failed?reference=" . urlencode($reference));
+            exit;
+        }
+    }
+
+    public function getPaymentStatus($reference)
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid request method']);
+            http_response_code(405);
+            exit;
+        }
+
+        try {
+
+            $payment = $this->paymentService->getPaymentByReference($reference);
+
+            if (!$payment) {
+                throw new Exception('Payment not found');
+            }
+
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'payment' => $payment
+            ]);
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
             http_response_code(500);
         }
         exit();

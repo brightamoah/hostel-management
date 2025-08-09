@@ -21,11 +21,16 @@ class PDFGenerator
 
     public function generateInvoicePDF($billing_id, $output_to_browser = false)
     {
-        $billingData = $this->billingModel->getBillingById($billing_id);
+        $billingDataResponse = $this->billingModel->getBillingById($billing_id);
 
-        if (!$billingData) {
+        if (!$billingDataResponse || !isset($billingDataResponse['details'])) {
             throw new Exception("Billing record not found for ID: $billing_id");
         }
+
+        $billingData = $billingDataResponse['details'];
+        $transactions = $billingDataResponse['transactions'] ?? [];
+
+        $billingData['transactions'] = $transactions;
 
         $html = $this->buildInvoiceHTML($billingData);
 
@@ -406,4 +411,3 @@ class PDFGenerator
 
 
 // Handle direct access for PDF download
-
