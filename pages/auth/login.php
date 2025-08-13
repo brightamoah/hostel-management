@@ -7,15 +7,15 @@ require_once "./app/controllers/Login.php";
 
 <html
    lang="en"
-   class=layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compacts"
+   class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact"
    dir="ltr"
    data-skin="default"
    data-assets-path="../../assets/"
    data-template="front-pages"
-   data-bs-theme="light">
+   data-bs-theme="system">
 
 <head>
-   <meta charset="utf-8" />
+   <meta charset=" utf-8" />
    <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
@@ -70,21 +70,21 @@ require_once "./app/controllers/Login.php";
    <!-- Content -->
    <div class="container-xxl">
 
-      <div class="authentication-wrapper authentication-basic container-p-y">
+      <div class="container-p-y authentication-wrapper authentication-basic">
          <div class="authentication-inner">
 
             <!-- Login -->
-            <div class="card px-sm-6 px-0">
+            <div class="px-0 px-sm-6 card">
                <div class="card-body">
                   <!-- Logo -->
-                  <div class="app-brand justify-content-center">
-                     <a href="/" class="app-brand-link gap-2">
-                        <span class="app-brand-logo demo justify-center place-items-center text-center">
+                  <div class="justify-content-center app-brand">
+                     <a href="/" class="gap-2 app-brand-link">
+                        <span class="justify-center place-items-center text-center app-brand-logo demo">
 
                            <img src="../../assets/img/logo.svg" alt="logo" class="text-primary" width="80%" height="70%" />
 
                         </span>
-                        <!-- <span class="app-brand-text demo text-heading fw-bold">Kings Hostel</span> -->
+                        <!-- <span class="text-heading app-brand-text demo fw-bold">Kings Hostel</span> -->
                      </a>
                   </div>
                   <!-- /Logo -->
@@ -140,7 +140,7 @@ require_once "./app/controllers/Login.php";
                      </div>
                      <div class="mb-7">
                         <div class="d-flex justify-content-between">
-                           <div class="form-check mb-0">
+                           <div class="mb-0 form-check">
                               <input class="form-check-input" type="checkbox" id="remember_me" name="remember_me" />
                               <label class="form-check-label" for="remember_me"> Remember Me </label>
                            </div>
@@ -150,7 +150,7 @@ require_once "./app/controllers/Login.php";
                         </div>
                      </div>
                      <div class="mb-6">
-                        <input class="btn btn-primary d-grid w-100" type="submit" value="Login" />
+                        <input class="d-grid w-100 btn btn-primary" type="submit" value="Login" />
                      </div>
                   </form>
 
@@ -161,24 +161,24 @@ require_once "./app/controllers/Login.php";
                      </a>
                   </p>
 
-                  <!-- <div class="divider my-6">
+                  <!-- <div class="my-6 divider">
                      <div class="divider-text">or</div>
                   </div>
 
                   <div class="d-flex justify-content-center">
-                     <a href="javascript:;" class="btn btn-sm btn-icon rounded-circle btn-text-facebook me-1_5">
+                     <a href="javascript:;" class="me-1_5 rounded-circle btn-text-facebook btn btn-sm btn-icon">
                         <i class="icon-base bx bxl-facebook-circle icon-20px"></i>
                      </a>
 
-                     <a href="javascript:;" class="btn btn-sm btn-icon rounded-circle btn-text-twitter me-1_5">
+                     <a href="javascript:;" class="me-1_5 rounded-circle btn-text-twitter btn btn-sm btn-icon">
                         <i class="icon-base bx bxl-twitter icon-20px"></i>
                      </a>
 
-                     <a href="javascript:;" class="btn btn-sm btn-icon rounded-circle btn-text-github me-1_5">
+                     <a href="javascript:;" class="me-1_5 rounded-circle btn-text-github btn btn-sm btn-icon">
                         <i class="icon-base bx bxl-github icon-20px"></i>
                      </a>
 
-                     <a href="javascript:;" class="btn btn-sm btn-icon rounded-circle btn-text-google-plus">
+                     <a href="javascript:;" class="rounded-circle btn-text-google-plus btn btn-sm btn-icon">
                         <i class="icon-base bx bxl-google icon-20px"></i>
                      </a>
                   </div> -->

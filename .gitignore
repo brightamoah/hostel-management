@@ -18,3 +18,7 @@ debug_session.php
 # OS specific files
 .DS_Store
 Thumbs.db
+
+#instructions
+general_instructions.md
+SYSTEM_INSTRUCTIONS.md
