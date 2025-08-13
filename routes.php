@@ -66,6 +66,7 @@ get('/admin/email-invoice', 'api/admin/billings/EmailHandler.php', ['auth', 'adm
 get('/admin/complaints-data', 'api/admin/complaints/GetAllComplaint.php', ['auth', 'admin']);
 get('/admin/complaint/$c_id', 'api/admin/complaints/GetComplaintById.php', ['auth', 'admin']);
 get('/admin/complaint/$c_id/responses', 'api/admin/complaints/GetResponsesForComplaint.php', ['auth', 'admin']);
+get('/admin/analytics-data', 'api/admin/GetAnalyticsData.php', ['auth', 'admin']);
 
 
 

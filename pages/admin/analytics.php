@@ -1,8 +1,3 @@
-<?php
-// require_once "./app/controllers/student.php";
-
-?>
-
 <!DOCTYPE html>
 <html lang="en" class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
@@ -12,7 +7,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    <title>Kings Hostel - Student Dashboard</title>
+    <title>Kings Hostel - Analytics Dashboard</title>
 
     <meta name="description" content="" />
 
@@ -45,11 +40,27 @@
     <link rel="stylesheet" href="../../assets/vendor/libs/@form-validation/form-validation.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/animate-css/animate.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/sweetalert2/sweetalert2.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/apex-charts/apex-charts.css" />
 
     <!-- Helpers -->
     <script src="../../assets/vendor/js/helpers.js"></script>
     <script src="../../assets/vendor/js/template-customizer.js"></script>
     <script src="../../assets/js/config.js"></script>
+
+    <style>
+        .chart-loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .chart-container {
+            position: relative;
+        }
+    </style>
 </head>
 
 <body>
@@ -57,7 +68,7 @@
     <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
-            <?php include_once "./Components/sidebar.php" ?>
+            <?php include_once __DIR__ . "/../../Components/sidebar.php" ?>
 
             <div class="rounded-1 menu-mobile-toggler d-xl-none">
                 <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
@@ -70,25 +81,83 @@
             <!-- Layout container -->
             <div class="layout-page">
                 <!-- Navbar -->
-                <?php include_once "./Components/admin/header.php" ?>
+                <?php include_once __DIR__ . "/../../Components/admin/header.php" ?>
                 <!-- / Navbar -->
 
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
                     <div class="flex-grow-1 container-p-y container-xxl">
-                        <?php
+                        <div class="row gy-6">
+                            <!-- Line Area Chart -->
+                            <div class="col-12">
+                                <div class="h-100 card">
+                                    <div class="d-flex justify-content-between card-header">
+                                        <div>
+                                            <h5 class="mb-0 card-title">Revenue Trends</h5>
+                                            <p class="my-0 card-subtitle">Revenue data over time</p>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button
+                                                type="button"
+                                                class="px-0 btn dropdown-toggle"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false">
+                                                <i class="icon-base bx bx-calendar"></i>
+                                                <span>Last 30 Days</span>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a href="javascript:void(0);" class="d-flex align-items-center dropdown-item" data-revenue-period="today">Today</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="d-flex align-items-center dropdown-item" data-revenue-period="yesterday">Yesterday</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="d-flex align-items-center dropdown-item" data-revenue-period="last7days">Last 7 Days</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="d-flex align-items-center dropdown-item" data-revenue-period="last30days">Last 30 Days</a>
+                                                </li>
+                                                <li>
+                                                    <hr class="dropdown-divider" />
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="d-flex align-items-center dropdown-item" data-revenue-period="currentmonth">Current Month</a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" class="d-flex align-items-center dropdown-item" data-revenue-period="lastmonth">Last Month</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="card-body chart-container">
+                                        <div class="chart-loading">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>
+                                        <div id="lineAreaChart"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /Line Area Chart -->
 
-                        echo "<pre>";
-                        print_r($_SESSION);
-                        echo "</pre>";
-                        ?>
+                            <!-- Donut Chart -->
+                            <?php include_once __DIR__ . "/../../Components/admin/analytics/donut.php" ?>
+
+                            <!-- Total Revenue Component -->
+                            <?php include_once __DIR__ . "/../../Components/admin/analytics/revenue.php" ?>
+
+                            <!-- Growth Chart  -->
+                            <?php include_once __DIR__ . "/../../Components/admin/analytics/growth.php" ?>
+                        </div>
                     </div>
                 </div>
                 <!-- / Content -->
 
                 <!-- Footer -->
-                <?php include_once "./Components/footer.php" ?>
+                <?php include_once __DIR__ . "/../../Components/footer.php" ?>
                 <!-- / Footer -->
 
                 <div class="content-backdrop fade"></div>
@@ -126,11 +195,12 @@
     <script src="../../assets/vendor/libs/@form-validation/auto-focus.js"></script>
     <script src="../../assets/vendor/libs/cleave-zen/cleave-zen.js"></script>
     <script src="../../assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
+    <script src="../../assets/vendor/libs/apex-charts/apexcharts.js"></script>
 
     <!-- Main JS -->
     <script src="../../assets/js/main.js"></script>
     <!-- Page JS -->
-    <script src="../../assets/js/app-visitor-list.js"></script>
+    <script src="../../assets/js/admin-analytics.js"></script>
 </body>
 
 </html>

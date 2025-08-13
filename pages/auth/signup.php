@@ -6,7 +6,7 @@
 
 <html
     lang="en"
-    class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact"
+    class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact"
     dir="ltr"
     data-skin="default"
     data-assets-path="../../assets/"
@@ -74,19 +74,19 @@
 
     <div class="authentication-wrapper authentication-cover">
         <!-- Logo -->
-        <a href="/" class="app-brand auth-cover-brand gap-2">
+        <a href="/" class="gap-2 app-brand auth-cover-brand">
             <span class="app-brand-logo demo">
                 <img src="../../assets/img/logo.svg" alt="logo" class="text-primary" width="80%" height="70%" />
             </span>
-            <!-- <span class="app-brand-text demo text-heading fw-bold">Kings Hostel</span> -->
+            <!-- <span class="text-heading app-brand-text demo fw-bold">Kings Hostel</span> -->
         </a>
         <!-- /Logo -->
 
 
-        <div class="authentication-inner row m-0">
+        <div class="m-0 authentication-inner row">
 
             <!-- Left Text -->
-            <div class="d-none d-lg-flex col-lg-4 align-items-center justify-content-end p-5 pe-0">
+            <!-- <div class="d-lg-flex align-items-center justify-content-end p-5 pe-0 d-none col-lg-4">
                 <div class="w-px-400">
                     <img
                         src="../../assets/img/illustrations/create-account.png"
@@ -96,17 +96,17 @@
                         data-app-dark-img="illustrations/create-account-dark.png"
                         data-app-light-img="illustrations/create-account-light.png" />
                 </div>
-            </div>
+            </div> -->
             <!-- /Left Text -->
 
             <!--  Multi Steps Registration -->
-            <div class="d-flex col-lg-8 align-items-center justify-content-center authentication-bg p-5">
+            <div class="d-flex align-items-center justify-content-center p-5 authentication-bg">
                 <div class="w-px-700">
                     <h3 class="mb-2 text-center fw-bold">Welcome to Kings Hostel!</h3>
-                    <p class="text-center text-muted mb-4">Sign up to get started</p>
+                    <p class="mb-4 text-muted text-center">Sign up to get started</p>
 
-                    <div id="multiStepsValidation" class="bs-stepper border-none shadow-none mt-5">
-                        <div class="bs-stepper-header border-none pt-12 px-0 justify-content-center place-items-center">
+                    <div id="multiStepsValidation" class="shadow-none mt-5 border-none bs-stepper">
+                        <div class="justify-content-center place-items-center px-0 pt-12 border-none bs-stepper-header">
                             <div class="step" data-target="#accountDetailsValidation">
                                 <button type="button" class="step-trigger">
                                     <span class="bs-stepper-circle"><i class="icon-base bx bx-home"></i></span>
@@ -117,7 +117,7 @@
                                 </button>
                             </div>
                             <div class="line">
-                                <i class="icon-base bx bx-chevron-right icon-22px"></i>
+                                <i class="bx-chevron-right icon-base bx icon-22px"></i>
                             </div>
                             <div class="step" data-target="#personalInfoValidation">
                                 <button type="button" class="step-trigger">
@@ -158,7 +158,7 @@
                         </script>
 
 
-                        <div class="bs-stepper-content px-0">
+                        <div class="px-0 bs-stepper-content">
                             <form id="multiStepsForm" method="post" action="/signup" onSubmit="return false" novalidate>
                                 <?php
                                 ?>
@@ -213,21 +213,21 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-12 d-flex justify-content-between">
+                                        <div class="d-flex justify-content-between col-12">
                                             <button class="btn btn-label-secondary btn-prev" disabled>
-                                                <i class="icon-base bx bx-left-arrow-alt icon-sm ms-sm-n2 me-sm-2"></i>
-                                                <span class="align-middle d-sm-inline-block d-none">Previous</span>
+                                                <i class="bx-left-arrow-alt ms-sm-n2 me-sm-2 icon-base bx icon-sm"></i>
+                                                <span class="d-sm-inline-block align-middle d-none">Previous</span>
                                             </button>
                                             <button class="btn btn-primary btn-next">
-                                                <span class="align-middle d-sm-inline-block d-none me-sm-2 me-0">Next</span>
-                                                <i class="icon-base bx bx-right-arrow-alt icon-sm me-sm-n2"></i>
+                                                <span class="d-sm-inline-block me-0 me-sm-2 align-middle d-none">Next</span>
+                                                <i class="bx-right-arrow-alt me-sm-n2 icon-base bx icon-sm"></i>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                                 <!-- Personal Info -->
                                 <div id="personalInfoValidation" class="content">
-                                    <div class="content-header mb-6">
+                                    <div class="mb-6 content-header">
                                         <h4 class="mb-0">Personal Information</h4>
                                         <p class="mb-0">Enter Your Personal Information</p>
                                     </div>
@@ -275,7 +275,7 @@
                                                 placeholder="E.g., Asthma, Allergies"></textarea>
                                         </div>
                                         <!-- <div class="col-md-12 form-control-validation">
-                                            <div class="form-check mb-0">
+                                            <div class="mb-0 form-check">
                                                 <input class="form-check-input" type="checkbox" id="terms" name="terms"
                                                     required />
                                                 <label class="form-check-label" for="terms">
@@ -285,14 +285,14 @@
                                             </div>
                                         </div> -->
 
-                                        <div class="col-12 d-flex justify-content-between form-control-validation">
+                                        <div class="d-flex justify-content-between col-12 form-control-validation">
                                             <button class="btn btn-label-secondary btn-prev">
-                                                <i class="icon-base bx bx-left-arrow-alt icon-sm ms-sm-n2 me-sm-2"></i>
-                                                <span class="align-middle d-sm-inline-block d-none">Previous</span>
+                                                <i class="bx-left-arrow-alt ms-sm-n2 me-sm-2 icon-base bx icon-sm"></i>
+                                                <span class="d-sm-inline-block align-middle d-none">Previous</span>
                                             </button>
                                             <button type="submit" class="btn btn-primary btn-next btn-submit">
                                                 <span class="d-flex align-items-center">
-                                                    <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true" id="submitSpinner"></span>
+                                                    <span class="me-2 spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="submitSpinner"></span>
                                                     <span>Sign Up</span>
                                                 </span>
                                             </button>
@@ -306,7 +306,7 @@
 
                     <!-- Login Link -->
                     <div class="login-link fs-b">
-                        <p>Already have an account? <a href="/login" class="text-primary fw-bold pl-5 fs-big"> Login</a></p>
+                        <p>Already have an account? <a href="/login" class="pl-5 text-primary fw-bold fs-big"> Login</a></p>
                     </div>
                 </div>
             </div>
