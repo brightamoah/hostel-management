@@ -203,7 +203,7 @@ require_once "./app/controllers/visitors/visitor_stats.php";
                                     <thead>
                                         <tr>
                                             <th></th> <!-- Control column -->
-                                            <th></th> <!-- Checkbox column -->
+                                            <!-- <th></th> Checkbox column -->
                                             <th>Visitor Name</th>
                                             <th>Relationship</th>
                                             <th>Visit Date</th>

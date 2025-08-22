@@ -42,7 +42,7 @@
          },
          columns: [
             { data: null, defaultContent: "" },
-            { data: "id", orderable: false },
+            // { data: "id", orderable: false },
             { data: "full_name" },
             { data: "role" },
             { data: "visit_date" },
@@ -62,21 +62,9 @@
                   return "";
                },
             },
+
             {
                targets: 1,
-               orderable: false,
-               searchable: false,
-               responsivePriority: 4,
-               render: function () {
-                  return '<input type="checkbox" class="dt-checkboxes form-check-input">';
-               },
-               checkboxes: {
-                  selectAllRender:
-                     '<input type="checkbox" class="form-check-input">',
-               },
-            },
-            {
-               targets: 2,
                responsivePriority: 1,
                render: function (data, type, full) {
                   const name = full["full_name"];
@@ -85,21 +73,53 @@
                      .join("")
                      .substring(0, 2);
                   const avatar = `<span class="avatar-initial rounded-circle bg-label-primary">${initials}</span>`;
+
+                  const statusObj = {
+                     Pending: { class: "bg-label-warning", title: "Pending" },
+                     Approved: { class: "bg-label-info", title: "Approved" },
+                     "Checked-In": {
+                        class: "bg-label-success",
+                        title: "Checked-In",
+                     },
+                     "Checked-Out": {
+                        class: "bg-label-primary",
+                        title: "Checked-Out",
+                     },
+                     Cancelled: {
+                        class: "bg-label-danger",
+                        title: "Cancelled",
+                     },
+                     Denied: { class: "bg-label-danger", title: "Denied" },
+                  };
+
+                  const statusInfo = statusObj[full["status"]] || {
+                     class: "bg-label-secondary",
+                     title: full["status"],
+                  };
+
                   return `
-                            <div class="d-flex justify-content-start align-items-center">
-                                <div class="avatar-wrapper">
-                                    <div class="avatar avatar-sm me-3">${avatar}</div>
-                                </div>
-                                <div class="d-flex flex-column">
-                                    <span class="fw-medium">${name}</span>
-                                    <small>${full["email"]}</small>
-                                </div>
-                            </div>
-                        `;
+                <div class="d-flex justify-content-start align-items-center">
+                    <div class="avatar-wrapper">
+                        <div class="avatar avatar-sm me-3">${avatar}</div>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <span class="fw-medium">${name}</span>
+                        <small class="text-muted">${full["email"]}</small>
+                        <span class="badge ${statusInfo.class} mt-1 d-md-none" style="width: fit-content; font-size: 0.65rem;">${statusInfo.title}</span>
+                    </div>
+                </div>
+            `;
+               },
+            },
+            {
+               targets: 2,
+               render: function (data) {
+                  return `<span class="text-heading">${data}</span>`;
                },
             },
             {
                targets: 3,
+               responsivePriority: 3,
                render: function (data) {
                   return `<span class="text-heading">${data}</span>`;
                },
@@ -107,7 +127,11 @@
             {
                targets: 4,
                render: function (data) {
-                  return `<span class="text-heading">${data}</span>`;
+                  return data
+                     ? `<span class="text-heading">${new Date(
+                          data
+                       ).toLocaleTimeString()}</span>`
+                     : "-";
                },
             },
             {
@@ -122,16 +146,6 @@
             },
             {
                targets: 6,
-               render: function (data) {
-                  return data
-                     ? `<span class="text-heading">${new Date(
-                          data
-                       ).toLocaleTimeString()}</span>`
-                     : "-";
-               },
-            },
-            {
-               targets: 7,
                render: function (data) {
                   const statusObj = {
                      Pending: { class: "bg-label-warning", title: "Pending" },
@@ -158,7 +172,7 @@
                },
             },
             {
-               targets: 8,
+               targets: 7,
                orderable: false,
                searchable: false,
                render: function (data, type, full, meta) {
@@ -175,7 +189,7 @@
                },
             },
          ],
-         order: [[4, "desc"]],
+         order: [[3, "desc"]],
          buttons: [
             {
                extend: "collection",
@@ -186,7 +200,7 @@
                      extend: "print",
                      text: `<span class="d-flex align-items-center"><i class="icon-base bx bx-printer me-2"></i>Print</span>`,
                      className: "dropdown-item",
-                     exportOptions: { columns: [3, 4, 5, 6, 7] },
+                     exportOptions: { columns: [2, 3, 4, 5, 6] },
                      customize: function (win) {
                         win.document.body.style.color =
                            config.colors.headingColor;
@@ -260,7 +274,7 @@
 
             $("#statusFilter").on("change", function () {
                const val = $(this).val();
-               dt.column(7)
+               dt.column(6)
                   .search(val ? "^" + val + "$" : "", true, false)
                   .draw();
             });
