@@ -26,7 +26,13 @@ function getRouteAndText()
 
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"
+    class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact"
+    dir="ltr"
+    data-skin="bordered"
+    data-assets-path="../../assets/"
+    data-template="front-pages"
+    data-bs-theme="system">
 
 <head>
     <meta charset="UTF-8">
@@ -85,14 +91,14 @@ function getRouteAndText()
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            /* background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
             padding: 2rem;
         }
 
         .error-container {
             max-width: 600px;
             text-align: center;
-            background: #fff;
+            /* background: #fff; */
             border-radius: 12px;
             padding: 3rem;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -108,13 +114,13 @@ function getRouteAndText()
 
         .error-subtitle {
             font-size: 1.5rem;
-            color: #444;
+            /* color: #444; */
             margin-bottom: 1.5rem;
         }
 
         .error-message {
             font-size: 1rem;
-            color: #666;
+            /* color: #666; */
             margin-bottom: 2rem;
         }
 
