@@ -177,15 +177,24 @@
                searchable: false,
                render: function (data, type, full, meta) {
                   return `
-                            <div class="d-flex align-items-center">
-                                <a href="javascript:;" class="btn btn-icon view-visitor" data-id="${full["id"]}" data-bs-toggle="modal" data-bs-target="#visitorModal">
-                                    <i class="bx bx-show icon-md"></i>
-                                </a>
-                                <a href="javascript:;" class="btn btn-icon delete-visitor text-danger" data-id="${full["id"]}">
-                                    <i class="bx bx-trash icon-md"></i>
-                                </a>
-                            </div>
-                        `;
+      <div class="d-flex align-items-center">
+         <a href="javascript:;" class="btn btn-icon view-visitor"
+            data-id="${full["id"]}"
+            data-bs-target="#visitorModal"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-bs-title="View Details">
+            <i class="bx bx-show icon-md"></i>
+         </a>
+         <a href="javascript:;" class="btn btn-icon delete-visitor text-danger"
+            data-id="${full["id"]}"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-bs-title="Delete Visitor">
+            <i class="bx bx-trash icon-md"></i>
+         </a>
+      </div>
+   `;
                },
             },
          ],
@@ -267,6 +276,40 @@
                   width: "100%",
                });
             }
+
+            // Initialize tooltips for action buttons
+            const tooltipTriggerList = [].slice.call(
+               document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            );
+            const tooltipList = tooltipTriggerList.map(function (
+               tooltipTriggerEl
+            ) {
+               return new bootstrap.Tooltip(tooltipTriggerEl, {
+                  trigger: "hover",
+                  delay: { show: 500, hide: 100 },
+                  customClass: "custom-tooltip",
+               });
+            });
+
+            // Re-initialize tooltips after table draw
+            dt.on("draw", function () {
+               // Dispose of existing tooltips
+               tooltipList.forEach(function (tooltip) {
+                  if (tooltip) tooltip.dispose();
+               });
+
+               // Reinitialize tooltips for new elements
+               const newTooltipTriggerList = [].slice.call(
+                  document.querySelectorAll('[data-bs-toggle="tooltip"]')
+               );
+               newTooltipTriggerList.map(function (tooltipTriggerEl) {
+                  return new bootstrap.Tooltip(tooltipTriggerEl, {
+                     trigger: "hover",
+                     delay: { show: 500, hide: 100 },
+                     customClass: "custom-tooltip",
+                  });
+               });
+            });
 
             $("#visitorSearch").on("keyup", function () {
                dt.search(this.value).draw();
@@ -358,14 +401,42 @@
                      switch (visitor.status) {
                         case "Pending":
                            actionsDiv.innerHTML = `
-                                    <a href="javascript:;" class="btn btn-primary me-4 edit-visitor" data-id="${visitor.visitor_id}">Edit</a>
-                                    <a href="javascript:;" class="btn btn-label-danger cancel-visitor" data-id="${visitor.visitor_id}">Cancel</a>
+                                    <a href="javascript:;" 
+                        class="btn btn-primary me-4 edit-visitor" 
+                        data-id="${visitor.visitor_id}"
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="top" 
+                        data-bs-title="Edit visitor details">
+                        Edit
+                     </a>
+                     <a href="javascript:;" 
+                        class="btn btn-label-danger cancel-visitor" 
+                        data-id="${visitor.visitor_id}"
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="top" 
+                        data-bs-title="Cancel visitor request">
+                        Cancel
+                     </a>
                                 `;
                            break;
                         case "Approved":
                            actionsDiv.innerHTML = `
-                                    <a href="javascript:;" class="btn btn-primary me-4 edit-visitor" data-id="${visitor.visitor_id}">Edit</a>
-                                    <a href="javascript:;" class="btn btn-label-danger cancel-visitor" data-id="${visitor.visitor_id}">Cancel</a>
+                                   <a href="javascript:;" 
+                        class="btn btn-primary me-4 edit-visitor" 
+                        data-id="${visitor.visitor_id}"
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="top" 
+                        data-bs-title="Edit visitor details">
+                        Edit
+                     </a>
+                     <a href="javascript:;" 
+                        class="btn btn-label-danger cancel-visitor" 
+                        data-id="${visitor.visitor_id}"
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="top" 
+                        data-bs-title="Cancel visitor request">
+                        Cancel
+                     </a>
                                 `;
                            break;
                         case "Checked-In":
@@ -378,6 +449,21 @@
                            actionsDiv.innerHTML = `<span class="text-muted">Invalid status</span>`;
                            break;
                      }
+
+                     const modalTooltips = [].slice.call(
+                        actionsDiv.querySelectorAll(
+                           '[data-bs-toggle="tooltip"]'
+                        )
+                     );
+                     modalTooltips.map(function (tooltipTriggerEl) {
+                        return new bootstrap.Tooltip(tooltipTriggerEl, {
+                           trigger: "hover focus",
+                           delay: { show: 500, hide: 100 },
+                           customClass: "custom-tooltip",
+                        });
+                     });
+
+                     $("#visitorModal").modal("show");
                   } else {
                      Swal.fire({
                         icon: "error",
