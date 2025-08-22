@@ -74,6 +74,7 @@ function getRoute()
 
     <link rel="stylesheet" href="../../assets/vendor/libs/nouislider/nouislider.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/swiper/swiper.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/sweetalert2/sweetalert2.css" />
 
     <!-- Page CSS -->
 
@@ -197,6 +198,7 @@ function getRoute()
     <script src="../../assets/vendor/libs/@algolia/autocomplete-js.js"></script>
     <script src="../../assets/vendor/libs/select2/select2.js"></script>
     <script src="../../assets/vendor/libs/pickr/pickr.js"></script>
+    <script src="../../assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
 
     <!-- endbuild -->
 
@@ -210,12 +212,6 @@ function getRoute()
     <script src="../../assets/js/main.js"></script>
     <!-- Page JS -->
     <script src="../../assets/js/front-page-landing.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            $('#contact-form-subject').select2();
-        });
-    </script>
 
 </body>
 

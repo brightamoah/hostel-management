@@ -1,5 +1,5 @@
 <?php
-require_once "./app/controllers/Login.php";
+require_once  __DIR__ . "/../../app/controllers/Login.php";
 
 ?>
 
@@ -39,8 +39,7 @@ require_once "./app/controllers/Login.php";
 
    <link rel="stylesheet" href="../../assets/vendor/fonts/iconify-icons.css" />
 
-   <!-- Core CSS -->
-   <!-- build:css assets/vendor/css/theme.css  -->
+
 
    <link rel="stylesheet" href="../../assets/vendor/libs/pickr/pickr-themes.css" />
 
@@ -50,18 +49,15 @@ require_once "./app/controllers/Login.php";
    <link rel="stylesheet" href="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
    <link rel="stylesheet" href="../../assets/vendor/libs/@form-validation/form-validation.css" />
 
-   <!-- Page CSS -->
-   <!-- Page -->
+
    <link rel="stylesheet" href="../../assets/vendor/css/pages/page-auth.css" />
 
    <!-- Helpers -->
    <script src="../../assets/vendor/js/helpers.js"></script>
-   <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
 
-   <!--? Template customizer: To hide customizer set displayCustomizer value false in config.js.  -->
    <script src="../../assets/vendor/js/template-customizer.js"></script>
 
-   <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
+
 
    <script src="../../assets/js/config.js"></script>
 </head>

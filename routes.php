@@ -104,6 +104,8 @@ get('/student/payment-failed', '/pages/student/payment-failed.php', ['auth']);
 
 // get('/student/data', '/app/controllers/student.php', ['auth']);
 
+post('/send-contact-form', '/app/controllers/ContactController.php');
+
 
 // POST Routes
 post('/signup', '/app/controllers/Signup.php');
