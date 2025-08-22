@@ -239,7 +239,6 @@ require_once __DIR__ . "/../../app/controllers/student.php";
                                     <thead>
                                         <tr>
                                             <th></th> <!-- Control column -->
-                                            <th></th> <!-- Checkbox column -->
                                             <th>Visitors</th>
                                             <th>Relationship</th>
                                             <th>Visit Date</th>
