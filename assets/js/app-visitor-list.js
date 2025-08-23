@@ -9,6 +9,8 @@
          .querySelector('meta[name="csrf-token"]')
          ?.getAttribute("content") || "";
 
+   let originalEditVisitorData = null;
+
    if (dt_visitor_table) {
       const dt = new DataTable(dt_visitor_table, {
          ajax: {
@@ -177,24 +179,25 @@
                searchable: false,
                render: function (data, type, full, meta) {
                   return `
-      <div class="d-flex align-items-center">
-         <a href="javascript:;" class="btn btn-icon view-visitor"
-            data-id="${full["id"]}"
-            data-bs-target="#visitorModal"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            data-bs-title="View Details">
-            <i class="bx bx-show icon-md"></i>
-         </a>
-         <a href="javascript:;" class="btn btn-icon delete-visitor text-danger"
-            data-id="${full["id"]}"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            data-bs-title="Delete Visitor">
-            <i class="bx bx-trash icon-md"></i>
-         </a>
-      </div>
-   `;
+         <div class="d-flex align-items-center">
+            <a href="javascript:;" 
+               class="btn btn-icon view-visitor"
+               data-id="${full["id"]}"
+               data-bs-toggle="tooltip"
+               data-bs-placement="top"
+               data-bs-title="View Details">
+               <i class="bx bx-show icon-md"></i>
+            </a>
+            <a href="javascript:;" 
+               class="btn btn-icon delete-visitor text-danger"
+               data-id="${full["id"]}"
+               data-bs-toggle="tooltip"
+               data-bs-placement="top"
+               data-bs-title="Delete Visitor">
+               <i class="bx bx-trash icon-md"></i>
+            </a>
+         </div>
+      `;
                },
             },
          ],
@@ -277,38 +280,45 @@
                });
             }
 
-            // Initialize tooltips for action buttons
-            const tooltipTriggerList = [].slice.call(
-               document.querySelectorAll('[data-bs-toggle="tooltip"]')
-            );
-            const tooltipList = tooltipTriggerList.map(function (
-               tooltipTriggerEl
-            ) {
-               return new bootstrap.Tooltip(tooltipTriggerEl, {
-                  trigger: "hover",
-                  delay: { show: 500, hide: 100 },
-                  customClass: "custom-tooltip",
-               });
-            });
+            let tooltipList = [];
 
-            // Re-initialize tooltips after table draw
-            dt.on("draw", function () {
-               // Dispose of existing tooltips
+            function initializeTooltips() {
+               // Dispose existing tooltips first
                tooltipList.forEach(function (tooltip) {
-                  if (tooltip) tooltip.dispose();
+                  if (
+                     tooltip &&
+                     tooltip._element &&
+                     typeof tooltip.dispose === "function"
+                  ) {
+                     try {
+                        tooltip.dispose();
+                     } catch (e) {
+                        // Ignore disposal errors
+                     }
+                  }
                });
+               tooltipList = []; // Clear the array
 
-               // Reinitialize tooltips for new elements
-               const newTooltipTriggerList = [].slice.call(
+               // Initialize new tooltips
+               const tooltipTriggerList = [].slice.call(
                   document.querySelectorAll('[data-bs-toggle="tooltip"]')
                );
-               newTooltipTriggerList.map(function (tooltipTriggerEl) {
+               tooltipList = tooltipTriggerList.map(function (
+                  tooltipTriggerEl
+               ) {
                   return new bootstrap.Tooltip(tooltipTriggerEl, {
                      trigger: "hover",
                      delay: { show: 500, hide: 100 },
                      customClass: "custom-tooltip",
                   });
                });
+            }
+
+            initializeTooltips();
+
+            // Re-initialize tooltips after table draw
+            dt.on("draw", function () {
+               initializeTooltips();
             });
 
             $("#visitorSearch").on("keyup", function () {
@@ -407,7 +417,7 @@
                         data-bs-toggle="tooltip" 
                         data-bs-placement="top" 
                         data-bs-title="Edit visitor details">
-                        Edit
+                        Edit Details
                      </a>
                      <a href="javascript:;" 
                         class="btn btn-label-danger cancel-visitor" 
@@ -415,9 +425,10 @@
                         data-bs-toggle="tooltip" 
                         data-bs-placement="top" 
                         data-bs-title="Cancel visitor request">
-                        Cancel
+                        Cancel Visit Request
                      </a>
-                                `;
+                           
+                     `;
                            break;
                         case "Approved":
                            actionsDiv.innerHTML = `
@@ -450,18 +461,25 @@
                            break;
                      }
 
-                     const modalTooltips = [].slice.call(
-                        actionsDiv.querySelectorAll(
-                           '[data-bs-toggle="tooltip"]'
-                        )
-                     );
-                     modalTooltips.map(function (tooltipTriggerEl) {
-                        return new bootstrap.Tooltip(tooltipTriggerEl, {
-                           trigger: "hover focus",
-                           delay: { show: 500, hide: 100 },
-                           customClass: "custom-tooltip",
+                     // Initialize tooltips for modal action buttons (with error handling)
+                     setTimeout(() => {
+                        const modalTooltips = [].slice.call(
+                           actionsDiv.querySelectorAll(
+                              '[data-bs-toggle="tooltip"]'
+                           )
+                        );
+                        modalTooltips.forEach(function (tooltipTriggerEl) {
+                           try {
+                              new bootstrap.Tooltip(tooltipTriggerEl, {
+                                 trigger: "hover",
+                                 delay: { show: 500, hide: 100 },
+                                 customClass: "custom-tooltip",
+                              });
+                           } catch (e) {
+                              console.warn("Failed to initialize tooltip:", e);
+                           }
                         });
-                     });
+                     }, 100);
 
                      $("#visitorModal").modal("show");
                   } else {
@@ -550,6 +568,55 @@
       if (editVisitorForm) {
          editVisitorForm.addEventListener("submit", function (e) {
             e.preventDefault();
+
+            // Get current form values - add null checks
+            const visitorNameEl = document.getElementById("editVisitorName");
+            const relationEl = document.getElementById("editRelation");
+            const phoneNumberEl = document.getElementById("editPhoneNumber");
+            const visitDateEl = document.getElementById("editVisitDate");
+            const purposeEl = document.getElementById("editPurpose");
+
+            // Check if elements exist before accessing their values
+            if (
+               !visitorNameEl ||
+               !relationEl ||
+               !phoneNumberEl ||
+               !visitDateEl ||
+               !purposeEl
+            ) {
+               Swal.fire({
+                  icon: "error",
+                  title: "Form Error",
+                  text: "Could not find form elements. Please refresh the page and try again.",
+                  confirmButtonColor: "#3085d6",
+               });
+               return;
+            }
+
+            const visitor_name = visitorNameEl.value.trim();
+            const relation = relationEl.value.trim();
+            const phone_number = phoneNumberEl.value.trim();
+            const visit_date = visitDateEl.value.trim();
+            const purpose = purposeEl.value.trim();
+
+            // Compare with original data
+            if (
+               originalEditVisitorData &&
+               visitor_name === originalEditVisitorData.visitor_name &&
+               relation === originalEditVisitorData.relation &&
+               phone_number === originalEditVisitorData.phone_number &&
+               visit_date === originalEditVisitorData.visit_date &&
+               purpose === originalEditVisitorData.purpose
+            ) {
+               Swal.fire({
+                  icon: "info",
+                  title: "No Changes Detected",
+                  text: "You have not made any changes to the visitor details.",
+                  confirmButtonColor: "#3085d6",
+               });
+               return;
+            }
+
             const formData = new FormData(this);
             const visitorId = formData.get("visitor_id");
 
@@ -588,16 +655,34 @@
                .then((response) => response.json())
                .then((data) => {
                   if (data.success) {
+                     let title = "Visitor Updated Successfully!";
+                     let text = data.message;
+                     let icon = "success";
+
+                     // Show different styling if status was changed to pending
+                     if (data.status_changed) {
+                        icon = "warning";
+                        title = "Visitor Updated - Approval Required";
+                     }
+
                      Swal.fire({
-                        icon: "success",
-                        title: "Success",
-                        text: data.message,
+                        icon: icon,
+                        title: title,
+                        text: text,
+                        customClass: {
+                           confirmButton: "btn btn-primary",
+                        },
+                        buttonsStyling: false,
+                        timer: data.status_changed ? 8000 : 5000,
+                        timerProgressBar: true,
+                        showCloseButton: true,
                         confirmButtonColor: "#3085d6",
                      }).then(() => {
                         $("#editVisitorModal").modal("hide");
                         editVisitorForm.reset();
                         dt.ajax.reload();
                         $("#visitorModal").modal("hide");
+                        originalEditVisitorData = null;
                      });
                   } else {
                      Swal.fire({
@@ -634,6 +719,7 @@
                confirmButtonColor: "#3085d6",
                cancelButtonColor: "#d33",
                confirmButtonText: "Yes, cancel it!",
+               cancelButtonText: "No, keep it",
             }).then((result) => {
                if (result.isConfirmed) {
                   fetch(`/visitor/cancel/${visitorId}`, {
@@ -695,19 +781,40 @@
                   if (data.success) {
                      const visitor = data.data;
 
-                     // Populate edit form fields
-                     document.getElementById("editVisitorId").value =
-                        visitor.visitor_id;
-                     document.getElementById("editVisitorName").value =
-                        visitor.visitor_name;
-                     document.getElementById("editRelation").value =
-                        visitor.relation;
-                     document.getElementById("editPhoneNumber").value =
-                        visitor.phone_number;
-                     document.getElementById("editVisitDate").value =
-                        visitor.visit_date;
-                     document.getElementById("editPurpose").value =
-                        visitor.purpose;
+                     // Store the original data for change detection
+                     originalEditVisitorData = {
+                        visitor_name: visitor.visitor_name,
+                        relation: visitor.relation,
+                        phone_number: visitor.phone_number,
+                        visit_date: visitor.visit_date,
+                        purpose: visitor.purpose,
+                     };
+
+                     // Populate edit form fields with null checks
+                     const editVisitorIdEl =
+                        document.getElementById("editVisitorId");
+                     const editVisitorNameEl =
+                        document.getElementById("editVisitorName");
+                     const editRelationEl =
+                        document.getElementById("editRelation");
+                     const editPhoneNumberEl =
+                        document.getElementById("editPhoneNumber");
+                     const editVisitDateEl =
+                        document.getElementById("editVisitDate");
+                     const editPurposeEl =
+                        document.getElementById("editPurpose");
+
+                     if (editVisitorIdEl)
+                        editVisitorIdEl.value = visitor.visitor_id;
+                     if (editVisitorNameEl)
+                        editVisitorNameEl.value = visitor.visitor_name;
+                     if (editRelationEl)
+                        editRelationEl.value = visitor.relation;
+                     if (editPhoneNumberEl)
+                        editPhoneNumberEl.value = visitor.phone_number;
+                     if (editVisitDateEl)
+                        editVisitDateEl.value = visitor.visit_date;
+                     if (editPurposeEl) editPurposeEl.value = visitor.purpose;
 
                      // Show the edit modal and hide the view modal
                      $("#visitorModal").modal("hide");

@@ -88,8 +88,41 @@ class VisitorController
                 exit();
             }
 
-            if ($this->visitorModel->update($visitor_id, $visitor_name, $relation, $phone_number, $visit_date, $purpose)) {
-                echo json_encode(['success' => true, 'message' => 'Visitor updated successfully']);
+            if (!preg_match('/^(\+233|0)\d{9}$/', $phone_number)) {
+                echo json_encode(['success' => false, 'message' => 'Invalid phone number format. Must be in +233XXXXXXXXX or 0XXXXXXXXX format']);
+                exit();
+            }
+
+            // Validate visit date (should be today or future)
+            $today = date('Y-m-d');
+            if ($visit_date < $today) {
+                echo json_encode(['success' => false, 'message' => 'Visit date must be today or in the future']);
+                exit();
+            }
+
+            $result = $this->visitorModel->update(
+                $visitor_id,
+                $visitor_name,
+                $relation,
+                $phone_number,
+                $visit_date,
+                $purpose
+            );
+
+            if ($result  && $result["success"]) {
+                $message = 'Visitor details updated successfully.';
+
+                // Add additional message if status was changed from Approved to Pending
+                if ($result["status_changed"]) {
+                    $message .= ' Since this was an approved visitor, it has been moved back to pending status and will require admin approval again.';
+                }
+
+                echo json_encode([
+                    'success' => true,
+                    'message' => $message,
+                    'status_changed' => $result['status_changed'] ?? false,
+                    'new_status' => $result['new_status'] ?? 'Unknown'
+                ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to update visitor details. The visitor may not be in Pending or Approved status.']);
             }

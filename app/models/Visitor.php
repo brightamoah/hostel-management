@@ -1,17 +1,16 @@
 <?php
-require_once './database/db.php';
+require_once __DIR__ . "/../../database/db.php";
 
 class Visitor
 {
-    private $db;
     private $conn;
 
     public function __construct()
     {
         try {
             date_default_timezone_set('Africa/Accra');
-            $this->db = new Database();
-            $this->conn = $this->db->connect();
+
+            $this->conn = getDb();
         } catch (Exception $e) {
             error_log("Error in Visitor constructor: " . $e->getMessage());
             throw new Exception("Failed to initialize database connection: " . $e->getMessage());
@@ -420,15 +419,49 @@ class Visitor
     public function update($visitor_id, $visitor_name, $relation, $phone_number, $visit_date, $purpose)
     {
         try {
-            $query = "UPDATE visitors SET visitor_name = ?, relation = ?, phone_number = ?, visit_date = ?, purpose = ? WHERE visitor_id = ? AND status IN ('Pending', 'Approved')";
+
+            $checkStatusQuery = "SELECT status FROM visitors WHERE visitor_id = ?";
+            $checkStatusStmt = $this->conn->prepare($checkStatusQuery);
+            if (!$checkStatusStmt) {
+                throw new Exception("Prepare failed: " . $this->conn->error);
+            }
+
+            $checkStatusStmt->bind_param("i", $visitor_id);
+            if (!$checkStatusStmt->execute()) {
+                throw new Exception("Execute failed: {$checkStatusStmt->error}");
+            }
+
+            $checkStatusResult = $checkStatusStmt->get_result();
+            $visitor = $checkStatusResult->fetch_assoc();
+            $checkStatusStmt->close();
+
+            if (!$visitor) {
+                return false;
+            }
+
+            // Determine the new status based on current status
+            $newStatus = $visitor['status'];
+            if ($visitor['status'] === 'Approved') {
+                $newStatus = 'Pending';
+            } elseif ($visitor['status'] === 'Pending') {
+                $newStatus = 'Pending';
+            } else {
+                return false;
+            }
+
+            $query = "UPDATE visitors SET visitor_name = ?, relation = ?, phone_number = ?, visit_date = ?, purpose = ?, status = ? WHERE visitor_id = ? AND status IN ('Pending', 'Approved')";
             $stmt = $this->conn->prepare($query);
             if (!$stmt) {
                 throw new Exception("Prepare failed: " . $this->conn->error);
             }
-            $stmt->bind_param("sssssi", $visitor_name, $relation, $phone_number, $visit_date, $purpose, $visitor_id);
+            $stmt->bind_param("ssssssi", $visitor_name, $relation, $phone_number, $visit_date, $purpose, $newStatus, $visitor_id);
             $result = $stmt->execute();
             $stmt->close();
-            return $result;
+            return [
+                'success' => $result,
+                'status_changed' => $visitor['status'] === 'Approved' && $newStatus === 'Pending',
+                'new_status' => $newStatus
+            ];
         } catch (Exception $e) {
             error_log("Error in update: " . $e->getMessage());
             return false;
@@ -492,14 +525,14 @@ class Visitor
         }
     }
 
-      // Check-in visitor (admin action)
+    // Check-in visitor (admin action)
     public function checkIn($visitor_id)
     {
         try {
             $check_in_time = date('Y-m-d H:i:s');
             $today = date('Y-m-d');
             $this->conn->begin_transaction();
-    
+
             // Check if the visitor exists and has a valid visit_date
             $query = "SELECT visit_date, status FROM visitors WHERE visitor_id = ?";
             $stmt = $this->conn->prepare($query);
@@ -513,11 +546,11 @@ class Visitor
             $result = $stmt->get_result();
             $visitor = $result->num_rows > 0 ? $result->fetch_assoc() : null;
             $stmt->close();
-    
+
             if (!$visitor) {
                 return ['success' => false, 'message' => 'No visitor found with this ID'];
             }
-    
+
             // Fix: First check the status, then check the date
             // Allow check-in if status is Approved or Checked-Out
             switch ($visitor['status']) {
@@ -534,12 +567,12 @@ class Visitor
                         return ['success' => false, 'message' => 'Visitor cannot be checked in. Current status: ' . $visitor['status']];
                     }
             }
-    
+
             // Validate visit_date (e.g., allow check-in only on the visit_date)
             if ($visitor['visit_date'] != $today) {
                 return ['success' => false, 'message' => 'Check-in is only allowed on the visit date: ' . $visitor['visit_date']];
             }
-    
+
             // Update visitor status to Checked-In
             $query = "UPDATE visitors SET status = 'Checked-In' WHERE visitor_id = ?";
             $stmt = $this->conn->prepare($query);
@@ -549,7 +582,7 @@ class Visitor
             $stmt->bind_param("i", $visitor_id);
             $result = $stmt->execute();
             $stmt->close();
-    
+
             // Insert new log entry
             if ($result) {
                 $query = "INSERT INTO visitor_logs (visitor_id, check_in_time) VALUES (?, ?)";
@@ -561,7 +594,7 @@ class Visitor
                 $result = $stmt->execute();
                 $stmt->close();
             }
-    
+
             if ($result) {
                 $this->conn->commit();
             } else {
@@ -575,7 +608,7 @@ class Visitor
         }
     }
 
- 
+
     // Check-out visitor (admin action)
     public function checkOut($visitor_id)
     {
