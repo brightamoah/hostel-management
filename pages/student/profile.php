@@ -1,6 +1,8 @@
 <?php
-require_once "./database/db.php";
-require_once "./app/models/Student.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../../app/models/Student.php";
+require_once __DIR__ . "/../../utils/avatar.php";
+
 
 // Check if user is authenticated
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Student') {
@@ -9,16 +11,40 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Student') {
 }
 
 $student_data = $_SESSION['user'];
-$db = new Database();
-$conn = $db->connect();
+$conn = getDb();
 $student = new Student($conn);
 
 // Fetch room allocation for room information
 $room_allocation = $student->getRoomAllocation($student_data['user_id']);
+
+
+// $initials = '';
+// if (!empty($student_data['first_name']) && !empty($student_data['last_name'])) {
+//     $initials = strtoupper(substr($student_data['first_name'], 0, 1) . substr($student_data['last_name'], 0, 1));
+// } else {
+//     // Fallback to name field if first_name/last_name not available
+//     $name = $student_data['first_name'] . ' ' . $student_data['last_name'];
+//     $name_parts = explode(' ', trim($name));
+//     if (count($name_parts) >= 2) {
+//         $initials = strtoupper(substr($name_parts[0], 0, 1) . substr($name_parts[1], 0, 1));
+//     } else {
+//         $initials = strtoupper(substr($name, 0, 2));
+//     }
+// }
+
+
+// $colors = ['primary', 'success', 'danger', 'warning', 'info', 'dark'];
+// $color_index = $student_data['user_id'] % count($colors);
+// $bg_color = $colors[$color_index];
+
+$avatar = Avatar::generateUserAvatar($student_data);
+$initials = $avatar['initials'];
+$bg_color = $avatar['bg_color'];
+
 ?>
 
 <!doctype html>
-<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
+<html lang="en" class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
@@ -83,6 +109,19 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
         }
 
         .profile-avatar {
+            border: 5px solid #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Large profile avatar styling */
+        .profile-avatar-large {
+            width: 150px;
+            height: 150px;
+            font-size: 50px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             border: 5px solid #fff;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
@@ -154,15 +193,15 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
 
 <body>
     <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
-            <?php include_once "./Components/sidebar.php" ?>
+            <?php include_once __DIR__ . "/../../Components/sidebar.php" ?>
 
-            <div class="menu-mobile-toggler d-xl-none rounded-1">
-                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+            <div class="rounded-1 menu-mobile-toggler d-xl-none">
+                <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
                     <i class="bx bx-menu icon-base"></i>
-                    <i class="bx bx-chevron-right icon-base"></i>
+                    <i class="bx-chevron-right bx icon-base"></i>
                 </a>
             </div>
             <!-- / Menu -->
@@ -170,13 +209,13 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
             <!-- Layout container -->
             <div class="layout-page">
                 <!-- Navbar -->
-                <?php include_once "./Components/header.php" ?>
+                <?php include_once __DIR__ . "/../../Components/header.php" ?>
                 <!-- / Navbar -->
 
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-                    <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="flex-grow-1 container-p-y container-xxl">
                         <!-- Display messages -->
                         <?php if (isset($_SESSION['message-update'])): ?>
                             <div class="alert alert-<?= $_SESSION['message_type']; ?> alert-dismissible" role="alert">
@@ -189,27 +228,21 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
                         <!-- Header -->
                         <div class="row">
                             <div class="col-12">
-                                <div class="card mt-10 mb-4">
+                                <div class="mt-10 mb-4 card">
                                     <div class="card-body">
-                                        <div class="d-flex justify-content-center profile-avatar-wrapper mb-3">
-                                            <?php
-                                            $initials = strtoupper(substr($student_data['first_name'], 0, 1) . substr($student_data['last_name'], 0, 1));
-                                            $colors = ['#7367f0', '#28c76f', '#ea5455', '#ff9f43', '#00cfe8'];
-                                            $bgColor = $colors[array_rand($colors)];
-                                            ?>
-                                            <div class="rounded-circle profile-avatar d-flex align-items-center justify-content-center text-center text-white"
-                                                style="background-color: <?= $bgColor; ?>; height: 150px; width: 150px; font-size: 50px; color: #fff;">
-                                                <?= $initials; ?>
+                                        <div class="d-flex justify-content-center mb-3 profile-avatar-wrapper">
+                                            <div class="avatar profile-avatar-large" style="border: none; box-shadow: none;">
+                                                <span class="bg-label-<?= $bg_color; ?> rounded-circle avatar-initial profile-avatar-large"><?= $initials; ?></span>
                                             </div>
                                         </div>
-                                        <div class="text-center mb-4">
+                                        <div class="mb-4 text-center">
                                             <h3 class="mb-2">
                                                 <?= htmlspecialchars($student_data['first_name'] . ' ' . $student_data['last_name']); ?>
                                             </h3>
-                                            <span class="badge bg-label-primary user-badge">
+                                            <span class="bg-label-primary badge user-badge">
                                                 <?= htmlspecialchars($student_data['role']); ?>
                                             </span>
-                                            <p class="text-muted mt-3">
+                                            <p class="mt-3 text-muted">
                                                 <?php
                                                 echo $room_allocation
                                                     ? 'Room ' . htmlspecialchars($room_allocation['room_number']) . ' | ' . htmlspecialchars($room_allocation['room_type'])
@@ -219,11 +252,11 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
                                         </div>
 
                                         <div class="d-flex justify-content-center mb-4">
-                                            <button class="btn btn-primary action-btn me-3" data-bs-target="#editUser" data-bs-toggle="modal">
-                                                <i class="icon-base bx bx-edit-alt me-1"></i> Edit Profile
+                                            <button class="me-3 btn btn-primary action-btn" data-bs-target="#editUser" data-bs-toggle="modal">
+                                                <i class="me-1 icon-base bx bx-edit-alt"></i> Edit Profile
                                             </button>
-                                            <button class="btn btn-outline-primary action-btn">
-                                                <i class="icon-lg bx bx-key me-1"></i> Change Password
+                                            <button class="btn-outline-primary btn action-btn">
+                                                <i class="me-1 icon-lg bx bx-key"></i> Change Password
                                             </button>
                                         </div>
                                     </div>
@@ -232,13 +265,13 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
                         </div>
 
                         <!-- Stats Cards -->
-                        <div class="row mb-4">
+                        <div class="mb-4 row">
                             <div class="col-md-4">
-                                <div class="card profile-stats h-100">
+                                <div class="h-100 card profile-stats">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar me-3">
-                                                <div class="avatar-initial bg-label-primary rounded">
+                                            <div class="me-3 avatar">
+                                                <div class="bg-label-primary rounded avatar-initial">
                                                     <i class="icon-base bx bx-calendar icon-lg"></i>
                                                 </div>
                                             </div>
@@ -258,11 +291,11 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="card profile-stats h-100">
+                                <div class="h-100 card profile-stats">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar me-3">
-                                                <div class="avatar-initial bg-label-success rounded">
+                                            <div class="me-3 avatar">
+                                                <div class="bg-label-success rounded avatar-initial">
                                                     <i class="icon-base bx bx-check-circle icon-lg"></i>
                                                 </div>
                                             </div>
@@ -280,11 +313,11 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="card profile-stats h-100">
+                                <div class="h-100 card profile-stats">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar me-3">
-                                                <div class="avatar-initial bg-label-warning rounded">
+                                            <div class="me-3 avatar">
+                                                <div class="bg-label-warning rounded avatar-initial">
                                                     <i class="icon-base bx bx-star icon-lg"></i>
                                                 </div>
                                             </div>
@@ -301,8 +334,8 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
                         <!-- Profile Tabs -->
                         <div class="row">
                             <div class="col-12">
-                                <div class="card mb-4">
-                                    <div class="card-header pb-0">
+                                <div class="mb-4 card">
+                                    <div class="pb-0 card-header">
                                         <ul class="nav nav-tabs card-header-tabs" role="tablist">
                                             <li class="nav-item">
                                                 <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-info" role="tab">Personal Info</button>
@@ -320,89 +353,89 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
                                             <!-- Personal Info Tab -->
                                             <div class="tab-pane fade show active" id="profile-info" role="tabpanel">
                                                 <div class="row">
-                                                    <div class="col-md-6 mt-5">
-                                                        <div class="info-item mb-3">
+                                                    <div class="mt-5 col-md-6">
+                                                        <div class="mb-3 info-item">
                                                             <div class="d-flex align-items-center">
-                                                                <i class="bx bx-user icon-xl text-primary me-2"></i>
+                                                                <i class="me-2 text-primary bx bx-user icon-xl"></i>
                                                                 <div>
-                                                                    <span class="fw-medium d-block">Full Name</span>
+                                                                    <span class="d-block fw-medium">Full Name</span>
                                                                     <span class="text-muted">
                                                                         <?= htmlspecialchars($student_data['first_name'] . ' ' . $student_data['last_name']); ?>
                                                                     </span>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="info-item mb-3">
+                                                        <div class="mb-3 info-item">
                                                             <div class="d-flex align-items-center">
-                                                                <i class="bx bx-envelope icon-xl text-primary me-2"></i>
+                                                                <i class="me-2 text-primary bx bx-envelope icon-xl"></i>
                                                                 <div>
-                                                                    <span class="fw-medium d-block">Email</span>
+                                                                    <span class="d-block fw-medium">Email</span>
                                                                     <span class="text-muted">
                                                                         <?= htmlspecialchars($student_data['email']); ?>
                                                                     </span>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="info-item mb-3">
+                                                        <div class="mb-3 info-item">
                                                             <div class="d-flex align-items-center">
-                                                                <i class="bx bx-phone icon-xl text-primary me-2"></i>
+                                                                <i class="me-2 text-primary bx bx-phone icon-xl"></i>
                                                                 <div>
-                                                                    <span class="fw-medium d-block">Contact</span>
+                                                                    <span class="d-block fw-medium">Contact</span>
                                                                     <span class="text-muted">
                                                                         <?= htmlspecialchars($student_data['phone_number']); ?>
                                                                     </span>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="info-item mb-3">
+                                                        <div class="mb-3 info-item">
                                                             <div class="d-flex align-items-center">
-                                                                <i class="bx bx-user-check icon-xl text-primary me-2"></i>
+                                                                <i class="me-2 text-primary bx bx-user-check icon-xl"></i>
                                                                 <div>
-                                                                    <span class="fw-medium d-block">Status</span>
-                                                                    <span class="badge bg-label-success">Active</span>
+                                                                    <span class="d-block fw-medium">Status</span>
+                                                                    <span class="bg-label-success badge">Active</span>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-6 mt-3">
-                                                        <div class="info-item mb-3">
+                                                    <div class="mt-3 col-md-6">
+                                                        <div class="mb-3 info-item">
                                                             <div class="d-flex align-items-center">
-                                                                <i class="bx bx-calendar icon-xl text-primary me-2"></i>
+                                                                <i class="me-2 text-primary bx bx-calendar icon-xl"></i>
                                                                 <div>
-                                                                    <span class="fw-medium d-block">Date of Birth</span>
+                                                                    <span class="d-block fw-medium">Date of Birth</span>
                                                                     <span class="text-muted">
                                                                         <?= htmlspecialchars($student_data['date_of_birth']); ?>
                                                                     </span>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="info-item mb-3">
+                                                        <div class="mb-3 info-item">
                                                             <div class="d-flex align-items-center">
-                                                                <i class="bx bx-home icon-xl text-primary me-2"></i>
+                                                                <i class="me-2 text-primary bx bx-home icon-xl"></i>
                                                                 <div>
-                                                                    <span class="fw-medium d-block">Address</span>
+                                                                    <span class="d-block fw-medium">Address</span>
                                                                     <span class="text-muted">
                                                                         <?= htmlspecialchars($student_data['address'] ?: 'Not provided'); ?>
                                                                     </span>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="info-item mb-3">
+                                                        <div class="mb-3 info-item">
                                                             <div class="d-flex align-items-center">
-                                                                <i class="bx bx-user-voice icon-xl text-primary me-2"></i>
+                                                                <i class="me-2 text-primary bx bx-user-voice icon-xl"></i>
                                                                 <div>
-                                                                    <span class="fw-medium d-block">Emergency Contact</span>
+                                                                    <span class="d-block fw-medium">Emergency Contact</span>
                                                                     <span class="text-muted">
                                                                         <?= htmlspecialchars($student_data['emergency_contact_name'] . ': ' . $student_data['emergency_contact_number']); ?>
                                                                     </span>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="info-item mb-3">
+                                                        <div class="mb-3 info-item">
                                                             <div class="d-flex align-items-center">
-                                                                <i class="bx bx-heart icon-xl text-primary me-2"></i>
+                                                                <i class="me-2 text-primary bx bx-heart icon-xl"></i>
                                                                 <div>
-                                                                    <span class="fw-medium d-block">Health Condition</span>
+                                                                    <span class="d-block fw-medium">Health Condition</span>
                                                                     <span class="text-muted">
                                                                         <?= htmlspecialchars($student_data['health_condition'] ?: 'None'); ?>
                                                                     </span>
@@ -436,7 +469,7 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
                                                                 echo '<td>' . htmlspecialchars(date('M d, Y', strtotime($billing['date_due']))) . '</td>';
                                                                 echo '<td>$' . number_format($billing['amount'], 2) . '</td>';
                                                                 echo '<td><span class="badge bg-label-' . ($billing['status'] === 'Fully Paid' ? 'success' : 'warning') . '">' . htmlspecialchars($billing['status']) . '</span></td>';
-                                                                echo '<td><button class="btn btn-sm btn-outline-primary">View</button></td>';
+                                                                echo '<td><button class="btn-outline-primary btn btn-sm">View</button></td>';
                                                                 echo '</tr>';
                                                             }
                                                             ?>
@@ -499,10 +532,10 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
     <!-- Edit User Modal -->
     <div class="modal fade" id="editUser" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-simple modal-edit-user">
-            <div class="modal-content p-3">
+            <div class="p-3 modal-content">
                 <div class="modal-body">
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <div class="text-center mb-4">
+                    <div class="mb-4 text-center">
                         <h3>Edit User Information</h3>
                         <p>Updating user details will receive a privacy audit.</p>
                     </div>
@@ -600,8 +633,8 @@ $room_allocation = $student->getRoomAllocation($student_data['user_id']);
                                 class="form-control"
                                 rows="4"><?= htmlspecialchars($student_data['health_condition'] ?: ''); ?></textarea>
                         </div>
-                        <div class="col-12 text-center">
-                            <button type="submit" class="btn btn-primary me-sm-3 me-1">Submit</button>
+                        <div class="text-center col-12">
+                            <button type="submit" class="me-1 me-sm-3 btn btn-primary">Submit</button>
                             <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
                         </div>
                     </form>
