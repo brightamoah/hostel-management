@@ -252,6 +252,8 @@ require_once __DIR__ . "/../../app/controllers/student.php";
                             </div>
                         </div>
 
+                        <?php include_once __DIR__ . "/../../Components/student/edit_visitor_modal.php" ?>
+
                         <!-- Visitor Modal -->
                         <div class="modal fade" id="visitorModal" tabindex="-1" aria-labelledby="visitorModalLabel" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
