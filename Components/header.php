@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../utils/avatar.php";
 
 if (isset($_SESSION['user'])) {
     $user = $_SESSION['user'];
@@ -10,18 +11,22 @@ if (isset($_SESSION['user'])) {
     $first_name = htmlspecialchars($user['first_name']);
     $last_name = htmlspecialchars($user['last_name']);
 
-    $initials = "";
-    if (!empty($first_name) && !empty($last_name)) {
-        $initials = strtoupper(substr($first_name, 0, 1) . substr($last_name, 0, 1));
-    } else {
-        $name_parts = explode(' ', trim($name));
-        $initials = (count($name_parts) >= 2) ? strtoupper(substr($name_parts[0], 0, 1) . substr($name_parts[1], 0, 1)) : strtoupper(substr($name, 0, 2));
-    }
+    // $initials = "";
+    // if (!empty($first_name) && !empty($last_name)) {
+    //     $initials = strtoupper(substr($first_name, 0, 1) . substr($last_name, 0, 1));
+    // } else {
+    //     $name_parts = explode(' ', trim($name));
+    //     $initials = (count($name_parts) >= 2) ? strtoupper(substr($name_parts[0], 0, 1) . substr($name_parts[1], 0, 1)) : strtoupper(substr($name, 0, 2));
+    // }
 
-    // Generate background color based on user ID for consistency
-    $colors = ['primary', 'success', 'danger', 'warning', 'info', 'dark'];
-    $color_index = $user_id % count($colors);
-    $bg_color = $colors[$color_index];
+    // // Generate background color based on user ID for consistency
+    // $colors = ['primary', 'success', 'danger', 'warning', 'info', 'dark'];
+    // $color_index = $user_id % count($colors);
+    // $bg_color = $colors[$color_index];
+
+    $avatar = Avatar::generateUserAvatar($user);
+    $initials = $avatar['initials'];
+    $bg_color = $avatar['bg_color'];
 }
 
 function getProfileURL($role)
