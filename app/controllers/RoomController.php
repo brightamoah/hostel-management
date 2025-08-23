@@ -1,5 +1,5 @@
 <?php
-require_once "./app/models/Room.php";
+require_once __DIR__ . "/../../app/models/Room.php";
 
 class RoomController
 {
@@ -194,5 +194,13 @@ class RoomController
             echo json_encode(['success' => false, 'error' => 'Invalid request or CSRF token']);
             exit();
         }
+    }
+
+    public function getRoomFilters()
+    {
+        header('Content-Type: application/json');
+        $filterData = $this->roomModel->getRoomFilterData();
+        echo json_encode(['success' => true, 'data' => $filterData]);
+        exit();
     }
 }

@@ -1,10 +1,3 @@
-<?php
-// require_once "./app/controllers/announcement.php";
-// echo "<pre>";
-// print_r($_SESSION["user"]);
-// echo '</pre>';
-?>
-
 <!doctype html>
 <html lang="en" class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
@@ -82,25 +75,19 @@
                                     <div class="col-md-3">
                                         <select id="buildingFilter" class="form-select">
                                             <option value="">All Buildings</option>
-                                            <option value="Hostel A">Hostel A</option>
-                                            <option value="Hostel B">Hostel B</option>
+                                            <!-- Populated dynamically via JavaScript -->
                                         </select>
                                     </div>
                                     <div class="col-md-3">
                                         <select id="roomTypeFilter" class="form-select">
                                             <option value="">All Room Types</option>
-                                            <option value="Single">Single</option>
-                                            <option value="Double">Double</option>
-                                            <option value="Triple">Triple</option>
-                                            <option value="Quad">Quad</option>
+                                            <!-- Populated dynamically via JavaScript -->
                                         </select>
                                     </div>
                                     <div class="col-md-3">
                                         <select id="floorFilter" class="form-select">
                                             <option value="">All Floors</option>
-                                            <option value="1">1st Floor</option>
-                                            <option value="2">2nd Floor</option>
-                                            <option value="3">3rd Floor</option>
+                                            <!-- Populated dynamically via JavaScript -->
                                         </select>
                                     </div>
                                 </div>

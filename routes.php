@@ -28,6 +28,7 @@ get('/paystack/callback', '/app/controllers/PaystackCallback.php');
 get('/student/announcements-data', 'api/student/GetAnnouncements.php', ['auth']);
 get('/student/rooms-data', 'api/student/GetAvailableRooms.php', ['auth']);
 get('/student/room/$id', 'api/student/GetRoomById.php', ['auth']);
+get('/student/rooms/filters', 'api/student/room/GetRoomFilters.php', ['auth']);
 get('/student/billing-data', 'api/student/GetBillings.php', ['auth']);
 get('/student/billing/$bill_id', 'api/student/billing/GetBillingById.php', ['auth']);
 
