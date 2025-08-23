@@ -9,6 +9,77 @@
             .querySelector('meta[name="csrf-token"]')
             ?.getAttribute("content") || "";
 
+      function populateFilters() {
+         $.ajax({
+            url: "/student/rooms/filters",
+            type: "GET",
+            success: function (response) {
+               if (response.success && response.data) {
+                  const { buildings, room_types, floors } = response.data;
+
+                  // Populate building filter
+                  const buildingSelect = $("#buildingFilter");
+                  buildingSelect.find("option:not(:first)").remove(); // Keep "All Buildings" option
+                  buildings.forEach((building) => {
+                     buildingSelect.append(
+                        `<option value="${building}">${building}</option>`
+                     );
+                  });
+
+                  // Populate room type filter
+                  const roomTypeSelect = $("#roomTypeFilter");
+                  roomTypeSelect.find("option:not(:first)").remove(); // Keep "All Room Types" option
+                  room_types.forEach((type) => {
+                     roomTypeSelect.append(
+                        `<option value="${type}">${type}</option>`
+                     );
+                  });
+
+                  // Populate floor filter
+                  const floorSelect = $("#floorFilter");
+                  floorSelect.find("option:not(:first)").remove(); // Keep "All Floors" option
+                  floors.forEach((floor) => {
+                     const floorText =
+                        floor == 1
+                           ? "1st Floor"
+                           : floor == 2
+                           ? "2nd Floor"
+                           : floor == 3
+                           ? "3rd Floor"
+                           : `${floor}th Floor`;
+                     floorSelect.append(
+                        `<option value="${floor}">${floorText}</option>`
+                     );
+                  });
+
+                  // Reinitialize Select2 after populating
+                  if ($.fn.select2) {
+                     buildingSelect.select2({
+                        placeholder: "All Buildings",
+                        allowClear: true,
+                        width: "100%",
+                     });
+
+                     roomTypeSelect.select2({
+                        placeholder: "All Room Types",
+                        allowClear: true,
+                        width: "100%",
+                     });
+
+                     floorSelect.select2({
+                        placeholder: "All Floors",
+                        allowClear: true,
+                        width: "100%",
+                     });
+                  }
+               }
+            },
+            error: function () {
+               console.error("Failed to load filter data");
+            },
+         });
+      }
+
       const dt = new DataTable(dt_rooms_table, {
          ajax: "/student/rooms-data",
 
@@ -81,7 +152,27 @@
                      badgeClass = "bg-label-warning"; // Maintenance
                   }
 
-                  return `<span class="badge ${badgeClass}">${available} / ${data}</span>`;
+                  let tooltipText = `${available} spaces available out of ${full.capacity} total capacity`;
+
+                  if (available === 0) {
+                     tooltipText += ". This room is fully occupied.";
+                  } else if (available === full.capacity) {
+                     tooltipText += ". This room is completely vacant.";
+                  } else {
+                     tooltipText += `. ${full.current_occupancy} student(s) currently occupy this room.`;
+                  }
+
+                  if (full.status === "Under Maintenance") {
+                     tooltipText += " Room is currently under maintenance.";
+                  }
+
+                  return `<span class="badge ${badgeClass}" 
+                             data-bs-toggle="tooltip" 
+                             data-bs-placement="top" 
+                             data-bs-html="true"
+                             title="${tooltipText}">
+                             ${available} / ${data}
+                          </span>`;
                },
             },
             {
@@ -121,6 +212,7 @@
                targets: 8, // Actions
                searchable: false,
                orderable: false,
+
                render: function (data, type, full) {
                   return `
                      <div class="d-flex align-items-center gap-2">
@@ -145,26 +237,7 @@
             },
          ],
          order: [[1, "asc"]],
-         responsive: {
-            details: {
-               display: DataTable.Responsive.display.modal({
-                  header: function (row) {
-                     const data = row.data();
-                     return `Details for Room ${data.room_number}`;
-                  },
-               }),
-               renderer: function (api, rowIdx, columns) {
-                  const data = columns
-                     .map(function (col) {
-                        return col.title !== "" && col.title !== "Actions"
-                           ? `<tr><td>${col.title}:</td><td>${col.data}</td></tr>`
-                           : "";
-                     })
-                     .join("");
-                  return data ? `<table class="table">${data}</table>` : false;
-               },
-            },
-         },
+         responsive: true,
          language: {
             paginate: {
                next: '<i class="bx bx-chevron-right icon-18px"></i>',
@@ -174,26 +247,7 @@
          initComplete: function () {
             const api = this.api();
 
-            if ($.fn.select2) {
-               $("#buildingFilter").select2({
-                  placeholder: "All Buildings",
-                  allowClear: true,
-                  width: "100%",
-               });
-
-               $("#roomTypeFilter").select2({
-                  placeholder: "All Room Types",
-                  allowClear: true,
-                  width: "100%",
-               });
-
-               // Floor filter
-               $("#floorFilter").select2({
-                  placeholder: "All Floors",
-                  allowClear: true,
-                  width: "100%",
-               });
-            }
+            populateFilters();
 
             // Search box
             $("#roomSearch").on("keyup", function () {

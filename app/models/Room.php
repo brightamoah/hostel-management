@@ -1,15 +1,13 @@
 <?php
-require_once "./database/db.php";
+require_once __DIR__ . "/../../database/db.php";
 
 class Rooms
 {
-    private $db;
     private $conn;
 
     public function __construct()
     {
-        $this->db = new Database();
-        $this->conn = $this->db->connect();
+        $this->conn = getDb();
     }
 
     // Fetch available rooms (for students)
@@ -413,6 +411,64 @@ class Rooms
             error_log("Booking failed for student_id $student_id, room_id $room_id: " . $e->getMessage());
             throw $e; // Re-throw the exception for the controller to handle
         }
+    }
+
+    // Get unique buildings for filter
+    public function getUniqueBuildings()
+    {
+        $query = "SELECT DISTINCT building FROM rooms ORDER BY building";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $buildings = [];
+        while ($row = $result->fetch_assoc()) {
+            if (!empty($row['building'])) {
+                $buildings[] = $row['building'];
+            }
+        }
+        return $buildings;
+    }
+
+    // Get unique room types for filter
+    public function getUniqueRoomTypes()
+    {
+        $query = "SELECT DISTINCT room_type FROM rooms ORDER BY room_type";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $roomTypes = [];
+        while ($row = $result->fetch_assoc()) {
+            if (!empty($row['room_type'])) {
+                $roomTypes[] = $row['room_type'];
+            }
+        }
+        return $roomTypes;
+    }
+
+    // Get unique floors for filter
+    public function getUniqueFloors()
+    {
+        $query = "SELECT DISTINCT floor FROM rooms ORDER BY floor";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $floors = [];
+        while ($row = $result->fetch_assoc()) {
+            if ($row['floor'] !== null) {
+                $floors[] = $row['floor'];
+            }
+        }
+        return $floors;
+    }
+
+    // Get filter data for rooms
+    public function getRoomFilterData()
+    {
+        return [
+            'buildings' => $this->getUniqueBuildings(),
+            'room_types' => $this->getUniqueRoomTypes(),
+            'floors' => $this->getUniqueFloors()
+        ];
     }
 
     // Close connection
