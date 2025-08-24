@@ -15,7 +15,7 @@ function loadEnvFile()
             continue; // Skip comments
         }
 
-        list($name, $value) = explode('=', $line, 2);
+        [$name, $value] = explode('=', $line, 2);
         $name = trim($name);
         $value = trim($value);
 

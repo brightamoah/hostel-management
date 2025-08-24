@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . "/../vendor/autoload.php";
+require_once __DIR__ . "/../utils/load_env.php";
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -19,6 +20,7 @@ function sanitizeInput($input)
 
 function sendVerificationEmail($email, $name, $code)
 {
+    loadEnvFile();
     $mail = new PHPMailer(true);
 
     try {
@@ -30,12 +32,12 @@ function sendVerificationEmail($email, $name, $code)
 
 
         $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
+        $mail->Host = $_ENV["EMAIL_SERVICE_HOST"];
         $mail->SMTPAuth = true;
-        $mail->Username = 'kingshostelmgt@gmail.com';
-        $mail->Password = 'fnuzctkvhqqdafjk';
+        $mail->Username = $_ENV["EMAIL_SERVICE_USERNAME"];
+        $mail->Password = $_ENV["EMAIL_SERVICE_PASSWORD"];
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-        $mail->Port = 465;
+        $mail->Port = $_ENV["EMAIL_SERVICE_PORT"];
         $mail->setFrom('no-reply@kingshostelmgt.gmail.com', 'Kings Hostel Management');
         $mail->addAddress($email, $name);
 

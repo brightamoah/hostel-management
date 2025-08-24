@@ -10,6 +10,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Student') {
     exit();
 }
 
+
 $student_data = $_SESSION['user'];
 $conn = getDb();
 $student = new Student($conn);
@@ -17,25 +18,9 @@ $student = new Student($conn);
 // Fetch room allocation for room information
 $room_allocation = $student->getRoomAllocation($student_data['user_id']);
 
-
-// $initials = '';
-// if (!empty($student_data['first_name']) && !empty($student_data['last_name'])) {
-//     $initials = strtoupper(substr($student_data['first_name'], 0, 1) . substr($student_data['last_name'], 0, 1));
-// } else {
-//     // Fallback to name field if first_name/last_name not available
-//     $name = $student_data['first_name'] . ' ' . $student_data['last_name'];
-//     $name_parts = explode(' ', trim($name));
-//     if (count($name_parts) >= 2) {
-//         $initials = strtoupper(substr($name_parts[0], 0, 1) . substr($name_parts[1], 0, 1));
-//     } else {
-//         $initials = strtoupper(substr($name, 0, 2));
-//     }
-// }
-
-
-// $colors = ['primary', 'success', 'danger', 'warning', 'info', 'dark'];
-// $color_index = $student_data['user_id'] % count($colors);
-// $bg_color = $colors[$color_index];
+// Fetch additional relevant student stats
+$open_maintenance_requests = $student->getOpenMaintenanceRequests($student_data['user_id']);
+$pending_visitors = $student->getPendingVisitors($student_data['user_id']);
 
 $avatar = Avatar::generateUserAvatar($student_data);
 $initials = $avatar['initials'];
@@ -126,16 +111,31 @@ $bg_color = $avatar['bg_color'];
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
+        @media (max-width: 576px) {
+            .profile-avatar-large {
+                width: 90px;
+                height: 90px;
+                font-size: 32px;
+            }
+
+            .profile-header {
+                padding: 1rem 0;
+            }
+
+            .profile-stats {
+                padding: 1rem;
+            }
+
+            .action-btn {
+                min-width: auto;
+            }
+        }
+
         .profile-stats {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             border-radius: 0.5rem;
             padding: 1.5rem;
             transition: all 0.3s;
-        }
-
-        .profile-stats:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(115, 103, 240, 0.15);
         }
 
         .info-item {
@@ -160,11 +160,6 @@ $bg_color = $avatar['bg_color'];
             padding: 0.6rem 1.5rem;
             font-weight: 500;
             transition: all 0.3s;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(115, 103, 240, 0.25);
         }
 
         .tab-content {
@@ -197,6 +192,8 @@ $bg_color = $avatar['bg_color'];
         <div class="layout-container">
             <!-- Menu -->
             <?php include_once __DIR__ . "/../../Components/sidebar.php" ?>
+
+
 
             <div class="rounded-1 menu-mobile-toggler d-xl-none">
                 <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
@@ -251,236 +248,55 @@ $bg_color = $avatar['bg_color'];
                                             </p>
                                         </div>
 
-                                        <div class="d-flex justify-content-center mb-4">
-                                            <button class="me-3 btn btn-primary action-btn" data-bs-target="#editUser" data-bs-toggle="modal">
-                                                <i class="me-1 icon-base bx bx-edit-alt"></i> Edit Profile
-                                            </button>
-                                            <button class="btn-outline-primary btn action-btn">
-                                                <i class="me-1 icon-lg bx bx-key"></i> Change Password
-                                            </button>
+                                        <div class="justify-content-center mb-4 row g-2">
+                                            <div class="d-md-inline d-grid col-12 col-md-auto">
+                                                <button class="me-md-3 mb-2 mb-md-0 w-100 w-md-auto btn btn-primary action-btn" data-bs-target="#editUser" data-bs-toggle="modal">
+                                                    <i class="me-1 icon-base bx bx-edit-alt"></i> Edit Profile
+                                                </button>
+                                            </div>
+                                            <div class="d-md-inline d-grid col-12 col-md-auto">
+                                                <button class="btn-outline-primary w-100 w-md-auto btn action-btn">
+                                                    <i class="me-1 icon-lg bx bx-key"></i> Change Password
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Stats Cards -->
-                        <div class="mb-4 row">
-                            <div class="col-md-4">
-                                <div class="h-100 card profile-stats">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3 avatar">
-                                                <div class="bg-label-primary rounded avatar-initial">
-                                                    <i class="icon-base bx bx-calendar icon-lg"></i>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <h4 class="mb-0">
-                                                    <?php
-                                                    $enrollment_date = new DateTime($student_data['enrollment_date']);
-                                                    $today = new DateTime();
-                                                    $days = $today->diff($enrollment_date)->days;
-                                                    echo $days;
-                                                    ?>
-                                                </h4>
-                                                <span>Days at Hostel</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="h-100 card profile-stats">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3 avatar">
-                                                <div class="bg-label-success rounded avatar-initial">
-                                                    <i class="icon-base bx bx-check-circle icon-lg"></i>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <h4 class="mb-0">
-                                                    <?php
-                                                    $payment_status = $student->getPaymentStatusSummary($student_data['user_id']);
-                                                    echo $payment_status['status'] === 'Cleared' ? '100%' : 'Pending';
-                                                    ?>
-                                                </h4>
-                                                <span>Payment Status</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="h-100 card profile-stats">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3 avatar">
-                                                <div class="bg-label-warning rounded avatar-initial">
-                                                    <i class="icon-base bx bx-star icon-lg"></i>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <h4 class="mb-0">4.8</h4>
-                                                <span>Room Rating</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <?php include_once __DIR__ . "/../../Components/student/profile/stats_card.php" ?>
+
+                        <pre><?= print_r($room_allocation, true) ?></pre>
 
                         <!-- Profile Tabs -->
                         <div class="row">
                             <div class="col-12">
                                 <div class="mb-4 card">
                                     <div class="pb-0 card-header">
-                                        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                                        <ul class="flex-nowrap overflow-auto nav nav-tabs card-header-tabs" role="tablist">
                                             <li class="nav-item">
                                                 <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-info" role="tab">Personal Info</button>
                                             </li>
                                             <li class="nav-item">
-                                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-billing" role="tab">Billing</button>
+                                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-activities" role="tab">Activities</button>
                                             </li>
                                             <li class="nav-item">
-                                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-activities" role="tab">Activities</button>
+                                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-room" role="tab">Room Details</button>
                                             </li>
                                         </ul>
                                     </div>
                                     <div class="card-body">
                                         <div class="tab-content">
                                             <!-- Personal Info Tab -->
-                                            <div class="tab-pane fade show active" id="profile-info" role="tabpanel">
-                                                <div class="row">
-                                                    <div class="mt-5 col-md-6">
-                                                        <div class="mb-3 info-item">
-                                                            <div class="d-flex align-items-center">
-                                                                <i class="me-2 text-primary bx bx-user icon-xl"></i>
-                                                                <div>
-                                                                    <span class="d-block fw-medium">Full Name</span>
-                                                                    <span class="text-muted">
-                                                                        <?= htmlspecialchars($student_data['first_name'] . ' ' . $student_data['last_name']); ?>
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="mb-3 info-item">
-                                                            <div class="d-flex align-items-center">
-                                                                <i class="me-2 text-primary bx bx-envelope icon-xl"></i>
-                                                                <div>
-                                                                    <span class="d-block fw-medium">Email</span>
-                                                                    <span class="text-muted">
-                                                                        <?= htmlspecialchars($student_data['email']); ?>
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="mb-3 info-item">
-                                                            <div class="d-flex align-items-center">
-                                                                <i class="me-2 text-primary bx bx-phone icon-xl"></i>
-                                                                <div>
-                                                                    <span class="d-block fw-medium">Contact</span>
-                                                                    <span class="text-muted">
-                                                                        <?= htmlspecialchars($student_data['phone_number']); ?>
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="mb-3 info-item">
-                                                            <div class="d-flex align-items-center">
-                                                                <i class="me-2 text-primary bx bx-user-check icon-xl"></i>
-                                                                <div>
-                                                                    <span class="d-block fw-medium">Status</span>
-                                                                    <span class="bg-label-success badge">Active</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="mt-3 col-md-6">
-                                                        <div class="mb-3 info-item">
-                                                            <div class="d-flex align-items-center">
-                                                                <i class="me-2 text-primary bx bx-calendar icon-xl"></i>
-                                                                <div>
-                                                                    <span class="d-block fw-medium">Date of Birth</span>
-                                                                    <span class="text-muted">
-                                                                        <?= htmlspecialchars($student_data['date_of_birth']); ?>
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="mb-3 info-item">
-                                                            <div class="d-flex align-items-center">
-                                                                <i class="me-2 text-primary bx bx-home icon-xl"></i>
-                                                                <div>
-                                                                    <span class="d-block fw-medium">Address</span>
-                                                                    <span class="text-muted">
-                                                                        <?= htmlspecialchars($student_data['address'] ?: 'Not provided'); ?>
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="mb-3 info-item">
-                                                            <div class="d-flex align-items-center">
-                                                                <i class="me-2 text-primary bx bx-user-voice icon-xl"></i>
-                                                                <div>
-                                                                    <span class="d-block fw-medium">Emergency Contact</span>
-                                                                    <span class="text-muted">
-                                                                        <?= htmlspecialchars($student_data['emergency_contact_name'] . ': ' . $student_data['emergency_contact_number']); ?>
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="mb-3 info-item">
-                                                            <div class="d-flex align-items-center">
-                                                                <i class="me-2 text-primary bx bx-heart icon-xl"></i>
-                                                                <div>
-                                                                    <span class="d-block fw-medium">Health Condition</span>
-                                                                    <span class="text-muted">
-                                                                        <?= htmlspecialchars($student_data['health_condition'] ?: 'None'); ?>
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <?php include_once __DIR__ . "/../../Components/student/profile/personal_info.php" ?>
 
-                                            <!-- Billing Tab -->
-                                            <div class="tab-pane fade" id="profile-billing" role="tabpanel">
-                                                <h5 class="mb-4">Payment History</h5>
-                                                <div class="table-responsive">
-                                                    <table class="table table-borderless">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Invoice</th>
-                                                                <th>Date</th>
-                                                                <th>Amount</th>
-                                                                <th>Status</th>
-                                                                <th>Action</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <?php
-                                                            $billings = $student->getBillings($student_data['user_id']);
-                                                            foreach ($billings as $billing) {
-                                                                echo '<tr>';
-                                                                echo '<td>#' . htmlspecialchars($billing['billing_id']) . '</td>';
-                                                                echo '<td>' . htmlspecialchars(date('M d, Y', strtotime($billing['date_due']))) . '</td>';
-                                                                echo '<td>$' . number_format($billing['amount'], 2) . '</td>';
-                                                                echo '<td><span class="badge bg-label-' . ($billing['status'] === 'Fully Paid' ? 'success' : 'warning') . '">' . htmlspecialchars($billing['status']) . '</span></td>';
-                                                                echo '<td><button class="btn-outline-primary btn btn-sm">View</button></td>';
-                                                                echo '</tr>';
-                                                            }
-                                                            ?>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
+
+                                            <?php include_once __DIR__ . "/../../Components/student/profile/room_tab.php" ?>
 
                                             <!-- Activities Tab -->
                                             <div class="tab-pane fade" id="profile-activities" role="tabpanel">
-                                                <h5 class="mb-4">Recent Activities</h5>
+                                                <h5 class="mt-4 mb-4">Recent Activities</h5>
                                                 <ul class="timeline">
                                                     <li class="timeline-item">
                                                         <span class="timeline-point timeline-point-primary">
@@ -508,15 +324,12 @@ $bg_color = $avatar['bg_color'];
                             </div>
                         </div>
                     </div>
-                    <!-- / Content -->
 
-                    <!-- Footer -->
-                    <?php include_once "./Components/footer.php" ?>
-                    <!-- / Footer -->
+                    <?php include_once __DIR__ . "/../../Components/footer.php" ?>
 
                     <div class="content-backdrop fade"></div>
                 </div>
-                <!-- Content wrapper -->
+
             </div>
             <!-- / Layout page -->
         </div>

@@ -53,9 +53,9 @@ class Student
         $current_student_id = $current_student['student_id'];
         $stmt->close();
 
-        // Query to get other residents
+        // Query to get other residents in the same room
         $residents_query = "
-    SELECT CONCAT(s.first_name, ' ', s.last_name) AS resident_name 
+    SELECT CONCAT(s.first_name, ' ', s.last_name) AS resident_name, s.phone_number, s.health_condition 
     FROM allocations a 
     JOIN students s ON a.student_id = s.student_id 
     WHERE a.room_id = ? AND a.status = 'Active' AND s.student_id != ?";
@@ -71,7 +71,11 @@ class Student
         // Add other residents to the room data
         $data['other_residents'] = [];
         while ($resident = $result->fetch_assoc()) {
-            $data['other_residents'][] = $resident['resident_name'];
+            $data['other_residents'][] = [
+                'resident_name' => $resident['resident_name'],
+                'phone_number' => $resident['phone_number'],
+                'health_condition' => $resident['health_condition'] ?? 'None',
+            ];
         }
         $stmt->close();
 
