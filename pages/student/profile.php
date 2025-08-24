@@ -15,12 +15,15 @@ $student_data = $_SESSION['user'];
 $conn = getDb();
 $student = new Student($conn);
 
+
 // Fetch room allocation for room information
 $room_allocation = $student->getRoomAllocation($student_data['user_id']);
 
 // Fetch additional relevant student stats
 $open_maintenance_requests = $student->getOpenMaintenanceRequests($student_data['user_id']);
 $pending_visitors = $student->getPendingVisitors($student_data['user_id']);
+
+$recent_activities = $student->getRecentActivities($student_data['user_id']);
 
 $avatar = Avatar::generateUserAvatar($student_data);
 $initials = $avatar['initials'];
@@ -267,8 +270,6 @@ $bg_color = $avatar['bg_color'];
 
                         <?php include_once __DIR__ . "/../../Components/student/profile/stats_card.php" ?>
 
-                        <pre><?= print_r($room_allocation, true) ?></pre>
-
                         <!-- Profile Tabs -->
                         <div class="row">
                             <div class="col-12">
@@ -279,10 +280,10 @@ $bg_color = $avatar['bg_color'];
                                                 <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-info" role="tab">Personal Info</button>
                                             </li>
                                             <li class="nav-item">
-                                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-activities" role="tab">Activities</button>
+                                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-room" role="tab">Room Details</button>
                                             </li>
                                             <li class="nav-item">
-                                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-room" role="tab">Room Details</button>
+                                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-activities" role="tab">Activities</button>
                                             </li>
                                         </ul>
                                     </div>
@@ -295,29 +296,7 @@ $bg_color = $avatar['bg_color'];
                                             <?php include_once __DIR__ . "/../../Components/student/profile/room_tab.php" ?>
 
                                             <!-- Activities Tab -->
-                                            <div class="tab-pane fade" id="profile-activities" role="tabpanel">
-                                                <h5 class="mt-4 mb-4">Recent Activities</h5>
-                                                <ul class="timeline">
-                                                    <li class="timeline-item">
-                                                        <span class="timeline-point timeline-point-primary">
-                                                            <i class="bx bx-home-circle"></i>
-                                                        </span>
-                                                        <div class="timeline-event">
-                                                            <div class="timeline-header">
-                                                                <h6 class="mb-0">Room Allocation</h6>
-                                                                <small class="text-muted"><?= date('M d, Y H:i A', strtotime($student_data['enrollment_date'])); ?></small>
-                                                            </div>
-                                                            <p class="mb-0">
-                                                                <?php
-                                                                echo $room_allocation
-                                                                    ? 'Allocated to Room ' . htmlspecialchars($room_allocation['room_number'])
-                                                                    : 'No room allocated';
-                                                                ?>
-                                                            </p>
-                                                        </div>
-                                                    </li>
-                                                </ul>
-                                            </div>
+                                            <?php include_once __DIR__ . "/../../Components/student/profile/activities_tab.php" ?>
                                         </div>
                                     </div>
                                 </div>
@@ -343,118 +322,7 @@ $bg_color = $avatar['bg_color'];
     <!-- / Layout wrapper -->
 
     <!-- Edit User Modal -->
-    <div class="modal fade" id="editUser" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-simple modal-edit-user">
-            <div class="p-3 modal-content">
-                <div class="modal-body">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <div class="mb-4 text-center">
-                        <h3>Edit User Information</h3>
-                        <p>Updating user details will receive a privacy audit.</p>
-                    </div>
-                    <form id="editUserForm" class="row g-3" method="POST" action="/student/profile/update">
-                        <?php set_csrf(); ?>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="modalEditUserFirstName">First Name</label>
-                            <input
-                                type="text"
-                                id="modalEditUserFirstName"
-                                name="first_name"
-                                class="form-control"
-                                value="<?= htmlspecialchars($student_data['first_name']); ?>"
-                                required />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="modalEditUserLastName">Last Name</label>
-                            <input
-                                type="text"
-                                id="modalEditUserLastName"
-                                name="last_name"
-                                class="form-control"
-                                value="<?= htmlspecialchars($student_data['last_name']); ?>"
-                                required />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="modalEditUserEmail">Email</label>
-                            <input
-                                type="email"
-                                id="modalEditUserEmail"
-                                name="email"
-                                class="form-control"
-                                value="<?= htmlspecialchars($student_data['email']); ?>"
-                                readonly />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="modalEditUserPhone">Phone Number</label>
-                            <div class="input-group">
-                                <span class="input-group-text">GH (+233)</span>
-                                <input
-                                    type="text"
-                                    id="modalEditUserPhone"
-                                    name="phone_number"
-                                    class="form-control phone-number-mask"
-                                    value="<?= htmlspecialchars($student_data['phone_number']); ?>"
-                                    required />
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="modalEditUserGender">Gender</label>
-                            <select id="modalEditUserGender" name="gender" class="form-select" required>
-                                <option value="Male" <?= $student_data['gender'] == 'Male' ? 'selected' : ''; ?>>Male</option>
-                                <option value="Female" <?= $student_data['gender'] == 'Female' ? 'selected' : ''; ?>>Female</option>
-                                <option value="Other" <?= $student_data['gender'] == 'Other' ? 'selected' : ''; ?>>Other</option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="modalEditUserAddress">Address</label>
-                            <input
-                                type="text"
-                                id="modalEditUserAddress"
-                                name="address"
-                                class="form-control"
-                                value="<?= htmlspecialchars($student_data['address'] ?: ''); ?>"
-                                required />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="modalEditEmergencyContactName">Emergency Contact Name</label>
-                            <input
-                                type="text"
-                                id="modalEditEmergencyContactName"
-                                name="emergency_contact_name"
-                                class="form-control"
-                                value="<?= htmlspecialchars($student_data['emergency_contact_name']); ?>"
-                                required />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="modalEditEmergencyContactNumber">Emergency Contact Number</label>
-                            <div class="input-group">
-                                <span class="input-group-text">GH (+233)</span>
-                                <input
-                                    type="text"
-                                    id="modalEditEmergencyContactNumber"
-                                    name="emergency_contact_number"
-                                    class="form-control phone-number-mask"
-                                    value="<?= htmlspecialchars($student_data['emergency_contact_number']); ?>"
-                                    required />
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label" for="modalEditHealthCondition">Health Condition</label>
-                            <textarea
-                                id="modalEditHealthCondition"
-                                name="health_condition"
-                                class="form-control"
-                                rows="4"><?= htmlspecialchars($student_data['health_condition'] ?: ''); ?></textarea>
-                        </div>
-                        <div class="text-center col-12">
-                            <button type="submit" class="me-1 me-sm-3 btn btn-primary">Submit</button>
-                            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+    <?= include_once __DIR__ . "/../../Components/student/profile/edit_profile.php" ?>
 
     <!-- Core JS -->
     <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
@@ -484,6 +352,18 @@ $bg_color = $avatar['bg_color'];
         $(function() {
             // Initialize Select2
             $('.select2').select2();
+
+            // Fix Select2 in Bootstrap modal for gender select
+            if ($.fn.select2) {
+                $('#editUser').on('shown.bs.modal', function() {
+                    $("#modalEditUserGender").select2({
+                        dropdownParent: $('#editUser'),
+                        placeholder: "Select Gender",
+                        allowClear: true,
+                        width: "100%"
+                    });
+                });
+            }
 
             // Form validation
             const editUserForm = document.getElementById('editUserForm');
