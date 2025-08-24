@@ -230,6 +230,143 @@ class Student
 
 
 
+    // Get recent activities for a student
+    public function getRecentActivities($user_id, $limit = 10)
+    {
+        $activities = [];
+
+        // Get student_id first
+        $student_query = "SELECT student_id FROM students WHERE user_id = ?";
+        $stmt = $this->connection->prepare($student_query);
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $this->connection->error);
+        }
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $student_data = $result->fetch_assoc();
+        $stmt->close();
+
+        if (!$student_data) {
+            return $activities;
+        }
+
+        $student_id = $student_data['student_id'];
+
+        // Recent Payments
+        $payment_query = "
+            SELECT 'payment' as activity_type, amount, payment_date as activity_date, 
+                   CONCAT('Payment of GHS ', FORMAT(amount, 2), ' - ', purpose) as description,
+                   status, transaction_reference
+            FROM payments 
+            WHERE student_id = ? 
+            ORDER BY payment_date DESC 
+            LIMIT 5";
+
+        $stmt = $this->connection->prepare($payment_query);
+        if ($stmt) {
+            $stmt->bind_param("i", $student_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $activities[] = $row;
+            }
+            $stmt->close();
+        }
+
+        // Recent Maintenance Requests
+        $maintenance_query = "
+            SELECT 'maintenance' as activity_type, request_date as activity_date,
+                   CONCAT('Maintenance Request: ', issue_type, ' - ', LEFT(description, 50), '...') as description,
+                   status, priority
+            FROM maintenance_requests 
+            WHERE student_id = ? 
+            ORDER BY request_date DESC 
+            LIMIT 5";
+
+        $stmt = $this->connection->prepare($maintenance_query);
+        if ($stmt) {
+            $stmt->bind_param("i", $student_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $activities[] = $row;
+            }
+            $stmt->close();
+        }
+
+        // Recent Visitor Registrations
+        $visitor_query = "
+            SELECT 'visitor' as activity_type, registered_at as activity_date,
+                   CONCAT('Visitor Registration: ', visitor_name, ' (', relation, ')') as description,
+                   status, visit_date
+            FROM visitors 
+            WHERE student_id = ? 
+            ORDER BY registered_at DESC 
+            LIMIT 5";
+
+        $stmt = $this->connection->prepare($visitor_query);
+        if ($stmt) {
+            $stmt->bind_param("i", $student_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $activities[] = $row;
+            }
+            $stmt->close();
+        }
+
+        // Recent Complaints
+        $complaint_query = "
+            SELECT 'complaint' as activity_type, submitted_at as activity_date,
+                   CONCAT('Complaint: ', complaint_type, ' - ', LEFT(description, 50), '...') as description,
+                   status, priority
+            FROM complaints 
+            WHERE student_id = ? 
+            ORDER BY submitted_at DESC 
+            LIMIT 5";
+
+        $stmt = $this->connection->prepare($complaint_query);
+        if ($stmt) {
+            $stmt->bind_param("i", $student_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $activities[] = $row;
+            }
+            $stmt->close();
+        }
+
+        // Recent Room Allocations
+        $allocation_query = "
+            SELECT 'allocation' as activity_type, allocated_at as activity_date,
+                   CONCAT('Room Allocation: ', r.room_number, ' (', r.building, ')') as description,
+                   a.status, a.start_date
+            FROM allocations a
+            JOIN rooms r ON a.room_id = r.room_id
+            WHERE a.student_id = ? 
+            ORDER BY allocated_at DESC 
+            LIMIT 3";
+
+        $stmt = $this->connection->prepare($allocation_query);
+        if ($stmt) {
+            $stmt->bind_param("i", $student_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $activities[] = $row;
+            }
+            $stmt->close();
+        }
+
+        // Sort all activities by date and limit
+        usort($activities, function ($a, $b) {
+            return strtotime($b['activity_date']) - strtotime($a['activity_date']);
+        });
+
+        return array_slice($activities, 0, $limit);
+    }
+
     // Summarize payment status
     public function getPaymentStatusSummary($user_id)
     {
