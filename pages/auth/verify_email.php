@@ -1,16 +1,15 @@
 <?php
-require_once "./database/db.php";
-require_once "./app/models/User.php";
-require_once "./utils/functions.php";
-require_once "./vendor/autoload.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../../app/models/User.php";
+require_once __DIR__ . "/../../utils/functions.php";
+require_once __DIR__ . "/../../vendor/autoload.php";
 
 if (!isset($_SESSION['email_to_verify'])) {
     header('Location: /signup');
     exit;
 }
 
-$db = new Database();
-$user = new User($db->connect());
+$user = new User(getDb());
 
 // Track resend attempts and cooldown periods
 if (!isset($_SESSION['resend_count'])) {
@@ -133,11 +132,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
     <div class="authentication-wrapper authentication-cover">
-        <div class="authentication-inner row m-0">
-            <div class="d-flex col-12 align-items-center justify-content-center authentication-bg p-5">
+        <div class="m-0 authentication-inner row">
+            <div class="d-flex align-items-center justify-content-center p-5 col-12 authentication-bg">
                 <div class="w-px-400">
                     <h3 class="mb-2 text-center fw-bold">Verify Your Email</h3>
-                    <p class="text-center text-muted mb-4">A verification code has been sent to <?php echo htmlspecialchars($_SESSION['email_to_verify']); ?></p>
+                    <p class="mb-4 text-muted text-center">A verification code has been sent to <?php echo htmlspecialchars($_SESSION['email_to_verify']); ?></p>
 
                     <?php if (isset($_SESSION['message-verify'])): ?>
                         <div class='text-center fw-bold alert alert-<?php echo $_SESSION['message_type']; ?> mt-3' role='alert'>
@@ -152,13 +151,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <label for="verification_code" class="form-label">Verification Code</label>
                             <input type="text" class="form-control" id="verification_code" name="verification_code" placeholder="Enter 6-digit code" required maxlength="6" />
                         </div>
-                        <button type="submit" class="btn btn-primary d-grid w-100" id="verifyButton">
+                        <button type="submit" class="d-grid w-100 btn btn-primary" id="verifyButton">
                             <span class="button-content">Verify Email</span>
                             <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         </button>
                     </form>
 
-                    <div class="text-center mt-3">
+                    <div class="mt-3 text-center">
                         <?php if ($can_resend): ?>
                             <p class="resend-container">
                                 Didn't receive the code?
@@ -175,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </span>
                             </p>
                         <?php endif; ?>
-                        <p><a href="/signup" class="text-muted">Back to Sign Up</a></p>
+                        <p><a href="/login" class="text-muted">Back to Login</a></p>
                     </div>
                 </div>
             </div>

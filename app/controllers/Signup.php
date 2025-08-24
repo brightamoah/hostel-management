@@ -1,8 +1,8 @@
 <?php
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../../app/models/User.php";
+require_once __DIR__ . "/../../utils/functions.php";
 
-require_once "./database/db.php";
-require_once "./app/models/User.php";
-require_once "./utils/functions.php";
 
 class Signup
 {
@@ -10,8 +10,8 @@ class Signup
 
     public function __construct()
     {
-        $db = new Database();
-        $this->user = new User($db->connect());
+
+        $this->user = new User(getDb());
     }
 
     public function signup()
