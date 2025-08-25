@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
+<html lang="en" class="layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
@@ -91,15 +91,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
     <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
             <?php include_once __DIR__ . "/../../Components/sidebar.php" ?>
 
-            <div class="menu-mobile-toggler d-xl-none rounded-1">
-                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+            <div class="rounded-1 menu-mobile-toggler d-xl-none">
+                <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
                     <i class="bx bx-menu icon-base"></i>
-                    <i class="bx bx-chevron-right icon-base"></i>
+                    <i class="bx-chevron-right bx icon-base"></i>
                 </a>
             </div>
             <!-- / Menu -->
@@ -113,13 +113,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-                    <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="flex-grow-1 container-p-y container-xxl">
                         <?php if (isset($error)): ?>
                             <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
                         <?php endif; ?>
                         <div class="card">
-                            <div class="card-header border-bottom">
-                                <h5 class="card-title mb-0">Create New Announcement</h5>
+                            <div class="border-bottom card-header">
+                                <h5 class="mb-0 card-title">Create New Announcement</h5>
                             </div>
                             <div class="card-body">
                                 <form id="createAnnouncementForm" method="POST" action="/admin/announcements/create">
@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <a class="nav-link" id="specific-tab" data-bs-toggle="tab" href="#specific" role="tab">Specific</a>
                                         </li>
                                     </ul>
-                                    <div class="tab-content mt-3">
+                                    <div class="mt-3 tab-content">
                                         <!-- Bulk Tab -->
                                         <div class="tab-pane fade show active" id="bulk" role="tabpanel">
                                             <div class="mb-3">

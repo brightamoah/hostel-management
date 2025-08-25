@@ -27,7 +27,7 @@ function getRouteAndText()
 
 <!DOCTYPE html>
 <html lang="en"
-    class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact"
+    class="layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact"
     dir="ltr"
     data-skin="bordered"
     data-assets-path="../../assets/"

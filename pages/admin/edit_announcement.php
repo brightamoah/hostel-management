@@ -4,7 +4,7 @@ require_once __DIR__ . "/../../api/admin/announcement/EditAnnouncement.php";
 
 
 <!DOCTYPE html>
-<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
+<html lang="en" class="layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
@@ -62,15 +62,15 @@ require_once __DIR__ . "/../../api/admin/announcement/EditAnnouncement.php";
 
 <body>
     <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
             <?php include_once __DIR__ . "/../../Components/sidebar.php" ?>
 
-            <div class="menu-mobile-toggler d-xl-none rounded-1">
-                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+            <div class="rounded-1 menu-mobile-toggler d-xl-none">
+                <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
                     <i class="bx bx-menu icon-base"></i>
-                    <i class="bx bx-chevron-right icon-base"></i>
+                    <i class="bx-chevron-right bx icon-base"></i>
                 </a>
             </div>
             <!-- / Menu -->
@@ -84,13 +84,13 @@ require_once __DIR__ . "/../../api/admin/announcement/EditAnnouncement.php";
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-                    <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="flex-grow-1 container-p-y container-xxl">
                         <?php if (isset($error)): ?>
                             <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
                         <?php endif; ?>
                         <div class="card">
-                            <div class="card-header border-bottom">
-                                <h5 class="card-title mb-0">Edit Announcement</h5>
+                            <div class="border-bottom card-header">
+                                <h5 class="mb-0 card-title">Edit Announcement</h5>
                             </div>
                             <div class="card-body">
                                 <form id="editAnnouncementForm" method="POST">
@@ -104,7 +104,7 @@ require_once __DIR__ . "/../../api/admin/announcement/EditAnnouncement.php";
                                         <textarea class="form-control summernote" id="content" name="content" required><?php echo htmlspecialchars($announcement['content']); ?></textarea>
                                     </div>
                                     <div class="row">
-                                        <div class="col-md-6 mb-3">
+                                        <div class="mb-3 col-md-6">
                                             <label for="priority" class="form-label">Priority</label>
                                             <select class="form-select" id="priority" name="priority" required>
                                                 <option value="Low" <?php echo $announcement['priority'] === 'Low' ? 'selected' : ''; ?>>Low</option>
@@ -113,7 +113,7 @@ require_once __DIR__ . "/../../api/admin/announcement/EditAnnouncement.php";
                                                 <option value="Urgent" <?php echo $announcement['priority'] === 'Urgent' ? 'selected' : ''; ?>>Urgent</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-6 mb-3">
+                                        <div class="mb-3 col-md-6">
                                             <label for="target_audience" class="form-label">Target Audience</label>
                                             <select class="form-select" id="target_audience" name="target_audience" required>
                                                 <option value="All" <?php echo $announcement['target_audience'] === 'All' ? 'selected' : ''; ?>>All</option>

@@ -35,7 +35,7 @@ $room = $student->getRoomAllocation($user_id);
 ?>
 
 <!DOCTYPE html>
-<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
+<html lang="en" class="layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
@@ -101,15 +101,15 @@ $room = $student->getRoomAllocation($user_id);
 
 <body>
     <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
             <?php include_once "./Components/sidebar.php" ?>
 
-            <div class="menu-mobile-toggler d-xl-none rounded-1">
-                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+            <div class="rounded-1 menu-mobile-toggler d-xl-none">
+                <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
                     <i class="bx bx-menu icon-base"></i>
-                    <i class="bx bx-chevron-right icon-base"></i>
+                    <i class="bx-chevron-right bx icon-base"></i>
                 </a>
             </div>
             <!-- / Menu -->
@@ -123,16 +123,16 @@ $room = $student->getRoomAllocation($user_id);
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-                    <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="flex-grow-1 container-p-y container-xxl">
 
                         <!-- Stats Cards -->
-                        <div class="row g-6 mb-6">
+                        <div class="mb-6 row g-6">
                             <div class="col-sm-6 col-lg-3">
-                                <div class="card card-border-shadow-primary h-100">
+                                <div class="card-border-shadow-primary h-100 card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center mb-2">
-                                            <div class="avatar me-4">
-                                                <span class="avatar-initial rounded bg-label-primary"><i class="bx bx-wrench icon-lg"></i></span>
+                                            <div class="me-4 avatar">
+                                                <span class="bg-label-primary rounded avatar-initial"><i class="bx bx-wrench icon-lg"></i></span>
                                             </div>
                                             <h4 class="mb-0"><?= $total_requests ?></h4>
                                         </div>
@@ -141,11 +141,11 @@ $room = $student->getRoomAllocation($user_id);
                                 </div>
                             </div>
                             <div class="col-sm-6 col-lg-3">
-                                <div class="card card-border-shadow-warning h-100">
+                                <div class="card-border-shadow-warning h-100 card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center mb-2">
-                                            <div class="avatar me-4">
-                                                <span class="avatar-initial rounded bg-label-warning"><i class="bx bx-time icon-lg"></i></span>
+                                            <div class="me-4 avatar">
+                                                <span class="bg-label-warning rounded avatar-initial"><i class="bx bx-time icon-lg"></i></span>
                                             </div>
                                             <h4 class="mb-0"><?= $pending_requests ?></h4>
                                         </div>
@@ -154,11 +154,11 @@ $room = $student->getRoomAllocation($user_id);
                                 </div>
                             </div>
                             <div class="col-sm-6 col-lg-3">
-                                <div class="card card-border-shadow-info h-100">
+                                <div class="card-border-shadow-info h-100 card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center mb-2">
-                                            <div class="avatar me-4">
-                                                <span class="avatar-initial rounded bg-label-info"><i class="bx bx-loader-circle icon-lg"></i></span>
+                                            <div class="me-4 avatar">
+                                                <span class="bg-label-info rounded avatar-initial"><i class="bx bx-loader-circle icon-lg"></i></span>
                                             </div>
                                             <h4 class="mb-0"><?= $in_progress_requests ?></h4>
                                         </div>
@@ -167,11 +167,11 @@ $room = $student->getRoomAllocation($user_id);
                                 </div>
                             </div>
                             <div class="col-sm-6 col-lg-3">
-                                <div class="card card-border-shadow-success h-100">
+                                <div class="card-border-shadow-success h-100 card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center mb-2">
-                                            <div class="avatar me-4">
-                                                <span class="avatar-initial rounded bg-label-success"><i class="bx bx-check-circle icon-lg"></i></span>
+                                            <div class="me-4 avatar">
+                                                <span class="bg-label-success rounded avatar-initial"><i class="bx bx-check-circle icon-lg"></i></span>
                                             </div>
                                             <h4 class="mb-0"><?= $resolved_requests ?></h4>
                                         </div>
@@ -183,15 +183,15 @@ $room = $student->getRoomAllocation($user_id);
 
                         <!-- Maintenance Table -->
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center justify-content-between card-header">
                                 <h5 class="mb-0">Your Maintenance Requests</h5>
                                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newMaintenanceModal">
-                                    <i class="bx bx-plus me-1"></i> New Request
+                                    <i class="me-1 bx bx-plus"></i> New Request
                                 </button>
                             </div>
                             <div class="card-body">
-                                <div class="row mb-4">
-                                    <div class="col-md-3 mb-3 mb-md-0">
+                                <div class="mb-4 row">
+                                    <div class="mb-3 mb-md-0 col-md-3">
                                         <select id="typeFilter" class="form-select">
                                             <option value="">All Types</option>
                                             <option value="Plumbing">Plumbing</option>
@@ -202,7 +202,7 @@ $room = $student->getRoomAllocation($user_id);
                                             <option value="Other">Other</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-3 mb-3 mb-md-0">
+                                    <div class="mb-3 mb-md-0 col-md-3">
                                         <select id="priorityFilter" class="form-select">
                                             <option value="">All Priorities</option>
                                             <option value="Low">Low</option>
@@ -290,7 +290,7 @@ $room = $student->getRoomAllocation($user_id);
                                                 <option value="Emergency">Emergency</option>
                                             </select>
                                         </div>
-                                        <button type="submit" class="btn btn-primary w-100">Submit Request</button>
+                                        <button type="submit" class="w-100 btn btn-primary">Submit Request</button>
                                     </form>
                                 </div>
                             </div>
@@ -301,13 +301,13 @@ $room = $student->getRoomAllocation($user_id);
                     <div class="modal fade" id="maintenanceDetailsModal" tabindex="-1" aria-labelledby="maintenanceDetailsModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg modal-dialog-centered">
                             <div class="modal-content">
-                                <div class="modal-header bg-primary">
-                                    <h5 class="modal-title mb-2 text-white" id="maintenanceDetailsModalLabel">Maintenance Request Details</h5>
+                                <div class="bg-primary modal-header">
+                                    <h5 class="mb-2 text-white modal-title" id="maintenanceDetailsModalLabel">Maintenance Request Details</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                                <div class="modal-body p-4">
+                                <div class="p-4 modal-body">
                                     <!-- Status banner -->
-                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <div class="d-flex align-items-center justify-content-between mb-4">
                                         <div>
                                             <h6>Request ID: <span id="modalRequestId"></span></h6>
                                             <div id="modalSubmittedTimeAgo"></div>
@@ -316,34 +316,34 @@ $room = $student->getRoomAllocation($user_id);
                                     </div>
 
                                     <!-- Key information cards -->
-                                    <div class="row mb-4">
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card shadow-none border h-100">
-                                                <div class="card-body p-3">
+                                    <div class="mb-4 row">
+                                        <div class="mb-3 col-md-4">
+                                            <div class="shadow-none border h-100 card">
+                                                <div class="p-3 card-body">
                                                     <div class="d-flex align-items-center mb-2">
-                                                        <i class="bx bx-category text-primary me-2 icon-md"></i>
+                                                        <i class="me-2 text-primary bx bx-category icon-md"></i>
                                                         <h6 class="mb-0">Type</h6>
                                                     </div>
                                                     <p class="mb-0" id="modalIssueType"></p>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card shadow-none border h-100">
-                                                <div class="card-body p-3">
+                                        <div class="mb-3 col-md-4">
+                                            <div class="shadow-none border h-100 card">
+                                                <div class="p-3 card-body">
                                                     <div class="d-flex align-items-center mb-2">
-                                                        <i class="bx bx-flag text-primary me-2 icon-md"></i>
+                                                        <i class="me-2 text-primary bx bx-flag icon-md"></i>
                                                         <h6 class="mb-0">Priority</h6>
                                                     </div>
                                                     <div id="modalRequestPriority"></div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card shadow-none border h-100">
-                                                <div class="card-body p-3">
+                                        <div class="mb-3 col-md-4">
+                                            <div class="shadow-none border h-100 card">
+                                                <div class="p-3 card-body">
                                                     <div class="d-flex align-items-center mb-2">
-                                                        <i class="bx bx-building text-primary me-2 icon-md"></i>
+                                                        <i class="me-2 text-primary bx bx-building icon-md"></i>
                                                         <h6 class="mb-0">Location</h6>
                                                     </div>
                                                     <p class="mb-0" id="modalRequestRoom"></p>
@@ -356,24 +356,24 @@ $room = $student->getRoomAllocation($user_id);
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="card">
-                                                <div class="card-header d-flex align-items-center pb-2">
-                                                    <i class="bx bx-message-square-detail text-primary me-2 icon-md"></i>
-                                                    <h5 class="card-title mb-0">Details & Updates</h5>
+                                                <div class="d-flex align-items-center pb-2 card-header">
+                                                    <i class="me-2 text-primary bx bx-message-square-detail icon-md"></i>
+                                                    <h5 class="mb-0 card-title">Details & Updates</h5>
                                                 </div>
-                                                <div class="card-body pt-3">
-                                                    <div class="border rounded p-3 mb-3 bg-light-primary">
+                                                <div class="pt-3 card-body">
+                                                    <div class="bg-light-primary mb-3 p-3 border rounded">
                                                         <h6 class="mb-2">Description</h6>
                                                         <p class="mb-0" id="modalRequestDescription"></p>
                                                     </div>
 
-                                                    <div id="maintenanceTimeline" class="timeline mt-4">
+                                                    <div id="maintenanceTimeline" class="mt-4 timeline">
                                                         <!-- Submission event -->
                                                         <div class="timeline-item">
                                                             <span class="timeline-indicator timeline-indicator-success">
                                                                 <i class="icon-base bx bx-send"></i>
                                                             </span>
                                                             <div class="timeline-event">
-                                                                <div class="timeline-header mb-1">
+                                                                <div class="mb-1 timeline-header">
                                                                     <h6 class="mb-0">Request Submitted</h6>
                                                                     <small class="text-muted" id="modalRequestDate"></small>
                                                                 </div>
@@ -388,10 +388,10 @@ $room = $student->getRoomAllocation($user_id);
                                         </div>
                                     </div>
                                 </div>
-                                <div class="modal-footer border-top-0">
-                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                <div class="border-top-0 modal-footer">
+                                    <button type="button" class="btn-outline-secondary btn" data-bs-dismiss="modal">Close</button>
                                     <button type="button" class="btn btn-primary" id="followUpBtn" style="display: none;">
-                                        <i class="icon-base bx bx-comment-add icon-lg me-1"></i> Add Follow-up
+                                        <i class="me-1 icon-base bx bx-comment-add icon-lg"></i> Add Follow-up
                                     </button>
                                 </div>
                             </div>

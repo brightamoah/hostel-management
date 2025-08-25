@@ -1,13 +1,12 @@
 <?php
 require_once __DIR__ . "/../utils/active_route.php";
 
-// Ensure session is started (already done in router.php)
 if (!isset($_SESSION['user'])) {
     header('Location: /login');
     exit();
 }
 
-// Get the current request URI and sanitize it
+
 $current_route = rtrim(filter_var($_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL), '/');
 $current_route = strtok($current_route, '?'); // Remove query parameters
 
@@ -48,16 +47,16 @@ $logout_item = ['route' => '/logout', 'label' => 'Logout', 'icon' => 'bx-log-out
             <span class="app-brand-logo demo">
                 <img src="../../assets/img/favicon_io/favicon-32x32.png" alt="logo" class="text-primary" />
             </span>
-            <span class="app-brand-text demo menu-text fw-bold ms-2">Kings</span>
+            <span class="ms-2 app-brand-text demo menu-text fw-bold">Kings</span>
         </a>
-        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
-            <i class="icon-base bx bx-chevron-left"></i>
+        <a href="javascript:void(0);" class="ms-auto text-large layout-menu-toggle menu-link">
+            <i class="bx-chevron-left icon-base bx"></i>
         </a>
     </div>
 
     <div class="menu-inner-shadow"></div>
 
-    <ul class="menu-inner py-1 gap-5">
+    <ul class="gap-5 py-1 menu-inner">
         <?php foreach ($menu_items as $item): ?>
             <li class="menu-item <?php echo isRouteActive($item['route'], $current_route) ? 'active' : ''; ?>">
                 <a href="<?php echo htmlspecialchars($item['route']); ?>" class="menu-link">
@@ -71,7 +70,7 @@ $logout_item = ['route' => '/logout', 'label' => 'Logout', 'icon' => 'bx-log-out
     </ul>
 
     <!-- Footer section for logout -->
-    <div class="menu-footer mt-auto py-3">
+    <div class="mt-auto py-3 menu-footer">
         <ul class="menu-inner">
             <li class="menu-item <?php echo isRouteActive($logout_item['route'], $current_route) ? 'active' : ''; ?>">
                 <a href="<?php echo htmlspecialchars($logout_item['route']); ?>" class="menu-link">

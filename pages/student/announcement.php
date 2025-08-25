@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
+<html lang="en" class="layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
@@ -136,15 +136,15 @@
 
 <body>
     <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
             <?php include_once __DIR__ . "/../../Components/sidebar.php" ?>
 
-            <div class="menu-mobile-toggler d-xl-none rounded-1">
-                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+            <div class="rounded-1 menu-mobile-toggler d-xl-none">
+                <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
                     <i class="bx bx-menu icon-base"></i>
-                    <i class="bx bx-chevron-right icon-base"></i>
+                    <i class="bx-chevron-right bx icon-base"></i>
                 </a>
             </div>
             <!-- / Menu -->
@@ -158,42 +158,42 @@
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-                    <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="flex-grow-1 container-p-y container-xxl">
 
                         <!-- Announcements Header -->
-                        <div class="card mb-4">
+                        <div class="mb-4 card">
                             <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                                     <div>
                                         <h4 class="mb-1">Announcements</h4>
                                         <p class="mb-0 text-muted" id="announcement-count">Loading announcements...</p>
                                     </div>
                                     <div class="btn-group" role="group" aria-label="Filter announcements">
-                                        <button type="button" class="btn btn-outline-primary announcement-filter-btn active" data-filter="unread">Unread</button>
-                                        <button type="button" class="btn btn-outline-primary announcement-filter-btn" data-filter="all">All</button>
+                                        <button type="button" class="announcement-filter-btn btn-outline-primary btn active" data-filter="unread">Unread</button>
+                                        <button type="button" class="announcement-filter-btn btn-outline-primary btn" data-filter="all">All</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Priority Legend -->
-                        <div class="card mb-4">
+                        <div class="mb-4 card">
                             <div class="card-body">
-                                <div class="d-flex gap-3 flex-wrap">
+                                <div class="d-flex flex-wrap gap-3">
                                     <div class="d-flex align-items-center">
-                                        <span class="priority-indicator priority-urgent me-1"></span>
+                                        <span class="me-1 priority-indicator priority-urgent"></span>
                                         <small>Urgent</small>
                                     </div>
                                     <div class="d-flex align-items-center">
-                                        <span class="priority-indicator priority-high me-1"></span>
+                                        <span class="me-1 priority-indicator priority-high"></span>
                                         <small>High</small>
                                     </div>
                                     <div class="d-flex align-items-center">
-                                        <span class="priority-indicator priority-medium me-1"></span>
+                                        <span class="me-1 priority-indicator priority-medium"></span>
                                         <small>Medium</small>
                                     </div>
                                     <div class="d-flex align-items-center">
-                                        <span class="priority-indicator priority-low me-1"></span>
+                                        <span class="me-1 priority-indicator priority-low"></span>
                                         <small>Low</small>
                                     </div>
                                 </div>
@@ -204,7 +204,7 @@
                         <div class="row" id="announcements-container">
                             <!-- Announcements will be loaded here dynamically -->
                             <div class="col-12">
-                                <div class="text-center py-5">
+                                <div class="py-5 text-center">
                                     <div class="spinner-border text-primary" role="status">
                                         <span class="visually-hidden">Loading...</span>
                                     </div>
@@ -214,9 +214,9 @@
                         </div>
 
                         <!-- No Announcements Placeholder -->
-                        <div class="card mt-3 d-none" id="no-announcements">
-                            <div class="card-body text-center py-5">
-                                <img src="../../assets/img/illustrations/no_call.png" alt="No announcements" class="img-fluid mb-3" style="max-width: 200px;">
+                        <div class="mt-3 card d-none" id="no-announcements">
+                            <div class="py-5 text-center card-body">
+                                <img src="../../assets/img/illustrations/no_call.png" alt="No announcements" class="mb-3 img-fluid" style="max-width: 200px;">
                                 <h4 class="text-primary">No announcements available</h4>
                                 <p class="text-muted">Check back later for updates from the administration</p>
                             </div>
@@ -398,11 +398,11 @@
                     if (filter === 'all' && visibleCount === 1) {
                         if (!isRead) {
                             sectionHeader = `
-                    <div class="col-12 mb-3">
+                    <div class="mb-3 col-12">
                         <div class="d-flex align-items-center">
                             <hr class="flex-grow-1">
                             <span class="px-3 text-muted fw-semibold">
-                                <i class="bx bx-bell me-1"></i>Unread Announcements
+                                <i class="me-1 bx bx-bell"></i>Unread Announcements
                             </span>
                             <hr class="flex-grow-1">
                         </div>
@@ -410,11 +410,11 @@
                 `;
                         } else {
                             sectionHeader = `
-                    <div class="col-12 mb-3">
+                    <div class="mb-3 col-12">
                         <div class="d-flex align-items-center">
                             <hr class="flex-grow-1">
                             <span class="px-3 text-muted fw-semibold">
-                                <i class="bx bx-check-circle me-1"></i>Read Announcements
+                                <i class="me-1 bx bx-check-circle"></i>Read Announcements
                             </span>
                             <hr class="flex-grow-1">
                         </div>
@@ -430,11 +430,11 @@
                             const prevIsRead = prevAnnouncement.is_read === 1 || readAnnouncements.includes(prevAnnouncement.announcement_id);
                             if (!prevIsRead && isRead) {
                                 sectionHeader = `
-                        <div class="col-12 mb-3 mt-4">
+                        <div class="mt-4 mb-3 col-12">
                             <div class="d-flex align-items-center">
                                 <hr class="flex-grow-1">
                                 <span class="px-3 text-muted fw-semibold">
-                                    <i class="bx bx-check-circle me-1"></i>Read Announcements
+                                    <i class="me-1 bx bx-check-circle"></i>Read Announcements
                                 </span>
                                 <hr class="flex-grow-1">
                             </div>
@@ -446,29 +446,29 @@
 
                     const announcementCard = `
             ${sectionHeader}
-            <div class="col-md-6 col-lg-4 mb-4">
+            <div class="mb-4 col-md-6 col-lg-4">
                 <div class="card announcement-card h-100 ${isRead ? 'read' : 'unread'}" data-id="${announcementId}">
-                    <div class="card-header border-bottom pt-3 pb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="pt-3 pb-3 border-bottom card-header">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
                             <div class="d-flex align-items-center">
                                 <span class="priority-indicator ${priorityClass} me-2"></span>
                                 <span class="badge bg-label-${getPriorityBadgeClass(announcement.priority)}">${announcement.priority}</span>
-                                ${!isRead ? '<span class="badge bg-primary ms-2">New</span>' : ''}
+                                ${!isRead ? '<span class="bg-primary ms-2 badge">New</span>' : ''}
                             </div>
                             ${!isRead ? `
-                            <button type="button" class="btn btn-sm btn-icon btn-text-secondary mark-read-btn" title="Mark as read">
+                            <button type="button" class="btn-text-secondary btn btn-sm btn-icon mark-read-btn" title="Mark as read">
                                 <i class="icon-base bx bx-check-circle icon-lg"></i>
                             </button>` : ''}
                         </div>
-                        <h5 class="card-title mb-0">${announcement.title}</h5>
+                        <h5 class="mb-0 card-title">${announcement.title}</h5>
                     </div>
-                    <div class="card-body pt-3 pb-3">
+                    <div class="pt-3 pb-3 card-body">
                         <p class="card-text">${announcement.content}</p>
                     </div>
-                    <div class="card-footer border-top pt-3 pb-3">
-                        <div class="d-flex justify-content-between align-items-center">
+                    <div class="pt-3 pb-3 border-top card-footer">
+                        <div class="d-flex align-items-center justify-content-between">
                             <small class="text-muted announcement-date">
-                                <i class="bx bx-calendar me-1"></i>${formattedDate}
+                                <i class="me-1 bx bx-calendar"></i>${formattedDate}
                             </small>
                             <small class="text-muted">${timeAgo}</small>
                         </div>
@@ -485,11 +485,11 @@
                         container.append(`
                         <div class="col-12">
                             <div class="card">
-                                <div class="card-body text-center py-5">
-                                    <img src="../../assets/img/illustrations/no_call.png" alt="All read" class="img-fluid mb-3" style="max-width: 200px;">
+                                <div class="py-5 text-center card-body">
+                                    <img src="../../assets/img/illustrations/no_call.png" alt="All read" class="mb-3 img-fluid" style="max-width: 200px;">
                                     <h4 class="text-primary">All caught up!</h4>
                                     <p class="text-muted">You have read all the announcements</p>
-                                    <button class="btn btn-primary mt-2 announcement-filter-btn" data-filter="all">View All Announcements</button>
+                                    <button class="announcement-filter-btn mt-2 btn btn-primary" data-filter="all">View All Announcements</button>
                                 </div>
                             </div>
                         </div>
@@ -547,9 +547,9 @@
 
                                         // Show toast notification instead of SweetAlert
                                         const toastEl = $(`
-                                <div class="bs-toast toast toast-ex bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                                    <div class="toast-header bg-success text-white">
-                                        <i class="bx bx-check-circle me-2"></i>
+                                <div class="bg-success text-white bs-toast toast toast-ex" role="alert" aria-live="assertive" aria-atomic="true">
+                                    <div class="bg-success text-white toast-header">
+                                        <i class="me-2 bx bx-check-circle"></i>
                                         <div class="me-auto fw-semibold">Success</div>
                                         <small>Just now</small>
                                         <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
@@ -574,9 +574,9 @@
                         error: function() {
                             // Show error toast
                             const toastEl = $(`
-                    <div class="bs-toast toast toast-ex bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="toast-header bg-danger text-white">
-                            <i class="bx bx-error-circle me-2"></i>
+                    <div class="bg-danger text-white bs-toast toast toast-ex" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="bg-danger text-white toast-header">
+                            <i class="me-2 bx bx-error-circle"></i>
                             <div class="me-auto fw-semibold">Error</div>
                             <small>Just now</small>
                             <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
@@ -649,7 +649,7 @@
     </script>
 
     <!-- Toast container for notifications -->
-    <div class="position-fixed bottom-0 end-0 p-3" id="toast-container" style="z-index: 11"></div>
+    <div class="bottom-0 position-fixed p-3 end-0" id="toast-container" style="z-index: 11"></div>
 </body>
 
 </html>
