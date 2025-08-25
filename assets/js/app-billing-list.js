@@ -461,6 +461,9 @@
                   purpose: purpose,
                   "billing-type": billingType,
                });
+
+               // Initialize button state (enabled for full payment by default)
+               validatePaymentAmount();
             });
 
             // Handle payment type radio buttons
@@ -468,11 +471,55 @@
                if ($(this).val() === "partial") {
                   $("#partialAmountSection").show();
                   $("#paymentAmount").focus();
+                  validatePaymentAmount(); // Update button state when switching to partial
                } else {
                   $("#partialAmountSection").hide();
                   $("#amountError").hide();
+                  validatePaymentAmount(); // Update button state when switching to full
                }
             });
+
+            // Helper function to validate payment amount and manage button state
+            function validatePaymentAmount() {
+               const paymentType = $("input[name='paymentType']:checked").val();
+               const confirmBtn = $(".confirm-pay-btn");
+
+               if (paymentType === "full") {
+                  // Full payment is always valid
+                  confirmBtn.prop("disabled", false);
+                  return true;
+               }
+
+               // Partial payment validation
+               const amount = parseFloat($("#paymentAmount").val());
+               const maxAmount = parseFloat(confirmBtn.data("max-amount"));
+
+               if (isNaN(amount) || amount <= 0) {
+                  confirmBtn.prop("disabled", true);
+                  return false;
+               }
+
+               if (amount < 1) {
+                  confirmBtn.prop("disabled", true);
+                  return false;
+               }
+
+               if (amount > maxAmount) {
+                  confirmBtn.prop("disabled", true);
+                  return false;
+               }
+
+               // Check if remaining balance would be less than GH₵1.00
+               const remainingBalance = maxAmount - amount;
+               if (remainingBalance > 0 && remainingBalance < 1) {
+                  confirmBtn.prop("disabled", true);
+                  return false;
+               }
+
+               // Amount is valid
+               confirmBtn.prop("disabled", false);
+               return true;
+            }
 
             // Validate partial payment amount
             $(document).on("input", "#paymentAmount", function () {
@@ -484,8 +531,16 @@
 
                errorDiv.hide();
 
+               if (isNaN(amount) || amount <= 0) {
+                  errorDiv.text("Please enter a valid amount").show();
+                  validatePaymentAmount(); // Update button state
+                  return;
+               }
+
+               // Strict minimum payment of GH₵1.00
                if (amount < 1) {
                   errorDiv.text("Minimum payment amount is GH₵1.00").show();
+                  validatePaymentAmount(); // Update button state
                } else if (amount > maxAmount) {
                   errorDiv
                      .text(
@@ -494,54 +549,70 @@
                         )}`
                      )
                      .show();
+                  validatePaymentAmount(); // Update button state
+               } else {
+                  // Check if remaining balance would be less than GH₵1.00
+                  const remainingBalance = maxAmount - amount;
+
+                  if (remainingBalance > 0 && remainingBalance < 1) {
+                     const suggestedAmount = maxAmount - 1; // Leave exactly GH₵1.00
+
+                     errorDiv
+                        .html(
+                           `
+<div class="alert alert-danger p-2 mt-2 small">
+    <div class="d-flex align-items-start gap-2">
+        <i class="bx bx-error icon-lg flex-shrink-0"></i>
+        <div>
+            <p class="mb-1">
+                <strong>Invalid Payment:</strong> 
+                This payment would leave GH₵${remainingBalance.toFixed(
+                   2
+                )} remaining, 
+                which is below the minimum payment threshold of GH₵1.00.
+            </p>
+            
+            <p class="mb-1"><strong>Valid options:</strong></p>
+            <ul class="ps-3 mb-0">
+                <li>
+                    Pay the full amount: 
+                    <strong class="text-nowrap">GH₵${maxAmount.toFixed(
+                       2
+                    )}</strong>
+                </li>
+                ${
+                   suggestedAmount > 0
+                      ? `
+                <li>
+                    Pay: 
+                    <strong class="text-nowrap">GH₵${suggestedAmount.toFixed(
+                       2
+                    )}</strong>
+                    (leaves exactly GH₵1.00 remaining)
+                </li>`
+                      : ""
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+                     `
+                        )
+                        .show();
+                     validatePaymentAmount(); // Update button state
+                  } else {
+                     validatePaymentAmount(); // Update button state
+                  }
                }
             });
 
-            $(document).on("click", ".confirm-pay-btn", function () {
-               const billingId = $(this).data("billing-id");
-               const maxAmount = parseFloat($(this).data("max-amount"));
-               const description = $(this).data("description");
-               const purpose = $(this).data("purpose");
-               const billingType = $(this).data("billing-type");
-
-               // Determine payment amount
-               let paymentAmount;
-               const paymentType = $("input[name='paymentType']:checked").val();
-
-               if (paymentType === "partial") {
-                  paymentAmount = parseFloat($("#paymentAmount").val());
-
-                  // Validate amount
-                  if (!paymentAmount || paymentAmount < 1) {
-                     $("#amountError")
-                        .text("Please enter a valid amount (minimum GH₵1.00)")
-                        .show();
-                     return;
-                  }
-
-                  if (paymentAmount > maxAmount) {
-                     $("#amountError")
-                        .text(
-                           `Amount cannot exceed outstanding balance of GH₵${maxAmount.toFixed(
-                              2
-                           )}`
-                        )
-                        .show();
-                     return;
-                  }
-               } else {
-                  paymentAmount = maxAmount;
-               }
-
-               if (!billingId) {
-                  Swal.fire({
-                     icon: "error",
-                     title: "Error",
-                     text: "Billing ID is missing",
-                  });
-                  return;
-               }
-
+            // Helper function to process payment
+            function processPayment(
+               billingId,
+               paymentAmount,
+               purpose,
+               csrfToken
+            ) {
                // Close any existing SweetAlert before showing the loading spinner
                Swal.close();
 
@@ -631,6 +702,98 @@
                      });
                   },
                });
+            }
+
+            $(document).on("click", ".confirm-pay-btn", function () {
+               const billingId = $(this).data("billing-id");
+               const maxAmount = parseFloat($(this).data("max-amount"));
+               const description = $(this).data("description");
+               const purpose = $(this).data("purpose");
+               const billingType = $(this).data("billing-type");
+
+               // Determine payment amount
+               let paymentAmount;
+               const paymentType = $("input[name='paymentType']:checked").val();
+
+               if (paymentType === "partial") {
+                  paymentAmount = parseFloat($("#paymentAmount").val());
+
+                  // Basic validation
+                  if (
+                     !paymentAmount ||
+                     isNaN(paymentAmount) ||
+                     paymentAmount <= 0
+                  ) {
+                     $("#amountError")
+                        .text("Please enter a valid amount")
+                        .show();
+                     return;
+                  }
+
+                  // Strict minimum payment validation - no exceptions
+                  if (paymentAmount < 1) {
+                     $("#amountError")
+                        .text("Minimum payment amount is GH₵1.00")
+                        .show();
+                     return;
+                  }
+
+                  if (paymentAmount > maxAmount) {
+                     $("#amountError")
+                        .text(
+                           `Amount cannot exceed outstanding balance of GH₵${maxAmount.toFixed(
+                              2
+                           )}`
+                        )
+                        .show();
+                     return;
+                  }
+
+                  // Prevent payments that would leave balance below GH₵1.00
+                  const remainingBalance = maxAmount - paymentAmount;
+
+                  if (remainingBalance > 0 && remainingBalance < 1) {
+                     const suggestedAmount = maxAmount - 1;
+                     $("#amountError")
+                        .html(
+                           `
+                           <div class="text-danger">
+                              <strong>Invalid Payment:</strong> This payment would leave GH₵${remainingBalance.toFixed(
+                                 2
+                              )} remaining, which is below the minimum payment threshold.
+                              <br><br>
+                              <strong>Valid options:</strong>
+                              <br>• Pay the full amount: <strong>GH₵${maxAmount.toFixed(
+                                 2
+                              )}</strong>
+                              ${
+                                 suggestedAmount > 0
+                                    ? `<br>• Or pay: <strong>GH₵${suggestedAmount.toFixed(
+                                         2
+                                      )}</strong> (leaves exactly GH₵1.00)`
+                                    : ""
+                              }
+                           </div>
+                        `
+                        )
+                        .show();
+                     return;
+                  }
+               } else {
+                  paymentAmount = maxAmount;
+               }
+
+               if (!billingId) {
+                  Swal.fire({
+                     icon: "error",
+                     title: "Error",
+                     text: "Billing ID is missing",
+                  });
+                  return;
+               }
+
+               // Proceed with normal payment processing
+               processPayment(billingId, paymentAmount, purpose, csrfToken);
             });
          },
       });
