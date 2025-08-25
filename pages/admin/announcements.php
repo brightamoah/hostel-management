@@ -6,7 +6,7 @@ $announcementController = new AnnouncementController();
 ?>
 
 <!DOCTYPE html>
-<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
+<html lang="en" class="layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
@@ -54,7 +54,7 @@ $announcementController = new AnnouncementController();
             margin-right: 0.5rem;
         }
 
-        
+
 
         .dataTables_wrapper .dataTables_filter {
             display: none;
@@ -78,14 +78,14 @@ $announcementController = new AnnouncementController();
 
 <body>
     <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
             <?php include_once __DIR__ . "/../../Components/sidebar.php" ?>
-            <div class="menu-mobile-toggler d-xl-none rounded-1">
-                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+            <div class="rounded-1 menu-mobile-toggler d-xl-none">
+                <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
                     <i class="bx bx-menu icon-base"></i>
-                    <i class="bx bx-chevron-right icon-base"></i>
+                    <i class="bx-chevron-right bx icon-base"></i>
                 </a>
             </div>
             <!-- / Menu -->
@@ -99,17 +99,17 @@ $announcementController = new AnnouncementController();
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-                    <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="flex-grow-1 container-p-y container-xxl">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center justify-content-between card-header">
                                 <h5 class="mb-0">Announcements</h5>
                                 <div>
-                                    <button class="btn btn-primary refresh-table me-2">
-                                        <i class="bx bx-refresh me-1"></i> Refresh
+                                    <button class="refresh-table me-2 btn btn-primary">
+                                        <i class="me-1 bx bx-refresh"></i> Refresh
                                     </button>
                                     <a href="/admin/announcements/create" class="btn btn-primary">
-                                        <i class="bx bx-plus me-md-1"></i>
-                                        <span class="d-none d-md-inline-block">New Announcement</span>
+                                        <i class="me-md-1 bx bx-plus"></i>
+                                        <span class="d-md-inline-block d-none">New Announcement</span>
                                     </a>
                                 </div>
                             </div>

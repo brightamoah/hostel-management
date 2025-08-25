@@ -4,7 +4,7 @@ require_once __DIR__ . "/../../utils/format_currency.php";
 ?>
 
 <!DOCTYPE html>
-<html lang="en" class="layout-navbar-fixed layout-navbar-sticky layout-menu-fixed layout-menu-collapsed layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
+<html lang="en" class="layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact" dir="ltr" data-skin="default" data-assets-path="../../assets/" data-template="vertical-menu-template" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8" />
@@ -66,15 +66,15 @@ require_once __DIR__ . "/../../utils/format_currency.php";
 
 <body>
     <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
             <?php include_once __DIR__ . "/../../Components/sidebar.php" ?>
 
-            <div class="menu-mobile-toggler d-xl-none rounded-1">
-                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+            <div class="rounded-1 menu-mobile-toggler d-xl-none">
+                <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
                     <i class="bx bx-menu icon-base"></i>
-                    <i class="bx bx-chevron-right icon-base"></i>
+                    <i class="bx-chevron-right bx icon-base"></i>
                 </a>
             </div>
             <!-- / Menu -->
@@ -88,7 +88,7 @@ require_once __DIR__ . "/../../utils/format_currency.php";
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-                    <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="flex-grow-1 container-p-y container-xxl">
 
                         <!-- Billing Statistics -->
                         <?php include_once __DIR__ . "/../../Components/admin/billing/stats_card.php"; ?>
@@ -98,17 +98,17 @@ require_once __DIR__ . "/../../utils/format_currency.php";
 
                         <!-- Billing Records DataTable -->
                         <div class="card">
-                            <div class="card-header card-header-flex border-bottom">
-                                <h5 class="card-title mb-1">Billing Records</h5>
+                            <div class="card-header-flex border-bottom card-header">
+                                <h5 class="mb-1 card-title">Billing Records</h5>
                                 <div class="action-buttons">
-                                    
-                                    <button type="button" class="btn btn-outline-secondary btn-sm refresh-table">
-                                        <i class="bx bx-refresh icon-lg me-1"></i> Refresh
+
+                                    <button type="button" class="refresh-table btn-outline-secondary btn btn-sm">
+                                        <i class="me-1 bx bx-refresh icon-lg"></i> Refresh
                                     </button>
                                 </div>
                             </div>
-                            <div class="card-datatable table-responsive">
-                                <table class="datatables-billings table border-top">
+                            <div class="table-responsive card-datatable">
+                                <table class="table border-top datatables-billings">
                                     <thead>
                                         <tr>
                                             <th>Invoice ID</th>

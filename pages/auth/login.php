@@ -7,7 +7,7 @@ require_once  __DIR__ . "/../../app/controllers/Login.php";
 
 <html
    lang="en"
-   class="layout-menu-collapsed layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact"
+   class="layout-menu-fixed layout-navbar-fixed layout-navbar-sticky layout-compact"
    dir="ltr"
    data-skin="default"
    data-assets-path="../../assets/"
