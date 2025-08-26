@@ -9,6 +9,10 @@
 # Environment variables
 .env
 
+# HTTP request files (may contain API keys)
+*.http
+utils/example.http
+
 # Log files
 *.log
 
