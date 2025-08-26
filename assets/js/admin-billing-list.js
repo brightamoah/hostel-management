@@ -23,9 +23,17 @@
    };
 
    const formatDateSafe = (dateStr) => {
-      if (!dateStr) return "Not specified";
+      if (
+         !dateStr ||
+         dateStr === "0000-00-00 00:00:00" ||
+         dateStr === "0000-00-00"
+      ) {
+         return "Not specified";
+      }
       const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return "Invalid date";
+      if (isNaN(date.getTime())) {
+         return "Invalid date";
+      }
       return formatDate(dateStr);
    };
 
@@ -584,7 +592,7 @@
                         transactions.forEach(function (transaction) {
                            transactionTable.append(`
                               <tr>
-                                 <td>${formatDate(
+                                 <td>${formatDateSafe(
                                     transaction.payment_date
                                  )}</td>
                                  <td>${transaction.payment_method}</td>

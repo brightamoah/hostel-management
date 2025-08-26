@@ -41,9 +41,6 @@ get('/student/complaint/$c_id/response', 'api/student/GetComplaintResponse.php',
 get('/student/visitors-data', 'api/student/GetVisitorsData.php', ['auth']);
 get('/student/visitor/$id', 'api/student/GetVisitorById.php', ['auth']);
 
-
-
-
 //admin APIs
 get('/admin/rooms-data', 'api/admin/rooms/GetAllRooms.php', ['auth', 'admin']);
 get('/admin/room/$id', 'api/admin/rooms/GetRoomById.php', ['auth', 'admin']);

@@ -408,7 +408,6 @@
                      })
                         .then((response) => response.json())
                         .then((logData) => {
-                           console.log("Visitor Logs:", logData); // Debug logs
                            const logs = logData.data || [];
 
                            // Calculate initials

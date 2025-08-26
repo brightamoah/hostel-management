@@ -22,11 +22,35 @@ class Billing extends BaseModel
 
 
     /**
-     * Get billing details by ID
+     * Get billing details by ID (with hostel access validation)
      */
     public function getBillingById($id)
     {
-        $id = $this->conn->real_escape_string($id);
+        $id = (int)$id;
+
+        // First check if billing exists and get its hostel_id
+        $check_query = "SELECT hostel_id FROM billing WHERE billing_id = ?";
+        $check_stmt = $this->conn->prepare($check_query);
+        $check_stmt->bind_param("i", $id);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
+
+        if ($check_result->num_rows === 0) {
+            $check_stmt->close();
+            return null; // Billing not found
+        }
+
+        $billing_hostel = $check_result->fetch_assoc();
+        $check_stmt->close();
+
+        // Validate hostel access for non-super admins
+        try {
+            $this->validateHostelAccess($billing_hostel['hostel_id']);
+        } catch (Exception $e) {
+            error_log("Hostel access denied for billing ID $id: " . $e->getMessage());
+            return null; // Access denied
+        }
+
         $query = "
            SELECT b.*, s.first_name, s.last_name, u.email, s.phone_number, 
                     p.purpose, p.payment_method, p.payment_date, p.amount as payment_amount
@@ -35,11 +59,14 @@ class Billing extends BaseModel
             LEFT JOIN allocations a ON b.allocation_id = a.allocation_id
             LEFT JOIN payments p ON b.billing_id = p.billing_id AND p.status = 'Completed'
             LEFT JOIN users u ON s.user_id = u.user_id
-            WHERE b.billing_id = '$id'
+            WHERE b.billing_id = ?
             ORDER BY p.payment_date DESC
         ";
 
-        $result = $this->conn->query($query);
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
         $data = null;
         $transactions = [];
 
@@ -90,6 +117,8 @@ class Billing extends BaseModel
                 ];
             }
         }
+
+        $stmt->close();
 
         // Add all transactions to the data
         if ($data !== null) {
@@ -179,7 +208,8 @@ class Billing extends BaseModel
         $status = isset($request['columns'][6]['search']['value']) ? $this->conn->real_escape_string($request['columns'][6]['search']['value']) : '';
         $building = isset($request['columns'][7]['search']['value']) ? $this->conn->real_escape_string($request['columns'][7]['search']['value']) : '';
 
-        $where = [];
+        $where = ["1=1"]; // Base condition to ensure valid SQL
+
         if ($search) {
             $where[] = "(b.billing_id LIKE '%$search%' OR CONCAT(s.first_name, ' ', s.last_name) LIKE '%$search%' OR b.description LIKE '%$search%')";
         }
@@ -190,7 +220,7 @@ class Billing extends BaseModel
             $where[] = "r.building = '$building'";
         }
 
-        return !empty($where) ? " WHERE " . implode(" AND ", $where) : "";
+        return " WHERE " . implode(" AND ", $where);
     }
 
 
@@ -331,6 +361,14 @@ class Billing extends BaseModel
      */
     private function calculatePreviousStats(string $whereClause): array
     {
+        // Create the previous period WHERE clause by combining date filter with existing filters
+        $prevWhereClause = str_replace(
+            "WHERE 1=1",
+            "WHERE b.date_issued >= DATE_SUB(LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 2 MONTH)), INTERVAL 1 MONTH)
+             AND b.date_issued < LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))",
+            $whereClause
+        );
+
         $prevStatsQuery = "
             SELECT 
                 COALESCE(SUM(b.amount), 0) as total_billings,
@@ -342,9 +380,7 @@ class Billing extends BaseModel
             LEFT JOIN allocations a ON b.allocation_id = a.allocation_id
             LEFT JOIN rooms r ON a.room_id = r.room_id
             LEFT JOIN hostels h ON b.hostel_id = h.hostel_id
-            WHERE b.date_issued >= DATE_SUB(LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 2 MONTH)), INTERVAL 1 MONTH)
-            AND b.date_issued < LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
-            $whereClause
+            $prevWhereClause
         ";
 
         $prevStatsResult = $this->conn->query($prevStatsQuery);
@@ -429,11 +465,11 @@ class Billing extends BaseModel
 
 
     /**
-     * Create a new invoice
+     * Create a new invoice (with hostel validation and auto-assignment)
      */
     public function createInvoice($data)
     {
-        $student_id = $this->conn->real_escape_string($data['student_id']);
+        $student_id = (int)$data['student_id'];
         $amount = floatval($data['amount']);
         $description = $this->conn->real_escape_string($data['description']);
         $due_date = $this->conn->real_escape_string($data['due_date']);
@@ -442,6 +478,46 @@ class Billing extends BaseModel
         $payment_terms = $this->conn->real_escape_string($data['payment_terms'] ?? '30');
         $send_notification = isset($data['send_notification']) && $data['send_notification'] === 'on' ? 1 : 0;
 
+        // Validate student exists and get their hostel info
+        $studentQuery = "
+            SELECT s.student_id, r.hostel_id 
+            FROM students s
+            LEFT JOIN allocations a ON s.student_id = a.student_id AND a.status = 'Active'
+            LEFT JOIN rooms r ON a.room_id = r.room_id
+            WHERE s.student_id = ? AND s.resident_status = 'Active'
+            LIMIT 1
+        ";
+
+        $stmt = $this->conn->prepare($studentQuery);
+        $stmt->bind_param('i', $student_id);
+        $stmt->execute();
+        $studentResult = $stmt->get_result();
+
+        if ($studentResult->num_rows === 0) {
+            $stmt->close();
+            return ['success' => false, 'error' => 'Student not found or not active'];
+        }
+
+        $studentData = $studentResult->fetch_assoc();
+        $student_hostel_id = $studentData['hostel_id'];
+        $stmt->close();
+
+        // Validate hostel access for non-super admins
+        if (!$this->isSuperAdmin()) {
+            $admin_hostel_id = $this->getCurrentAdminHostelId();
+            if (!$admin_hostel_id) {
+                return ['success' => false, 'error' => 'Admin not assigned to any hostel'];
+            }
+
+            if ($student_hostel_id && $student_hostel_id != $admin_hostel_id) {
+                return ['success' => false, 'error' => 'Cannot create billing for student from different hostel'];
+            }
+
+            // Use admin's hostel_id if student doesn't have one
+            if (!$student_hostel_id) {
+                $student_hostel_id = $admin_hostel_id;
+            }
+        }
 
         // Get student's active allocation
         $allocationQuery = "SELECT allocation_id FROM allocations WHERE student_id = ? AND status = 'Active' LIMIT 1";
@@ -502,8 +578,8 @@ class Billing extends BaseModel
         $status = 'Unpaid';
 
         $query = "
-            INSERT INTO billing (student_id, allocation_id, amount, description, date_issued, date_due, status, billing_type, academic_period, payment_terms)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO billing (student_id, allocation_id, hostel_id, amount, description, date_issued, date_due, status, billing_type, academic_period, payment_terms)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ";
 
         $stmt = $this->conn->prepare($query);
@@ -513,9 +589,10 @@ class Billing extends BaseModel
         }
 
         $stmt->bind_param(
-            'iidsssssss',
+            'iiidsssssss',
             $student_id,
             $allocation_id,
+            $student_hostel_id,
             $amount,
             $description,
             $date_issued,
@@ -554,11 +631,11 @@ class Billing extends BaseModel
 
 
     /**
-     * Update an existing invoice
+     * Update an existing invoice (with hostel access validation)
      */
     public function updateInvoice($billing_id, $data)
     {
-        $billing_id = $this->conn->real_escape_string($billing_id);
+        $billing_id = (int)$billing_id;
 
         $currentQuery = "SELECT * FROM billing WHERE billing_id = ?";
         $stmt = $this->conn->prepare($currentQuery);
@@ -573,6 +650,14 @@ class Billing extends BaseModel
 
         $currentData = $currentResult->fetch_assoc();
         $stmt->close();
+
+        // Validate hostel access for non-super admins
+        try {
+            $this->validateHostelAccess($currentData['hostel_id']);
+        } catch (Exception $e) {
+            error_log("Hostel access denied for update billing ID $billing_id: " . $e->getMessage());
+            return ['success' => false, 'error' => 'Access denied: Invoice not found'];
+        }
 
         $student_id = $this->conn->real_escape_string($data['student_id']);
         $amount = floatval($data['amount']);
@@ -736,10 +821,10 @@ class Billing extends BaseModel
 
     public function deleteInvoice($billing_id)
     {
-        $billing_id = $this->conn->real_escape_string($billing_id);
+        $billing_id = (int)$billing_id;
 
-        // Check if the billing record exists
-        $query = "SELECT billing_id, status FROM billing WHERE billing_id = ?";
+        // Check if the billing record exists and get hostel info
+        $query = "SELECT billing_id, status, hostel_id FROM billing WHERE billing_id = ?";
         $stmt = $this->conn->prepare($query);
 
         if (!$stmt) {
@@ -756,6 +841,14 @@ class Billing extends BaseModel
 
         $billing = $result->fetch_assoc();
         $stmt->close();
+
+        // Validate hostel access for non-super admins
+        try {
+            $this->validateHostelAccess($billing['hostel_id']);
+        } catch (Exception $e) {
+            error_log("Hostel access denied for delete billing ID $billing_id: " . $e->getMessage());
+            return ['success' => false, 'error' => 'Access denied: Invoice not found'];
+        }
 
         // Prevent deletion of paid or partially paid invoices
         if ($billing['status'] === 'Fully Paid' || $billing['status'] === 'Partially Paid') {
@@ -793,11 +886,11 @@ class Billing extends BaseModel
 
 
     /**
-     * Record a payment
+     * Record a payment (with hostel access validation)
      */
     public function recordPayment($data)
     {
-        $billing_id = $this->conn->real_escape_string($data['billing_id']);
+        $billing_id = (int)$data['billing_id'];
         $amount = floatval($data['amount']);
         $payment_date = $this->conn->real_escape_string($data['payment_date']);
         $payment_method = $this->conn->real_escape_string($data['payment_method']);
@@ -813,8 +906,8 @@ class Billing extends BaseModel
             return ['success' => false, 'error' => 'Payment amount must be greater than zero'];
         }
 
-        // Get billing details
-        $billingQuery = "SELECT amount, paid_amount, student_id, billing_type FROM billing WHERE billing_id = ?";
+        // Get billing details and validate hostel access
+        $billingQuery = "SELECT amount, paid_amount, student_id, billing_type, hostel_id FROM billing WHERE billing_id = ?";
 
         $stmt = $this->conn->prepare($billingQuery);
         $stmt->bind_param('i', $billing_id);
@@ -826,6 +919,14 @@ class Billing extends BaseModel
         }
         $billing = $billingResult->fetch_assoc();
         $stmt->close();
+
+        // Validate hostel access for non-super admins
+        try {
+            $this->validateHostelAccess($billing['hostel_id']);
+        } catch (Exception $e) {
+            error_log("Hostel access denied for record payment billing ID $billing_id: " . $e->getMessage());
+            return ['success' => false, 'error' => 'Access denied: Invoice not found'];
+        }
 
         $student_id = $billing['student_id'];
         $current_paid_amount = floatval($billing['paid_amount']);
@@ -1006,12 +1107,22 @@ class Billing extends BaseModel
     }
 
     /**
-     * Get all buildings
+     * Get all buildings (filtered by hostel for non-super admins)
      */
     public function getBuildings()
     {
-        $query = "SELECT DISTINCT building FROM rooms WHERE building IS NOT NULL";
+        $query = "SELECT DISTINCT r.building FROM rooms r WHERE r.building IS NOT NULL";
+
+        // Apply hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query, 'r');
+        $query .= " ORDER BY r.building";
+
         $result = $this->conn->query($query);
+        if (!$result) {
+            error_log("Error in getBuildings query: " . $this->conn->error);
+            return [];
+        }
+
         $buildings = [];
         while ($row = $result->fetch_assoc()) {
             $buildings[] = $row['building'];
@@ -1020,12 +1131,28 @@ class Billing extends BaseModel
     }
 
     /**
-     * Get all students
+     * Get all students (filtered by hostel for non-super admins)
      */
     public function getStudents()
     {
-        $query = "SELECT student_id, first_name, last_name FROM students";
+        $query = "
+            SELECT DISTINCT s.student_id, s.first_name, s.last_name 
+            FROM students s
+            LEFT JOIN allocations a ON s.student_id = a.student_id 
+            LEFT JOIN rooms r ON a.room_id = r.room_id
+            WHERE s.resident_status = 'Active'
+        ";
+
+        // Apply hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query, 'r');
+        $query .= " ORDER BY s.first_name, s.last_name";
+
         $result = $this->conn->query($query);
+        if (!$result) {
+            error_log("Error in getStudents query: " . $this->conn->error);
+            return [];
+        }
+
         $students = [];
         while ($row = $result->fetch_assoc()) {
             $students[] = [
@@ -1066,13 +1193,14 @@ class Billing extends BaseModel
     }
 
     /**
-     * Get billing details for payment modal
+     * Get billing details for payment modal (with hostel access validation)
      */
     public function getBillingDetails($billing_id)
     {
-        $billing_id = $this->conn->real_escape_string($billing_id);
+        $billing_id = (int)$billing_id;
 
-        $query = "SELECT billing_id, amount, paid_amount, billing_type FROM billing WHERE billing_id = ?";
+        // First check if billing exists and validate hostel access
+        $query = "SELECT billing_id, amount, paid_amount, billing_type, hostel_id FROM billing WHERE billing_id = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param('i', $billing_id);
         $stmt->execute();
@@ -1085,6 +1213,14 @@ class Billing extends BaseModel
 
         $billing = $result->fetch_assoc();
         $stmt->close();
+
+        // Validate hostel access for non-super admins
+        try {
+            $this->validateHostelAccess($billing['hostel_id']);
+        } catch (Exception $e) {
+            error_log("Hostel access denied for billing details ID $billing_id: " . $e->getMessage());
+            return ['success' => false, 'error' => 'Access denied: Invoice not found'];
+        }
 
         // Map billing_type to payment purpose
         $billing_type_to_purpose = [

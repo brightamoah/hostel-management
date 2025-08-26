@@ -617,7 +617,6 @@
             // Save new room
             $("#saveRoomBtn").on("click", function () {
                const formData = $("#addRoomForm").serializeArray();
-               console.log("Add Room Form Data:", formData); // Debug: Log form data
                $.ajax({
                   url: "/admin/room/add",
                   method: "POST",
@@ -643,7 +642,6 @@
                      }
                   },
                   error: function (xhr) {
-                     console.log("Add Room Error:", xhr.responseText); // Debug: Log error
                      Swal.fire({
                         icon: "error",
                         title: "Error",
