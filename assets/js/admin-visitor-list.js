@@ -2,6 +2,21 @@
    "use strict";
 
    const dt_visitor_table = document.querySelector(".datatables-visitors");
+   let adminAccess = null; // Store admin access level information
+
+   // Function to update access level indicator
+   function updateAccessLevelIndicator(accessData) {
+      const indicator = document.getElementById("accessLevelIndicator");
+      if (indicator && accessData) {
+         if (accessData.is_super_admin) {
+            indicator.innerHTML =
+               '<span class="badge bg-primary">Super Admin - Full Access</span>';
+         } else {
+            indicator.innerHTML =
+               '<span class="badge bg-secondary">Regular Admin - Limited Access</span>';
+         }
+      }
+   }
 
    // Retrieve CSRF token
    const csrfToken =
@@ -16,6 +31,14 @@
             data: function (d) {
                // Add date filter to AJAX request
                d.dateFilter = $("#dateFilter").val();
+            },
+            dataSrc: function (json) {
+               // Store admin access information if available
+               if (json.admin_access) {
+                  adminAccess = json.admin_access;
+                  updateAccessLevelIndicator(adminAccess);
+               }
+               return json.data || json;
             },
          },
          layout: {
@@ -82,7 +105,6 @@
                               },
                            ],
                         },
-                       
                      ],
                   },
                ],
@@ -329,6 +351,19 @@
             },
          },
          initComplete: function () {
+            // Initialize Select2 for filter dropdowns
+            $("#statusFilter").select2({
+               placeholder: "All Statuses",
+               allowClear: true,
+               width: "100%",
+            });
+
+            $("#dateFilter").select2({
+               placeholder: "All Dates",
+               allowClear: true,
+               width: "100%",
+            });
+
             // Status filter
             $("#statusFilter").on("change", function () {
                const val = $(this).val();

@@ -1,25 +1,22 @@
 <?php
-require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/BaseModel.php";
 
-class Rooms
+class Rooms extends BaseModel
 {
-    private $conn;
-
-    public function __construct()
-    {
-        $this->conn = getDb();
-    }
-
     // Fetch available rooms (for students)
     public function getAvailableRooms()
     {
         $query = "
-            SELECT room_id, room_number, building, floor, room_type, capacity, current_occupancy, features, amount, status
+            SELECT room_id, room_number, building, floor, room_type, capacity, current_occupancy, features, amount, status, hostel_id
             FROM rooms
             WHERE status IN ('Vacant', 'Partially Occupied')
             AND current_occupancy < capacity
-            ORDER BY building, room_number
         ";
+
+        // Add hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query);
+        $query .= " ORDER BY building, room_number";
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -34,10 +31,15 @@ class Rooms
     public function getAllRooms()
     {
         $query = "
-            SELECT room_id, room_number, building, floor, room_type, capacity, current_occupancy, features, amount, status
+            SELECT room_id, room_number, building, floor, room_type, capacity, current_occupancy, features, amount, status, hostel_id
             FROM rooms
-            ORDER BY building, room_number
+            WHERE 1=1
         ";
+
+        // Add hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query);
+        $query .= " ORDER BY building, room_number";
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -52,15 +54,25 @@ class Rooms
     public function getRoomById($room_id)
     {
         $query = "
-            SELECT room_id, room_number, building, floor, room_type, capacity, current_occupancy, features, amount, status
+            SELECT room_id, room_number, building, floor, room_type, capacity, current_occupancy, features, amount, status, hostel_id
             FROM rooms
             WHERE room_id = ?
         ";
+
+        // Add hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query);
+
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("i", $room_id);
         $stmt->execute();
         $result = $stmt->get_result();
         $room = $result->fetch_assoc();
+
+        // Validate hostel access if room exists
+        if ($room && !$this->isSuperAdmin()) {
+            $this->validateHostelAccess($room['hostel_id']);
+        }
+
         error_log("Get Room By ID $room_id: " . json_encode($room));
         return $room;
     }
@@ -83,9 +95,16 @@ class Rooms
             return false;
         }
 
+        // Get hostel_id for the new room
+        $hostel_id = $this->getCurrentAdminHostelId();
+        if (!$this->isSuperAdmin() && !$hostel_id) {
+            error_log("Add Room - Error: Admin not assigned to any hostel");
+            return false;
+        }
+
         $query = "
-            INSERT INTO rooms (room_number, building, floor, room_type, capacity, current_occupancy, features, amount, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO rooms (room_number, building, floor, room_type, capacity, current_occupancy, features, amount, status, hostel_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ";
         $stmt = $this->conn->prepare($query);
         if (!$stmt) {
@@ -94,7 +113,7 @@ class Rooms
         }
 
         $stmt->bind_param(
-            "ssisiisds",
+            "ssisiisdsi",
             $room_number,
             $building,
             $floor,
@@ -103,7 +122,8 @@ class Rooms
             $current_occupancy,
             $features_str,
             $amount,
-            $status
+            $status,
+            $hostel_id
         );
 
         $result = $stmt->execute();
@@ -114,7 +134,7 @@ class Rooms
             }
         } else {
             $new_room_id = $this->conn->insert_id;
-            error_log("Add Room - Success: Room ID $new_room_id added with features: '$features_str'");
+            error_log("Add Room - Success: Room ID $new_room_id added with features: '$features_str' for hostel_id: $hostel_id");
         }
         $stmt->close();
         return $result;
@@ -144,12 +164,23 @@ class Rooms
             return false;
         }
 
+        // Validate hostel access for the room being updated
+        $existing_room = $this->getRoomById($room_id);
+        if (!$existing_room) {
+            error_log("Update Room - Room ID $room_id not found or access denied.");
+            return false;
+        }
+
         $query = "
             UPDATE rooms
             SET room_number = ?, building = ?, floor = ?, room_type = ?, capacity = ?,
                 current_occupancy = ?, features = ?, amount = ?, status = ?
             WHERE room_id = ?
         ";
+
+        // Add hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query);
+
         $stmt = $this->conn->prepare($query);
         if (!$stmt) {
             error_log("Update Room - Prepare Error: " . $this->conn->error . " (Code: " . $this->conn->errno . ")");
@@ -195,8 +226,17 @@ class Rooms
             return false;
         }
 
+        // Validate hostel access for the room being deleted
+        $existing_room = $this->getRoomById($room_id);
+        if (!$existing_room) {
+            error_log("DeleteRoom - Room ID $room_id not found or access denied.");
+            return false;
+        }
+
         //Check if room has current occupants
         $check_query = "SELECT current_occupancy FROM rooms WHERE room_id = ?";
+        $check_query = $this->addHostelFilter($check_query);
+
         $check_stmt = $this->conn->prepare($check_query);
         if (!$check_stmt) {
             error_log("DeleteRoom - Prepare Error (Check Occupancy): " . $this->conn->error);
@@ -210,7 +250,7 @@ class Rooms
         $check_stmt->close();
 
         if (!$room_data) {
-            error_log("DeleteRoom - Room ID $room_id not found");
+            error_log("DeleteRoom - Room ID $room_id not found or access denied");
             return false;
         }
 
@@ -240,6 +280,8 @@ class Rooms
 
         // Proceed with deletion if room is empty
         $query = "DELETE FROM rooms WHERE room_id = ?";
+        $query = $this->addHostelFilter($query);
+
         $stmt = $this->conn->prepare($query);
         if (!$stmt) {
             error_log("DeleteRoom - Prepare Error: " . $this->conn->error);
@@ -312,10 +354,16 @@ class Rooms
             // Step 1: Check room availability and get details, lock the row
             $room_query = "
                 SELECT r.room_id, r.room_number, r.building, r.room_type, r.capacity, 
-                       r.current_occupancy, r.amount
+                       r.current_occupancy, r.amount, r.hostel_id
                 FROM rooms r
                 WHERE r.room_id = ? AND r.status IN ('Vacant', 'Partially Occupied')
                 FOR UPDATE";
+
+            // Add hostel filtering for admin bookings (students can book across hostels)
+            if (isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'Admin') {
+                $room_query = $this->addHostelFilter($room_query, 'r');
+            }
+
             $stmt_room = $this->conn->prepare($room_query);
             if (!$stmt_room) {
                 throw new Exception("Prepare failed (room_query): " . $this->conn->error);
@@ -416,7 +464,10 @@ class Rooms
     // Get unique buildings for filter
     public function getUniqueBuildings()
     {
-        $query = "SELECT DISTINCT building FROM rooms ORDER BY building";
+        $query = "SELECT DISTINCT building FROM rooms WHERE 1=1";
+        $query = $this->addHostelFilter($query);
+        $query .= " ORDER BY building";
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -432,7 +483,10 @@ class Rooms
     // Get unique room types for filter
     public function getUniqueRoomTypes()
     {
-        $query = "SELECT DISTINCT room_type FROM rooms ORDER BY room_type";
+        $query = "SELECT DISTINCT room_type FROM rooms WHERE 1=1";
+        $query = $this->addHostelFilter($query);
+        $query .= " ORDER BY room_type";
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -448,7 +502,10 @@ class Rooms
     // Get unique floors for filter
     public function getUniqueFloors()
     {
-        $query = "SELECT DISTINCT floor FROM rooms ORDER BY floor";
+        $query = "SELECT DISTINCT floor FROM rooms WHERE 1=1";
+        $query = $this->addHostelFilter($query);
+        $query .= " ORDER BY floor";
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -469,11 +526,5 @@ class Rooms
             'room_types' => $this->getUniqueRoomTypes(),
             'floors' => $this->getUniqueFloors()
         ];
-    }
-
-    // Close connection
-    public function __destruct()
-    {
-        $this->conn->close();
     }
 }

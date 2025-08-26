@@ -363,6 +363,10 @@ try {
                             </div>
                         </div>
 
+                        <pre>
+                            <?= print_r($admin_details, true) ?>
+                        </pre>
+
                         <!-- Profile Tabs -->
                         <div class="row">
                             <div class="col-12">

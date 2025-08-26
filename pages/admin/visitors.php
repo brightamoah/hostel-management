@@ -1,5 +1,9 @@
 <?php
 require_once __DIR__ . "/../../app/admin/visitor-stats.php";
+require_once __DIR__ . "/../../utils/hostel_helpers.php";
+
+// Determine scope text for statistics
+// $statsScope = isSuperAdmin() ? "All Hostels" : "Your Hostel";
 ?>
 
 <!doctype html>
@@ -109,9 +113,9 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                                 <span class="text-heading">Total Visitors</span>
                                                 <div class="d-flex align-items-center my-1">
                                                     <h4 class="me-2 mb-0"><?php echo $totalVisitors; ?></h4>
-                                                    <p class="mb-0 text-success">(+<?php echo $totalVisitors > 0 ? round(($totalVisitors - $totalVisitors * 0.71) / $totalVisitors * 100) : 0; ?>%)</p>
+                                                    <p class="mb-0 text-success">(+<?php echo $totalVisitors > 0 ? round(($totalVisitors / max($totalVisitors, 20)) * 25, 1) : 0; ?>%)</p>
                                                 </div>
-                                                <small class="mb-0">All Registered Visitors</small>
+                                                <!-- <small class="mb-0"><?php echo $statsScope; ?></small> -->
                                             </div>
                                             <div class="avatar">
                                                 <span class="bg-label-primary rounded avatar-initial">
@@ -130,9 +134,9 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                                 <span class="text-heading">Approved Visitors</span>
                                                 <div class="d-flex align-items-center my-1">
                                                     <h4 class="me-2 mb-0"><?php echo $approvedVisitors; ?></h4>
-                                                    <p class="mb-0 text-success">(+<?php echo $approvedVisitors > 0 ? round(($approvedVisitors - $approvedVisitors * 0.82) / $approvedVisitors * 100) : 0; ?>%)</p>
+                                                    <p class="mb-0 text-info">(<?php echo $totalVisitors > 0 ? round(($approvedVisitors / $totalVisitors) * 100, 1) : 0; ?>%)</p>
                                                 </div>
-                                                <small class="mb-0">Approved by Admin</small>
+
                                             </div>
                                             <div class="avatar">
                                                 <span class="bg-label-info rounded avatar-initial">
@@ -151,9 +155,9 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                                 <span class="text-heading">Checked-In Visitors</span>
                                                 <div class="d-flex align-items-center my-1">
                                                     <h4 class="me-2 mb-0"><?php echo $checkedInVisitors; ?></h4>
-                                                    <p class="mb-0 text-danger">(<?php echo $checkedInVisitors > 0 ? round(($checkedInVisitors * 0.86 - $checkedInVisitors) / $checkedInVisitors * 100) : 0; ?>%)</p>
+                                                    <p class="mb-0 text-success">(<?php echo $approvedVisitors > 0 ? round(($checkedInVisitors / $approvedVisitors) * 100, 1) : 0; ?>%)</p>
                                                 </div>
-                                                <small class="mb-0">Currently Checked-In</small>
+
                                             </div>
                                             <div class="avatar">
                                                 <span class="bg-label-success rounded avatar-initial">
@@ -172,9 +176,9 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                                 <span class="text-heading">Pending Visitors</span>
                                                 <div class="d-flex align-items-center my-1">
                                                     <h4 class="me-2 mb-0"><?php echo $pendingVisitors; ?></h4>
-                                                    <p class="mb-0 text-success">(+<?php echo $pendingVisitors > 0 ? round(($pendingVisitors - $pendingVisitors * 0.58) / $pendingVisitors * 100) : 0; ?>%)</p>
+                                                    <p class="mb-0 text-warning">(<?php echo $totalVisitors > 0 ? round(($pendingVisitors / $totalVisitors) * 100, 1) : 0; ?>%)</p>
                                                 </div>
-                                                <small class="mb-0">Awaiting Approval</small>
+
                                             </div>
                                             <div class="avatar">
                                                 <span class="bg-label-warning rounded avatar-initial">
@@ -189,10 +193,13 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
 
                         <div class="card">
                             <div class="border-bottom card-header">
-                                <h5 class="mb-0 card-title">Visitor Log</h5>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h5 class="mb-0 card-title">Visitor Log</h5>
+                                    <div id="accessLevelIndicator"></div>
+                                </div>
                                 <div class="d-flex align-items-center justify-content-between gap-md-0 pt-4 row g-6">
                                     <div class="col-md-4">
-                                        <select id="statusFilter" class="form-select">
+                                        <select id="statusFilter" class="form-select select2" data-placeholder="All Statuses">
                                             <option value="">All Statuses</option>
                                             <option value="Pending">Pending</option>
                                             <option value="Approved">Approved</option>
@@ -203,7 +210,7 @@ require_once __DIR__ . "/../../app/admin/visitor-stats.php";
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <select id="dateFilter" class="form-select">
+                                        <select id="dateFilter" class="form-select select2" data-placeholder="All Dates">
                                             <option value="">All Dates</option>
                                             <option value="today">Today</option>
                                             <option value="tomorrow">Tomorrow</option>

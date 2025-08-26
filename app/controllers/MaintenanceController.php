@@ -60,8 +60,12 @@ class MaintenanceController
     public function getAdminRequestData()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET' && $_SESSION['user']['role'] === 'Admin') {
-            $result = $this->model->getAllRequests();
-            echo json_encode($result);
+            try {
+                $result = $this->model->getAllRequests();
+                echo json_encode($result);
+            } catch (Exception $e) {
+                echo json_encode(['error' => 'Access denied: ' . $e->getMessage()]);
+            }
         } else {
             echo json_encode(['error' => 'Unauthorized']);
         }
@@ -71,13 +75,17 @@ class MaintenanceController
     public function getRequestDetails($request_id)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $details = $this->model->getRequestById($request_id);
-            if ($details) {
-                $responses = $this->model->getRequestResponses($request_id);
-                $details['responses'] = $responses;
-                echo json_encode(['details' => $details]);
-            } else {
-                echo json_encode(['error' => 'Maintenance request not found']);
+            try {
+                $details = $this->model->getRequestById($request_id);
+                if ($details) {
+                    $responses = $this->model->getRequestResponses($request_id);
+                    $details['responses'] = $responses;
+                    echo json_encode(['details' => $details]);
+                } else {
+                    echo json_encode(['error' => 'Maintenance request not found or access denied']);
+                }
+            } catch (Exception $e) {
+                echo json_encode(['error' => 'Access denied: ' . $e->getMessage()]);
             }
         }
     }
@@ -99,10 +107,14 @@ class MaintenanceController
             $status = $_POST['status'];
             $response_text = $_POST['response_text'] ?? '';
 
-            if ($this->model->updateRequestStatus($request_id, $status, $_SESSION['user']['user_id'], $response_text)) {
-                echo json_encode(['success' => true, 'message' => 'Request status updated successfully']);
-            } else {
-                echo json_encode(['success' => false, 'error' => 'Failed to update request status']);
+            try {
+                if ($this->model->updateRequestStatus($request_id, $status, $_SESSION['user']['user_id'], $response_text)) {
+                    echo json_encode(['success' => true, 'message' => 'Request status updated successfully']);
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'Failed to update request status']);
+                }
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'error' => 'Access denied: ' . $e->getMessage()]);
             }
         } else {
             echo json_encode(['success' => false, 'error' => 'Unauthorized action']);
@@ -131,10 +143,14 @@ class MaintenanceController
             return;
         }
 
-        if ($this->model->addResponse($request_id, $user_id, $response_text)) {
-            $this->sendJsonResponse(['success' => true, 'message' => 'Response added successfully']);
-        } else {
-            $this->sendJsonResponse(['success' => false, 'error' => 'Failed to add response']);
+        try {
+            if ($this->model->addResponse($request_id, $user_id, $response_text)) {
+                $this->sendJsonResponse(['success' => true, 'message' => 'Response added successfully']);
+            } else {
+                $this->sendJsonResponse(['success' => false, 'error' => 'Failed to add response']);
+            }
+        } catch (Exception $e) {
+            $this->sendJsonResponse(['success' => false, 'error' => 'Access denied: ' . $e->getMessage()]);
         }
     }
 

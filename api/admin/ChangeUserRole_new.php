@@ -72,8 +72,8 @@ try {
 
     if (!canChangeRole($user_id, $new_role)) {
         $conn->rollback();
-        $message = isSuperAdmin() ? 
-            'Invalid role change' : 
+        $message = isSuperAdmin() ?
+            'Invalid role change' :
             'Regular admins can only promote students to admin, not demote admins';
         echo json_encode(['success' => false, 'message' => $message]);
         exit;
@@ -92,7 +92,7 @@ try {
 
     if ($new_role === 'Student') {
         // Convert Admin → Student (only Super Admin can do this)
-        
+
         // Remove from admins table
         $query = "DELETE FROM admins WHERE user_id = ?";
         $stmt = $conn->prepare($query);
@@ -121,10 +121,9 @@ try {
             exit;
         }
         $stmt->close();
-        
     } else {
         // Convert Student → Admin
-        
+
         // Remove from students table
         $query = "DELETE FROM students WHERE user_id = ?";
         $stmt = $conn->prepare($query);
@@ -145,7 +144,7 @@ try {
         // Determine hostel assignment and access level
         $hostel_id = null;
         $access_level = 'Regular Admin';
-        
+
         if (!isSuperAdmin()) {
             // Regular admin promoting student - inherit current admin's hostel
             $hostel_id = getCurrentAdminHostelId();
@@ -167,16 +166,14 @@ try {
 
     // Commit transaction
     $conn->commit();
-    
-    $message = $new_role === 'Admin' && !isSuperAdmin() ? 
-        'User promoted to admin and assigned to your hostel' : 
+
+    $message = $new_role === 'Admin' && !isSuperAdmin() ?
+        'User promoted to admin and assigned to your hostel' :
         'Role updated successfully';
-        
+
     echo json_encode(['success' => true, 'message' => $message]);
-    
 } catch (Exception $e) {
     $conn->rollback();
     error_log("Toggle role error: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'Server error: ' . $e->getMessage()]);
 }
-?>

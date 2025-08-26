@@ -33,7 +33,7 @@ class ComplaintController
             $complaints = $this->complaintModel->getAllComplaints();
             $this->sendJsonResponse(['success' => true, 'data' => $complaints]);
         } catch (Exception $e) {
-            $this->sendJsonResponse(['success' => false, 'error' => "Failed to fetch complaints: " . $e->getMessage()]);
+            $this->sendJsonResponse(['success' => false, 'error' => "Access denied: " . $e->getMessage()]);
         }
     }
 
@@ -56,12 +56,16 @@ class ComplaintController
     public function getComplaintById($id)
     {
         $this->requireAdmin();
-        $result = $this->complaintModel->getComplaintByIdAdmin($id);
-        if (!$result['success']) {
-            $this->sendJsonResponse(['success' => false, 'error' => 'Complaint not found']);
-            return;
+        try {
+            $result = $this->complaintModel->getComplaintByIdAdmin($id);
+            if (!$result['success']) {
+                $this->sendJsonResponse(['success' => false, 'error' => $result['error']]);
+                return;
+            }
+            $this->sendJsonResponse($result['data']);
+        } catch (Exception $e) {
+            $this->sendJsonResponse(['success' => false, 'error' => 'Access denied: ' . $e->getMessage()]);
         }
-        $this->sendJsonResponse($result['data']);
     }
 
 
@@ -90,12 +94,23 @@ class ComplaintController
     public function getComplaintResponsesAdmin($complaint_id)
     {
         $this->requireAdmin();
-        $result = $this->complaintModel->getComplaintResponses($complaint_id);
-        if (!$result['success']) {
-            $this->sendJsonResponse(['success' => false, 'error' => 'Complaint not found']);
-            return;
+        try {
+            // Validate admin access to complaint first
+            $complaint_check = $this->complaintModel->getComplaintByIdAdmin($complaint_id);
+            if (!$complaint_check['success']) {
+                $this->sendJsonResponse(['success' => false, 'error' => $complaint_check['error']]);
+                return;
+            }
+
+            $result = $this->complaintModel->getComplaintResponses($complaint_id);
+            if (!$result['success']) {
+                $this->sendJsonResponse(['success' => false, 'error' => 'Complaint not found']);
+                return;
+            }
+            $this->sendJsonResponse(['data' => $result['data']]);
+        } catch (Exception $e) {
+            $this->sendJsonResponse(['success' => false, 'error' => 'Access denied: ' . $e->getMessage()]);
         }
-        $this->sendJsonResponse(['data' => $result['data']]);
     }
 
     /**
@@ -155,22 +170,27 @@ class ComplaintController
         if (!in_array($status, $valid_statuses)) {
             return $this->sendJsonResponse(['success' => false, 'error' => 'Invalid status']);
         }
-        $complaint = $this->complaintModel->getComplaintByIdAdmin($id);
-        if (!$complaint['success'] ?? false) {
-            return $this->sendJsonResponse(['success' => false, 'error' => $complaint['error'] ?? 'Complaint not found.'], 404);
+
+        try {
+            $complaint = $this->complaintModel->getComplaintByIdAdmin($id);
+            if (!$complaint['success'] ?? false) {
+                return $this->sendJsonResponse(['success' => false, 'error' => $complaint['error'] ?? 'Complaint not found.'], 404);
+            }
+            $currentStatus = $complaint['data']['status'] ?? null;
+            if ($currentStatus === null) {
+                return $this->sendJsonResponse(['success' => false, 'error' => 'Complaint record is missing status field.'], 500);
+            }
+            if ($currentStatus === $status) {
+                return $this->sendJsonResponse(['success' => false, 'error' => "No changes made. Status is already $status."], 200);
+            }
+            $result = $this->complaintModel->updateComplaintStatus($id, $status);
+            if ($result['success'] ?? false) {
+                return $this->sendJsonResponse(['success' => true, 'message' => "Complaint status updated to $status."]);
+            }
+            return $this->sendJsonResponse(['success' => false, 'error' => $result['error'] ?? 'Failed to update complaint status. Please try again.'], 500);
+        } catch (Exception $e) {
+            return $this->sendJsonResponse(['success' => false, 'error' => 'Access denied: ' . $e->getMessage()], 403);
         }
-        $currentStatus = $complaint['data']['status'] ?? null;
-        if ($currentStatus === null) {
-            return $this->sendJsonResponse(['success' => false, 'error' => 'Complaint record is missing status field.'], 500);
-        }
-        if ($currentStatus === $status) {
-            return $this->sendJsonResponse(['success' => false, 'error' => "No changes made. Status is already $status."], 200);
-        }
-        $result = $this->complaintModel->updateComplaintStatus($id, $status);
-        if ($result['success'] ?? false) {
-            return $this->sendJsonResponse(['success' => true, 'message' => "Complaint status updated to $status."]);
-        }
-        return $this->sendJsonResponse(['success' => false, 'error' => $result['error'] ?? 'Failed to update complaint status. Please try again.'], 500);
     }
 
     /**
@@ -194,7 +214,6 @@ class ComplaintController
             $this->sendJsonResponse(['success' => false, 'error' => 'Database error']);
             return;
         }
-
 
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
@@ -222,8 +241,12 @@ class ComplaintController
             return;
         }
 
-        $result = $this->complaintModel->addComplaintResponse($id, $admin_id, $response_text, $action_taken);
-        $this->sendJsonResponse($result);
+        try {
+            $result = $this->complaintModel->addComplaintResponse($id, $admin_id, $response_text, $action_taken);
+            $this->sendJsonResponse($result);
+        } catch (Exception $e) {
+            $this->sendJsonResponse(['success' => false, 'error' => 'Access denied: ' . $e->getMessage()]);
+        }
     }
 
     /**

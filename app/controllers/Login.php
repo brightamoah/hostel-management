@@ -118,6 +118,7 @@ class Login
                             'last_login' => $user['last_login'],
                             'department' => $admin['department'],
                             'access_level' => $admin['access_level'],
+                            'hostel_id' => $admin['hostel_id'], // Add hostel_id to session
                             'is_email_verified' => $user['is_email_verified'],
                         ];
                     } else {

@@ -1,18 +1,15 @@
 <?php
-require_once __DIR__ . "/../../../database/db.php"; 
-
+require_once __DIR__ . "/../../../database/db.php";
+require_once __DIR__ . "/../../../utils/hostel_helpers.php";
 
 header('Content-Type: application/json');
 
 $db = new Database();
 $conn = $db->connect();
 
-//check if user is a super admin
-
-$user = $_SESSION['user'];
-
-if ($user['access_level'] !== 'Super Admin') {
-    echo json_encode(['success' => false, 'message' => 'You are not authorized to perform this action']);
+// Check if user can delete users (only Super Admin)
+if (!canDeleteUser(0)) {
+    echo json_encode(['success' => false, 'message' => 'Only Super Admins can delete users']);
     exit();
 }
 
@@ -24,7 +21,7 @@ if ($user_id) {
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $user_id);
     if ($stmt->execute()) {
-        echo json_encode(['success' => true]);
+        echo json_encode(['success' => true, 'message' => 'User deleted successfully']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to delete user']);
     }
