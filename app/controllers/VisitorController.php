@@ -203,23 +203,53 @@ class VisitorController
     public function view($id)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($id)) {
-            // Check admin permissions
-            if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
+            // Check if user is authenticated
+            if (!isset($_SESSION['user'])) {
                 header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'Unauthorized: Admin access required']);
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: Please log in']);
                 exit();
             }
 
             $visitor_id = $id;
+            $user_role = $_SESSION['user']['role'];
 
-            // Check if admin can manage this visitor
-            if (!$this->canManageVisitor($visitor_id)) {
+            // Handle different user roles
+            if ($user_role === 'Student') {
+                // Students can only view their own visitors
+                $student_id = $_SESSION['user']['student_id'] ?? null;
+                if (!$student_id) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Student ID not found in session']);
+                    exit();
+                }
+
+                // Check if this visitor belongs to the student
+                $visitor = $this->visitorModel->getVisitorById($visitor_id);
+                if (!$visitor) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'No visitor found with this ID.']);
+                    exit();
+                }
+
+                if ($visitor['student_id'] != $student_id) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Unauthorized: You can only view your own visitors']);
+                    exit();
+                }
+            } elseif ($user_role === 'Admin') {
+                // Admins must follow hostel access restrictions
+                if (!$this->canManageVisitor($visitor_id)) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Unauthorized: You can only view visitors from your hostel']);
+                    exit();
+                }
+                $visitor = $this->visitorModel->getVisitorById($visitor_id);
+            } else {
                 header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'Unauthorized: You can only view visitors from your hostel']);
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: Invalid user role']);
                 exit();
             }
 
-            $visitor = $this->visitorModel->getVisitorById($visitor_id);
             header('Content-Type: application/json');
             if ($visitor) {
                 echo json_encode(['success' => true, 'data' => $visitor]);
