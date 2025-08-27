@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../../utils/avatar.php";
 
 if (isset($_SESSION['user'])) {
     $user = $_SESSION['user'];
@@ -7,6 +8,10 @@ if (isset($_SESSION['user'])) {
     $user_id = htmlspecialchars($user['user_id']);
     $role = htmlspecialchars($user['role']);
     $first_name = htmlspecialchars(explode(' ', $user['name'])[0]);
+
+    $avatar = Avatar::generateUserAvatar($user);
+    $initials = $avatar["initials"];
+    $bg_color = $avatar["bg_color"];
 }
 
 
@@ -365,7 +370,7 @@ $profile_url = getProfileURL($role);
                     href="javascript:void(0);"
                     data-bs-toggle="dropdown">
                     <div class="avatar avatar-online">
-                        <img src="../../assets/img/avatars/1.png" alt class="rounded-circle" />
+                        <span class="bg-label-<?= $bg_color; ?> rounded-circle avatar-initial"><?= $initials; ?></span>
                     </div>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
@@ -374,7 +379,7 @@ $profile_url = getProfileURL($role);
                             <div class="d-flex">
                                 <div class="flex-shrink-0 me-3">
                                     <div class="avatar avatar-online">
-                                        <img src="../../assets/img/avatars/1.png" alt class="w-px-40 rounded-circle h-auto" />
+                                        <span class="bg-label-<?= $bg_color; ?> rounded-circle avatar-initial"><?= $initials; ?></span>
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">

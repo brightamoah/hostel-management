@@ -1,10 +1,11 @@
 <?php
-require_once "./database/db.php";
-require_once "./app/models/User.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../../app/models/User.php";
+require_once __DIR__ . "/../../utils/avatar.php";
 
-// Ensure session is started and set_csrf is available
+
 if (!function_exists('set_csrf')) {
-    require_once "./router.php";
+    require_once __DIR__ . "/../../router.php";
 }
 
 // Check if user is authenticated and is an admin
@@ -14,8 +15,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
 }
 
 $admin_data = $_SESSION['user'];
-$db = new Database();
-$conn = $db->connect();
+$conn = getDb();
 $user = new User($conn);
 
 // Get admin details from the admins table
@@ -26,8 +26,7 @@ try {
     error_log("Error fetching admin details: " . $e->getMessage());
 }
 
-// Get user stats (for admin dashboard-like stats)
-// Initialize stats with default values
+
 $stats = [
     'total_students' => 0,
     'total_rooms' => 0,
@@ -77,6 +76,32 @@ try {
     }
 } catch (Exception $e) {
     error_log("Error fetching maintenance count: " . $e->getMessage());
+}
+
+$avatar = Avatar::generateUserAvatar($admin_data);
+$initials = $avatar['initials'];
+$bg_color = $avatar['bg_color'];
+
+
+$first_name = '';
+$last_name = '';
+
+if ($admin_details && isset($admin_details['first_name']) && isset($admin_details['last_name'])) {
+    $first_name = $admin_details['first_name'];
+    $last_name = $admin_details['last_name'];
+} elseif (isset($admin_data['name']) && !empty($admin_data['name'])) {
+    // Fallback to splitting the name from session
+    $name_parts = explode(' ', trim($admin_data['name']), 2);
+    $first_name = $name_parts[0] ?? '';
+    $last_name = $name_parts[1] ?? '';
+}
+
+$recent_activities = [];
+$recent_activities = [];
+try {
+    $recent_activities = $user->getAdminRecentActivities($admin_data['user_id']);
+} catch (Exception $e) {
+    error_log("Error fetching admin activities: " . $e->getMessage());
 }
 ?>
 
@@ -162,6 +187,38 @@ try {
             transition: all 0.3s;
         }
 
+        .profile-avatar-large {
+            width: 150px;
+            height: 150px;
+            font-size: 50px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 5px solid #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 576px) {
+            .profile-avatar-large {
+                width: 90px;
+                height: 90px;
+                font-size: 32px;
+            }
+
+            .profile-header {
+                padding: 1rem 0;
+            }
+
+            .profile-stats {
+                padding: 1rem;
+            }
+
+            .action-btn {
+                min-width: auto;
+            }
+        }
+
 
         .user-badge {
             padding: 0.4rem 1rem;
@@ -211,7 +268,7 @@ try {
     <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
-            <?php include_once "./Components/sidebar.php" ?>
+            <?php include_once __DIR__ . "/../../Components/sidebar.php" ?>
 
             <div class="rounded-1 menu-mobile-toggler d-xl-none">
                 <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
@@ -224,7 +281,7 @@ try {
             <!-- Layout container -->
             <div class="layout-page">
                 <!-- Navbar -->
-                <?php include_once "./Components/admin/header.php" ?>
+                <?php include_once __DIR__ . "/../../Components/admin/header.php" ?>
                 <!-- / Navbar -->
 
                 <!-- Content wrapper -->
@@ -246,22 +303,13 @@ try {
                                 <div class="mt-10 mb-4 card">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-center mb-3 profile-avatar-wrapper">
-                                            <?php
-                                            $first_name = $admin_details['first_name'] ?? ($admin_data['name'] ? explode(' ', $admin_data['name'])[0] : 'Admin');
-                                            $last_name = $admin_details['last_name'] ?? ($admin_data['name'] ? trim(str_replace(explode(' ', $admin_data['name'])[0], '', $admin_data['name'])) : 'User');
-                                            if (empty($last_name)) $last_name = 'User';
-                                            $initials = strtoupper(substr($first_name, 0, 1) . substr($last_name, 0, 1));
-                                            $colors = ['#28c76f', '#7367f0', '#ea5455', '#ff9f43', '#00cfe8'];
-                                            $bgColor = $colors[array_rand($colors)];
-                                            ?>
-                                            <div class="d-flex align-items-center justify-content-center rounded-circle text-white text-center profile-avatar"
-                                                style="background-color: <?= $bgColor; ?>; height: 150px; width: 150px; font-size: 50px; color: #fff;">
-                                                <?= $initials; ?>
+                                            <div class="avatar profile-avatar-large" style="border: none; box-shadow: none;">
+                                                <span class="bg-label-<?= $bg_color; ?> rounded-circle avatar-initial profile-avatar-large"><?= $initials; ?></span>
                                             </div>
                                         </div>
                                         <div class="mb-4 text-center">
                                             <h3 class="mb-2">
-                                                <?= htmlspecialchars($first_name . ' ' . $last_name); ?>
+                                                <?= htmlspecialchars("$first_name $last_name"); ?>
                                             </h3>
                                             <div class="mb-2">
                                                 <span class="bg-label-success me-2 badge user-badge">
@@ -292,80 +340,7 @@ try {
                         </div>
 
                         <!-- Stats Cards -->
-                        <div class="mb-4 row admin-stats">
-                            <div class="col-md-3">
-                                <div class="h-100 card profile-stats">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3 avatar">
-                                                <div class="bg-label-primary rounded avatar-initial">
-                                                    <i class="bx bx-user fs-4"></i>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <h4 class="mb-0"><?= $stats['total_students'] ?? 0; ?></h4>
-                                                <span>Total Students</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="h-100 card profile-stats">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3 avatar">
-                                                <div class="bg-label-success rounded avatar-initial">
-                                                    <i class="bx bx-home fs-4"></i>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <h4 class="mb-0"><?= $stats['total_rooms'] ?? 0; ?></h4>
-                                                <span>Total Rooms</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="h-100 card profile-stats">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3 avatar">
-                                                <div class="bg-label-warning rounded avatar-initial">
-                                                    <i class="bx bx-credit-card fs-4"></i>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <h4 class="mb-0"><?= $stats['pending_payments'] ?? 0; ?></h4>
-                                                <span>Pending Payments</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="h-100 card profile-stats">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3 avatar">
-                                                <div class="bg-label-danger rounded avatar-initial">
-                                                    <i class="bx bx-wrench fs-4"></i>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <h4 class="mb-0"><?= $stats['pending_maintenance'] ?? 0; ?></h4>
-                                                <span>Pending Maintenance</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <pre>
-                            <?= print_r($admin_details, true) ?>
-                        </pre>
+                        <?php include_once __DIR__ . "/../../Components/admin/profile/stat_cards.php" ?>
 
                         <!-- Profile Tabs -->
                         <div class="row">
@@ -393,129 +368,13 @@ try {
                                     <div class="card-body">
                                         <div class="tab-content">
                                             <!-- Personal Info Tab -->
-                                            <div class="tab-pane fade show active" id="admin-info" role="tabpanel">
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="mb-3 info-item">
-                                                            <label class="text-muted form-label">Full Name</label>
-                                                            <p class="mb-0 fw-semibold"><?= htmlspecialchars($first_name . ' ' . $last_name); ?></p>
-                                                        </div>
-                                                        <div class="mb-3 info-item">
-                                                            <label class="text-muted form-label">Email</label>
-                                                            <p class="mb-0 fw-semibold"><?= htmlspecialchars($admin_data['email']); ?></p>
-                                                        </div>
-                                                        <div class="mb-3 info-item">
-                                                            <label class="text-muted form-label">Role</label>
-                                                            <p class="mb-0 fw-semibold"><?= htmlspecialchars($admin_data['role']); ?></p>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <?php if ($admin_details): ?>
-                                                            <div class="mb-3 info-item">
-                                                                <label class="text-muted form-label">Department</label>
-                                                                <p class="mb-0 fw-semibold"><?= htmlspecialchars($admin_details['department']); ?></p>
-                                                            </div>
-                                                            <div class="mb-3 info-item">
-                                                                <label class="text-muted form-label">Access Level</label>
-                                                                <p class="mb-0 fw-semibold"><?= htmlspecialchars($admin_details['access_level']); ?></p>
-                                                            </div>
-                                                        <?php endif; ?>
-                                                        <div class="mb-3 info-item">
-                                                            <label class="text-muted form-label">Last Login</label>
-                                                            <p class="mb-0 fw-semibold"><?= $admin_data['last_login'] ?? 'N/A'; ?></p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <?php include_once __DIR__ . "/../../Components/admin/profile/personal_info.php" ?>
 
                                             <!-- Permissions Tab -->
-                                            <div class="tab-pane fade" id="admin-permissions" role="tabpanel">
-                                                <div class="row">
-                                                    <div class="col-12">
-                                                        <h5 class="mb-3">Access Permissions</h5>
-                                                        <div class="row">
-                                                            <div class="col-md-6">
-                                                                <div class="list-group">
-                                                                    <div class="list-group-item d-flex align-items-center justify-content-between">
-                                                                        <span><i class="me-2 bx bx-user-check"></i>User Management</span>
-                                                                        <span class="bg-success rounded-pill badge">Granted</span>
-                                                                    </div>
-                                                                    <div class="list-group-item d-flex align-items-center justify-content-between">
-                                                                        <span><i class="me-2 bx bx-home"></i>Room Management</span>
-                                                                        <span class="bg-success rounded-pill badge">Granted</span>
-                                                                    </div>
-                                                                    <div class="list-group-item d-flex align-items-center justify-content-between">
-                                                                        <span><i class="me-2 bx bx-credit-card"></i>Billing Management</span>
-                                                                        <span class="bg-success rounded-pill badge">Granted</span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <div class="list-group">
-                                                                    <div class="list-group-item d-flex align-items-center justify-content-between">
-                                                                        <span><i class="me-2 bx bx-wrench"></i>Maintenance Requests</span>
-                                                                        <span class="bg-success rounded-pill badge">Granted</span>
-                                                                    </div>
-                                                                    <div class="list-group-item d-flex align-items-center justify-content-between">
-                                                                        <span><i class="me-2 bx bx-shield-check"></i>Visitor Management</span>
-                                                                        <span class="bg-success rounded-pill badge">Granted</span>
-                                                                    </div>
-                                                                    <div class="list-group-item d-flex align-items-center justify-content-between">
-                                                                        <span><i class="me-2 bx bx-cog"></i>System Settings</span>
-                                                                        <span class="badge bg-<?= ($admin_details['access_level'] ?? '') === 'Super Admin' ? 'success' : 'warning'; ?> rounded-pill">
-                                                                            <?= ($admin_details['access_level'] ?? '') === 'Super Admin' ? 'Granted' : 'Limited'; ?>
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <?php include_once __DIR__ . "/../../Components/admin/profile/permissions_tab.php" ?>
 
                                             <!-- Activities Tab -->
-                                            <div class="tab-pane fade" id="admin-activities" role="tabpanel">
-                                                <div class="row">
-                                                    <div class="col-12">
-                                                        <h5 class="mb-3">Recent Activities</h5>
-                                                        <div class="activity-timeline">
-                                                            <div class="d-flex align-items-start mb-3">
-                                                                <div class="me-3 avatar avatar-sm">
-                                                                    <div class="bg-label-primary rounded-circle avatar-initial">
-                                                                        <i class="bx bx-user"></i>
-                                                                    </div>
-                                                                </div>
-                                                                <div>
-                                                                    <p class="mb-1"><strong>Profile viewed</strong></p>
-                                                                    <small class="text-muted">Today at <?= date('H:i'); ?></small>
-                                                                </div>
-                                                            </div>
-                                                            <div class="d-flex align-items-start mb-3">
-                                                                <div class="me-3 avatar avatar-sm">
-                                                                    <div class="bg-label-success rounded-circle avatar-initial">
-                                                                        <i class="bx bx-log-in"></i>
-                                                                    </div>
-                                                                </div>
-                                                                <div>
-                                                                    <p class="mb-1"><strong>Logged in</strong></p>
-                                                                    <small class="text-muted"><?= $admin_data['last_login'] ?? 'N/A'; ?></small>
-                                                                </div>
-                                                            </div>
-                                                            <div class="d-flex align-items-start mb-3">
-                                                                <div class="me-3 avatar avatar-sm">
-                                                                    <div class="bg-label-info rounded-circle avatar-initial">
-                                                                        <i class="bx bx-check"></i>
-                                                                    </div>
-                                                                </div>
-                                                                <div>
-                                                                    <p class="mb-1"><strong>System access granted</strong></p>
-                                                                    <small class="text-muted">Account created</small>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <?php include_once __DIR__ . "/../../Components/admin/profile/activities_tab.php" ?>
                                         </div>
                                     </div>
                                 </div>
@@ -526,7 +385,7 @@ try {
                 <!-- / Content -->
 
                 <!-- Footer -->
-                <?php include_once "./Components/footer.php" ?>
+                <?php include_once __DIR__ . "/../../Components/footer.php" ?>
                 <!-- / Footer -->
 
                 <div class="content-backdrop fade"></div>
@@ -545,89 +404,7 @@ try {
     <!-- / Layout wrapper -->
 
     <!-- Edit Admin Modal -->
-    <div class="modal fade" id="editAdmin" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-simple modal-edit-user">
-            <div class="p-3 modal-content">
-                <div class="modal-body">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <div class="mb-4 text-center">
-                        <h3>Edit Admin Information</h3>
-                        <p>Updating admin details will receive a privacy audit.</p>
-                    </div>
-                    <form id="editAdminForm" class="row g-3" method="POST" action="/admin/profile/update">
-                        <?php set_csrf(); ?>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="modalEditAdminFirstName">First Name</label>
-                            <input
-                                type="text"
-                                id="modalEditAdminFirstName"
-                                name="first_name"
-                                class="form-control"
-                                value="<?= htmlspecialchars($admin_details['first_name'] ?? ($admin_data['name'] ? explode(' ', $admin_data['name'])[0] : '')); ?>"
-                                required />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="modalEditAdminLastName">Last Name</label>
-                            <input
-                                type="text"
-                                id="modalEditAdminLastName"
-                                name="last_name"
-                                class="form-control"
-                                value="<?= htmlspecialchars($admin_details['last_name'] ?? ($admin_data['name'] ? trim(str_replace(explode(' ', $admin_data['name'])[0], '', $admin_data['name'])) : '')); ?>"
-                                required />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="modalEditAdminEmail">Email</label>
-                            <input
-                                type="email"
-                                id="modalEditAdminEmail"
-                                name="email"
-                                class="form-control"
-                                value="<?= htmlspecialchars($admin_data['email']); ?>"
-                                readonly />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label" for="modalEditAdminDepartment">Department</label>
-                            <select id="modalEditAdminDepartment" name="department" class="form-select" required>
-                                <option value="">Select Department</option>
-                                <option value="Administration" <?= ($admin_details['department'] ?? '') == 'Administration' ? 'selected' : ''; ?>>Administration</option>
-                                <option value="IT Support" <?= ($admin_details['department'] ?? '') == 'IT Support' ? 'selected' : ''; ?>>IT Support</option>
-                                <option value="Maintenance" <?= ($admin_details['department'] ?? '') == 'Maintenance' ? 'selected' : ''; ?>>Maintenance</option>
-                                <option value="Finance" <?= ($admin_details['department'] ?? '') == 'Finance' ? 'selected' : ''; ?>>Finance</option>
-                                <option value="Student Affairs" <?= ($admin_details['department'] ?? '') == 'Student Affairs' ? 'selected' : ''; ?>>Student Affairs</option>
-                                <option value="Security" <?= ($admin_details['department'] ?? '') == 'Security' ? 'selected' : ''; ?>>Security</option>
-                            </select>
-                        </div>
-                        <?php if (($admin_details['access_level'] ?? 'Regular Admin') === 'Super Admin'): ?>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label" for="modalEditAdminAccessLevel">Access Level</label>
-                                <select id="modalEditAdminAccessLevel" name="access_level" class="form-select" required>
-                                    <option value="Regular Admin" <?= ($admin_details['access_level'] ?? 'Regular Admin') == 'Regular Admin' ? 'selected' : ''; ?>>Regular Admin</option>
-                                    <option value="Super Admin" <?= ($admin_details['access_level'] ?? '') == 'Super Admin' ? 'selected' : ''; ?>>Super Admin</option>
-                                    <option value="Support Staff" <?= ($admin_details['access_level'] ?? '') == 'Support Staff' ? 'selected' : ''; ?>>Support Staff</option>
-                                </select>
-                            </div>
-                        <?php else: ?>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label" for="modalEditAdminAccessLevel">Access Level</label>
-                                <input
-                                    type="text"
-                                    id="modalEditAdminAccessLevel"
-                                    class="form-control"
-                                    value="<?= htmlspecialchars($admin_details['access_level'] ?? 'Regular Admin'); ?>"
-                                    readonly />
-                                <small class="text-muted">Only Super Admins can modify access levels</small>
-                            </div>
-                        <?php endif; ?>
-                        <div class="text-center col-12">
-                            <button type="submit" class="me-1 me-sm-3 btn btn-success">Update Profile</button>
-                            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+    <?php include_once __DIR__ . "/../../Components/admin/profile/edit_modal.php" ?>
 
     <!-- Core JS -->
     <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
@@ -658,6 +435,18 @@ try {
         $(function() {
             // Initialize Select2
             $('.select2').select2();
+
+            if ($.fn.select2) {
+                $('#modalEditAdminDepartment').select2({
+                    dropdownParent: $('#editAdmin'),
+                    placeholder: "Select Department",
+                });
+
+                $('#modalEditAdminAccessLevel').select2({
+                    dropdownParent: $('#editAdmin'),
+                    placeholder: "Select Access Level",
+                });
+            }
 
             // Form validation
             const editAdminForm = document.getElementById('editAdminForm');

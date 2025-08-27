@@ -270,10 +270,6 @@ $bg_color = $avatar['bg_color'];
 
                         <?php include_once __DIR__ . "/../../Components/student/profile/stats_card.php" ?>
 
-                        <pre>
-                         <?= print_r($student_data, true) ?>
-                       </pre>
-
                         <!-- Profile Tabs -->
                         <div class="row">
                             <div class="col-12">
