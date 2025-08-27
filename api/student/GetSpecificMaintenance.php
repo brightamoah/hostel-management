@@ -1,5 +1,5 @@
 <?php
-require_once "./app/controllers/MaintenanceController.php";
+require_once __DIR__ . "/../../app/controllers/MaintenanceController.php";
 
 header("content-type: application/json");
 
@@ -8,4 +8,4 @@ header("content-type: application/json");
 $request_id = $r_id;
 
 $controller = new MaintenanceController();
-$controller -> getRequestDetails($request_id);
+$controller->getRequestDetails($request_id);

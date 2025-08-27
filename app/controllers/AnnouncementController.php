@@ -4,13 +4,12 @@ require_once __DIR__ . "/../../database/db.php";
 
 class AnnouncementController
 {
-    private $db;
+
     private $conn;
 
     public function __construct()
     {
-        $this->db = new Database();
-        $this->conn = $this->db->connect();
+        $this->conn = getDb();
     }
 
     /**

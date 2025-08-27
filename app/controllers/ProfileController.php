@@ -1,7 +1,7 @@
 <?php
-require_once "./database/db.php";
-require_once "./app/models/Student.php";
-require_once "./utils/functions.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../../app/models/Student.php";
+require_once __DIR__ . "/../../utils/functions.php";
 
 class ProfileController
 {
@@ -45,7 +45,7 @@ class ProfileController
             $address = sanitizeInput($_POST['address']);
             $emergency_contact_name = sanitizeInput($_POST['emergency_contact_name']);
             $emergency_contact_number = sanitizeInput($_POST['emergency_contact_number']);
-            $health_condition = sanitizeInput($_POST['health_condition']);  
+            $health_condition = sanitizeInput($_POST['health_condition']);
 
 
             // Validation

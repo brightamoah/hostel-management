@@ -1,11 +1,10 @@
 <?php
-require_once "./database/db.php";
+require_once __DIR__ . "/../../database/db.php";
 
 
 header('Content-Type: application/json');
 
-$db = new Database();
-$conn = $db->connect();
+$conn = getDb();
 
 $user_id = $id;
 

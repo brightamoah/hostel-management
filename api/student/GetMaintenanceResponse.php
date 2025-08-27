@@ -1,9 +1,7 @@
 <?php
-require_once "./app/models/MaintenanceRequest.php";
+require_once __DIR__ . "/../../app/models/MaintenanceRequest.php";
 
 header("content-type: application/json");
-
-//$r_id is the request id gotten from the url
 
 
 $m_request = new MaintenanceRequest();

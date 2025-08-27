@@ -1,5 +1,4 @@
 <?php
-// require_once "./app/models/Student.php";
 require_once __DIR__ . "/../models/Student.php";
 require_once __DIR__ . "/../../database/db.php";
 require_once __DIR__ . "/../models/Billing.php";

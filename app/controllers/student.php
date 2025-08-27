@@ -1,7 +1,7 @@
 <?php
-require_once "./database/db.php";
-require_once "./app/models/Student.php";
-require_once "./app/models/Visitor.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../../app/models/Student.php";
+require_once __DIR__ . "/../../app/models/Visitor.php";
 
 // Check if user is authenticated
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Student') {
@@ -9,9 +9,8 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Student') {
     exit();
 }
 
-$user_id = $_SESSION['user']['user_id']; // Get the logged-in user's ID
-$db = new Database();
-$conn = $db->connect();
+$user_id = $_SESSION['user']['user_id'];
+$conn = getDb();
 $student = new Student($conn);
 $visitor = new Visitor();
 
@@ -23,4 +22,3 @@ $pending_balance = $student->getPendingBalance($user_id);
 $open_requests = $student->getOpenMaintenanceRequests($user_id);
 $total_visitors = $visitor->getVisitorCountByStudent($_SESSION['user']['student_id'] ?? 0);
 $payment_status = $student->getPaymentStatusSummary($user_id);
-

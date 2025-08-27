@@ -1,5 +1,5 @@
 <?php
-require_once './app/models/Visitor.php';
+require_once __DIR__ . "/../../app/models/Visitor.php";
 require_once __DIR__ . "/../../utils/hostel_helpers.php";
 require_once __DIR__ . "/../../database/db.php";
 

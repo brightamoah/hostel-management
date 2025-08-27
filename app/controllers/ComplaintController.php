@@ -1,5 +1,5 @@
 <?php
-require_once  "./app/models/Complaints.php";
+require_once __DIR__ . "/../../app/models/Complaints.php";
 
 class ComplaintController
 {

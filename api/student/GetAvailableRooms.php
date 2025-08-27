@@ -1,7 +1,7 @@
 <?php
 ob_start();
 
-require_once "./app/controllers/RoomController.php";
+require_once __DIR__ . "/../../app/controllers/RoomController.php";
 
 $controller = new RoomController();
 $controller->getAvailableRooms();

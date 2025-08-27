@@ -3,7 +3,7 @@ require_once __DIR__ . "/../../app/models/User.php";
 require_once __DIR__ . "/../../database/db.php"; // Database connection
 require_once __DIR__ . "/../../utils/hostel_helpers.php";
 
-$db = null;
+
 $conn = null;
 $userController = null;
 $totalUsers = 0;
@@ -12,8 +12,8 @@ $totalAdmins = 0;
 $activeStudents = 0;
 
 try {
-    $db = new Database();
-    $conn = $db->connect();
+
+    $conn = getDb();
     $userController = new User($conn);
 
 

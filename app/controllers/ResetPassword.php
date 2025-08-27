@@ -1,6 +1,6 @@
 <?php
-require_once "./database/db.php";
-require_once "./app/models/User.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../../app/models/User.php";
 
 class ResetPassword
 {
@@ -8,8 +8,8 @@ class ResetPassword
 
     public function __construct()
     {
-        $db = new Database();
-        $this->user = new User($db->connect());
+        $db = getDb();
+        $this->user = new User($db);
     }
 
     // Handle both GET and POST with token as route parameter

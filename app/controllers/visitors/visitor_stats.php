@@ -1,6 +1,6 @@
 <?php
 
-require_once "./app/models/Visitor.php";
+require_once __DIR__ . "/../../app/models/Visitor.php";
 
 // Initialize Visitor model
 $visitorModel = new Visitor();
@@ -16,8 +16,8 @@ if (!$user_id || $role !== 'Student') {
 }
 
 // Fetch the student_id based on user_id
-$db = new Database();
-$conn = $db->connect();
+
+$conn = getDb();
 $query = "SELECT student_id FROM students WHERE user_id = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $user_id);
@@ -26,7 +26,7 @@ $result = $stmt->get_result();
 $student = $result->fetch_assoc();
 $student_id = $student['student_id'] ?? null;
 $stmt->close();
-$db->close();
+
 
 if (!$student_id) {
     die("Student not found.");

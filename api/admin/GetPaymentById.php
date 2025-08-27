@@ -1,6 +1,6 @@
 <?php
-require_once  './database/db.php';
-require_once "./app/models/Student.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../../app/models/Student.php";
 
 header('Content-Type: application/json');
 
@@ -19,8 +19,7 @@ if ($payment_id <= 0) {
 }
 
 try {
-    $db = new Database();
-    $conn = $db->connect();
+    $conn = getDb();
 
     // Fetch payment details with student name
     $query = "
