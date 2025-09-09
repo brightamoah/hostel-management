@@ -25,4 +25,7 @@ Thumbs.db
 
 #instructions
 general_instructions.md
+gemini_instructions.md
 SYSTEM_INSTRUCTIONS.md
+NOTION_TIMELINE_PROMPT.md
+NUXT_MIGRATION_GUIDE.md

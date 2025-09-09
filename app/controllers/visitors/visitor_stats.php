@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . "/../../app/models/Visitor.php";
+require_once __DIR__ . "/../../models/Visitor.php";
 
 // Initialize Visitor model
 $visitorModel = new Visitor();

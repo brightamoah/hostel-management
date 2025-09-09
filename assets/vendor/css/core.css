@@ -202,6 +202,7 @@
   }
 }
 
+
 body {
   margin: 0;
   font-family: var(--bs-body-font-family);
@@ -555,6 +556,15 @@ legend + * {
   -webkit-appearance: textfield;
   outline-offset: -2px;
 }
+
+.template-customizer-open-btn {
+   display: none !important;
+}
+
+#template-customizer {
+   display: none !important;
+}
+
 
 /* rtl:raw:
 [type="tel"],

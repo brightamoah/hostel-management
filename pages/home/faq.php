@@ -1,27 +1,27 @@
-<section id="FAQ" class="section-py bg-body landing-faq">
+<section id="FAQ" class="bg-body section-py landing-faq">
     <div class="container">
-        <div class="text-center mb-4">
-            <span class="badge bg-label-primary">FAQ</span>
+        <div class="mb-4 text-center">
+            <span class="bg-label-primary badge">FAQ</span>
         </div>
-        <h4 class="text-center mb-1">
+        <h4 class="mb-1 text-center">
             Frequently asked
-            <span class="position-relative fw-extrabold z-1">questions
+            <span class="z-1 position-relative fw-extrabold">questions
                 <img
                     src="../../assets/img/front-pages/icons/section-title-icon.png"
                     alt="laptop charging"
-                    class="section-title-img position-absolute object-fit-contain bottom-0 z-n1" />
+                    class="bottom-0 z-n1 position-absolute object-fit-contain section-title-img" />
             </span>
         </h4>
-        <p class="text-center mb-12 pb-md-4">
+        <p class="mb-12 pb-md-4 text-center">
             Browse through these FAQs to find answers to commonly asked questions about our hostel management system.
         </p>
-        <div class="row gy-12 align-items-center">
+        <div class="align-items-center row gy-12">
             <div class="col-lg-5">
                 <div class="text-center">
                     <img
-                        src="../../assets/img/front-pages/landing-page/faq-boy-with-logos.png"
+                        src="../../assets/img/faq-boy.png"
                         alt="faq boy with logos"
-                        class="faq-image" />
+                        class="rounded-5 faq-image" />
                 </div>
             </div>
             <div class="col-lg-7">
@@ -30,7 +30,7 @@
                         <h2 class="accordion-header" id="headingOne">
                             <button
                                 type="button"
-                                class="accordion-button collapsed"
+                                class="collapsed accordion-button"
                                 data-bs-toggle="collapse"
                                 data-bs-target="#accordionOne"
                                 aria-expanded="false"
@@ -52,7 +52,7 @@
                         <h2 class="accordion-header" id="headingTwo">
                             <button
                                 type="button"
-                                class="accordion-button collapsed"
+                                class="collapsed accordion-button"
                                 data-bs-toggle="collapse"
                                 data-bs-target="#accordionTwo"
                                 aria-expanded="false"
@@ -76,7 +76,7 @@
                         <h2 class="accordion-header" id="headingThree">
                             <button
                                 type="button"
-                                class="accordion-button collapsed"
+                                class="collapsed accordion-button"
                                 data-bs-toggle="collapse"
                                 data-bs-target="#accordionThree"
                                 aria-expanded="false"
@@ -101,7 +101,7 @@
                         <h2 class="accordion-header" id="headingFour">
                             <button
                                 type="button"
-                                class="accordion-button collapsed"
+                                class="collapsed accordion-button"
                                 data-bs-toggle="collapse"
                                 data-bs-target="#accordionFour"
                                 aria-expanded="false"
@@ -123,7 +123,7 @@
                         <h2 class="accordion-header" id="headingFive">
                             <button
                                 type="button"
-                                class="accordion-button collapsed"
+                                class="collapsed accordion-button"
                                 data-bs-toggle="collapse"
                                 data-bs-target="#accordionFive"
                                 aria-expanded="false"
@@ -145,7 +145,7 @@
                         <h2 class="accordion-header" id="headingSix">
                             <button
                                 type="button"
-                                class="accordion-button collapsed"
+                                class="collapsed accordion-button"
                                 data-bs-toggle="collapse"
                                 data-bs-target="#accordionSix"
                                 aria-expanded="false"

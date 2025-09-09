@@ -11,7 +11,7 @@
     data-skin="default"
     data-assets-path="../../assets/"
     data-template="front-pages"
-    data-bs-theme="light">
+    data-bs-theme="system">
 
 <head>
     <meta charset="utf-8" />
@@ -206,7 +206,7 @@
                                                     type="password"
                                                     id="confirm_password"
                                                     name="confirm_password""
-                                                    class=" form-control"
+                                                    class="form-control"
                                                     placeholder="Confirm Your Password"
                                                     aria-describedby="multiStepsConfirmPass2" />
                                                 <span class="input-group-text cursor-pointer" id="multiStepsConfirmPass2"><i class="icon-base bx bx-hide"></i></span>

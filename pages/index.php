@@ -34,7 +34,7 @@ function getRoute()
     data-skin="default"
     data-assets-path="../../assets/"
     data-template="front-pages"
-    data-bs-theme="system">
+    data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
