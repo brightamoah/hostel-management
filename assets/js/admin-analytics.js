@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
       revenuePeriod: "last30days",
       reportPeriod: "last12months",
       expensePeriod: "alltime",
-      orderPeriod: "thismonth",
+      orderPeriod: "last12months",
       growthYear: new Date().getFullYear(),
    };
 
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
    // Store chart instances for re-rendering
    let chartInstances = {
-      orderAreaChart: null,
+      monthlyGrowthChart: null,
       lineAreaChart: null,
       totalRevenueChart: null,
       growthChart: null,
@@ -165,10 +165,6 @@ document.addEventListener("DOMContentLoaded", function (e) {
       const fontFamily =
          "Public Sans, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif";
 
-      // Show loading indicator
-      const loadingElements = document.querySelectorAll(".chart-loading");
-      loadingElements.forEach((el) => (el.style.display = "block"));
-
       // Build query parameters
       const params = new URLSearchParams({
          revenue_period: currentFilters.revenuePeriod,
@@ -182,9 +178,6 @@ document.addEventListener("DOMContentLoaded", function (e) {
       fetch(`/admin/analytics-data?${params.toString()}`)
          .then((response) => response.json())
          .then((json) => {
-            // Hide loading indicators
-            loadingElements.forEach((el) => (el.style.display = "none"));
-
             if (!json.success) {
                console.error("Failed to fetch analytics data:", json.error);
                return;
@@ -196,96 +189,178 @@ document.addEventListener("DOMContentLoaded", function (e) {
                if (chart) chart.destroy();
             });
 
-            // Monthly Growth Chart
+            // Monthly Growth Chart - Bar Chart with Dynamic Period
             const monthlyGrowthChartEl = document.querySelector("#monthlyGrowthChart");
-            if (monthlyGrowthChartEl) {
-                const monthlyGrowthChartConfig = {
-                    chart: {
-                        height: 350,
-                        type: 'area',
-                        toolbar: { show: false },
-                    },
-                    series: [{
-                        name: 'Bookings',
-                        data: data.order_data
-                    }],
-                    colors: [colors.success],
-                    dataLabels: { enabled: false },
-                    stroke: {
-                        width: 3,
-                        curve: 'smooth'
-                    },
-                    fill: {
-                        type: 'gradient',
-                        gradient: {
-                            shadeIntensity: 1,
-                            opacityFrom: 0.7,
-                            opacityTo: 0.3,
-                            stops: [0, 90, 100]
-                        }
-                    },
-                    grid: {
-                        borderColor: borderColor,
-                        strokeDashArray: 3,
-                        xaxis: {
-                            lines: {
-                                show: true
-                            }
+            if (monthlyGrowthChartEl && data.order_report) {
+               const monthlyGrowthChartConfig = {
+                  series: [
+                     {
+                        name: "Previous Period",
+                        data: data.order_report.previous,
+                     },
+                     {
+                        name: "Current Period",
+                        data: data.order_report.current,
+                     },
+                  ],
+                  chart: {
+                     height: 350,
+                     stacked: true,
+                     type: "bar",
+                     toolbar: { show: false },
+                  },
+                  plotOptions: {
+                     bar: {
+                        horizontal: false,
+                        columnWidth: "33%",
+                        borderRadius: 12,
+                        startingShape: "rounded",
+                        endingShape: "rounded",
+                     },
+                  },
+                  colors: [colors.secondary, colors.success],
+                  dataLabels: { enabled: false },
+                  stroke: { width: 0, colors: [colors.secondary, colors.success] },
+                  legend: {
+                     show: true,
+                     horizontalAlign: "left",
+                     position: "top",
+                     markers: { height: 8, width: 8, radius: 12, offsetX: -3 },
+                     labels: { colors: legendColor },
+                     itemMargin: { horizontal: 10 },
+                  },
+                  grid: {
+                     borderColor: borderColor,
+                     padding: { top: 0, bottom: -8, left: 20, right: 20 },
+                  },
+                  xaxis: {
+                     categories: data.order_report.labels,
+                     labels: {
+                        style: { colors: labelColor, fontSize: "13px" },
+                     },
+                     axisTicks: { show: false },
+                     axisBorder: { show: false },
+                  },
+                  yaxis: {
+                     labels: {
+                        style: { colors: labelColor, fontSize: "13px" },
+                        formatter: function (value) {
+                           return value.toFixed(0) + " bookings";
                         },
-                        padding: {
-                            top: -10,
-                            right: 25,
-                            left: 15
+                     },
+                  },
+                  tooltip: {
+                     y: {
+                        formatter: function (val) {
+                           return val + " bookings";
                         }
-                    },
-                    xaxis: {
-                        type: 'datetime',
-                        labels: {
-                            datetimeFormatter: {
-                                year: 'yyyy',
-                                month: "MMM 'yy",
-                                day: 'dd MMM',
-                            },
-                            style: {
-                                colors: labelColor,
-                                fontSize: '13px'
-                            }
+                     }
+                  },
+                  states: { hover: { filter: { type: "none" } } },
+                  responsive: [
+                     {
+                        breakpoint: 1700,
+                        options: {
+                           plotOptions: {
+                              bar: { borderRadius: 10, columnWidth: "32%" },
+                           },
                         },
-                        axisBorder: {
-                            show: false
+                     },
+                     {
+                        breakpoint: 1580,
+                        options: {
+                           plotOptions: {
+                              bar: { borderRadius: 8, columnWidth: "35%" },
+                           },
                         },
-                        axisTicks: {
-                            show: false
-                        }
-                    },
-                    yaxis: {
-                        labels: {
-                            formatter: function (value) {
-                                return value.toFixed(0);
-                            },
-                            style: {
-                                colors: labelColor,
-                                fontSize: '13px'
-                            },
-                            offsetX: -10
-                        }
-                    },
-                    tooltip: {
-                        x: {
-                            format: 'dd MMM yyyy'
+                     },
+                     {
+                        breakpoint: 1440,
+                        options: {
+                           plotOptions: {
+                              bar: { borderRadius: 8, columnWidth: "42%" },
+                           },
                         },
-                        y: {
-                            formatter: function (val) {
-                                return val + " bookings";
-                            }
-                        }
-                    }
-                };
-                chartInstances.monthlyGrowthChart = new ApexCharts(
-                    monthlyGrowthChartEl,
-                    monthlyGrowthChartConfig
-                );
-                chartInstances.monthlyGrowthChart.render();
+                     },
+                     {
+                        breakpoint: 1300,
+                        options: {
+                           plotOptions: {
+                              bar: { borderRadius: 8, columnWidth: "48%" },
+                           },
+                        },
+                     },
+                     {
+                        breakpoint: 1200,
+                        options: {
+                           plotOptions: {
+                              bar: { borderRadius: 8, columnWidth: "40%" },
+                           },
+                        },
+                     },
+                     {
+                        breakpoint: 1040,
+                        options: {
+                           plotOptions: {
+                              bar: { borderRadius: 8, columnWidth: "45%" },
+                           },
+                        },
+                     },
+                     {
+                        breakpoint: 991,
+                        options: {
+                           plotOptions: {
+                              bar: { borderRadius: 8, columnWidth: "38%" },
+                           },
+                        },
+                     },
+                     {
+                        breakpoint: 840,
+                        options: {
+                           plotOptions: {
+                              bar: { borderRadius: 8, columnWidth: "35%" },
+                           },
+                        },
+                     },
+                     {
+                        breakpoint: 768,
+                        options: {
+                           plotOptions: {
+                              bar: { borderRadius: 8, columnWidth: "28%" },
+                           },
+                        },
+                     },
+                     {
+                        breakpoint: 640,
+                        options: {
+                           plotOptions: {
+                              bar: { borderRadius: 8, columnWidth: "32%" },
+                           },
+                        },
+                     },
+                     {
+                        breakpoint: 576,
+                        options: {
+                           plotOptions: {
+                              bar: { borderRadius: 8, columnWidth: "37%" },
+                           },
+                        },
+                     },
+                     {
+                        breakpoint: 360,
+                        options: {
+                           plotOptions: {
+                              bar: { borderRadius: 8, columnWidth: "70%" },
+                           },
+                        },
+                     },
+                  ],
+               };
+               chartInstances.monthlyGrowthChart = new ApexCharts(
+                  monthlyGrowthChartEl,
+                  monthlyGrowthChartConfig
+               );
+               chartInstances.monthlyGrowthChart.render();
             }
 
             // Line Area Chart for Revenue with Dynamic Period
@@ -630,9 +705,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
                }
 
                if (growthText) {
-                  growthText.textContent = `${
-                     growthPercentage >= 0 ? "+" : ""
-                  }${growthPercentage}% Company Growth`;
+                  growthText.textContent = `${growthPercentage >= 0 ? "+" : ""
+                     }${growthPercentage}% Company Growth`;
                }
             }
 
@@ -757,8 +831,6 @@ document.addEventListener("DOMContentLoaded", function (e) {
             }
          })
          .catch((error) => {
-            // Hide loading indicators
-            loadingElements.forEach((el) => (el.style.display = "none"));
             console.error("Error fetching analytics data:", error);
          });
    }
