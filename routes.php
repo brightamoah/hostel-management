@@ -16,12 +16,13 @@ get('/reset-password', '/pages/auth/reset_password.php', ['guest']);
 get('/reset-password/$tkn', '/app/controllers/ResetPassword.php', ['guest']);
 
 // General Routes
-get('/layout', '/pages/layout.php');
 get('/paystack/callback', '/app/controllers/PaystackCallback.php');
 
 
 
 //general APIs
+get('/api/notifications', 'api/GetNotifications.php', ['auth']);
+get('/api/notification-count', 'api/GetNotificationCount.php', ['auth']);
 
 
 //student APIs
@@ -41,16 +42,17 @@ get('/student/complaint/$c_id/response', 'api/student/GetComplaintResponse.php',
 get('/student/visitors-data', 'api/student/GetVisitorsData.php', ['auth']);
 get('/student/visitor/$id', 'api/student/GetVisitorById.php', ['auth']);
 
-
-
-
 //admin APIs
 get('/admin/rooms-data', 'api/admin/rooms/GetAllRooms.php', ['auth', 'admin']);
 get('/admin/room/$id', 'api/admin/rooms/GetRoomById.php', ['auth', 'admin']);
 get('/admin/recent-payments', 'api/admin/GetRecentPayments.php', ['auth', 'admin']);
 get('/admin/payment/$id', 'api/admin/GetPaymentById.php', ['auth', 'admin']);
 get('/admin/users-data', 'api/admin/GetAllUsers.php', ['auth', 'admin']);
+get('/admin/admins-hostels-data', 'api/admin/GetAdminsWithHostels.php', ['auth', 'admin']);
+get('/admin/hostels-data', 'api/admin/GetHostels.php', ['auth', 'admin']);
 get('/admin/student/$id', 'api/admin/GetStudentById.php', ['auth', 'admin']);
+get('/admin/admin/$id', 'api/admin/GetAdminById.php', ['auth', 'admin']);
+get('/admin/hostels', 'api/admin/GetAllHostels.php', ['auth', 'admin']);
 get('/admin/visitors-data', 'api/admin/GetAllVisitors.php', ['auth', 'admin']);
 get('/admin/visitor/$id', 'api/admin/GetVisitorById.php', ['auth', 'admin']);
 get('/visitor/logs/$id', 'api/admin/GetVisitorLogs.php', ['auth', 'admin']);
@@ -128,6 +130,7 @@ post('/admin/user/add', 'api/admin/users/AddUser.php', ['auth', 'admin']);
 post('/admin/user/update', 'api/admin/UpdateUser.php', ['auth', 'admin']);
 post('/admin/user/delete', 'api/admin/users/DeleteUser.php', ['auth', 'admin']);
 post('/admin/user/change-role', 'api/admin/ChangeUserRole.php', ['auth', 'admin']);
+post('/admin/assign-hostel', 'api/admin/AssignAdminHostel.php', ['auth', 'admin']);
 post('/admin/visitor/$id/approve', 'api/admin/ApproveVisitor.php', ['auth', 'admin']);
 post('/admin/visitor/$id/deny', 'api/admin/DenyVisitor.php', ['auth', 'admin']);
 post('/admin/visitor/$id/check_in', 'api/admin/CheckInVisitor.php', ['auth', 'admin']);

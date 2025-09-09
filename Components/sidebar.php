@@ -22,7 +22,7 @@ $menu_items = ($role === 'Admin') ? [
     ['route' => '/admin/maintenance', 'label' => 'Maintenance', 'icon' => 'bx-wrench'],
     ['route' => '/admin/billings', 'label' => 'Billings', 'icon' => 'bx-credit-card'],
     ['route' => '/admin/complaints', 'label' => 'Complaints', 'icon' => 'bx-message-error'],
-    ['route' => '/admin/announcements', 'label' => 'Announcements', 'icon' => 'bx-file'],
+    ['route' => '/admin/announcements', 'label' => 'Announcements', 'icon' => 'bxs-megaphone'],
     ['route' => '/admin/analytics', 'label' => 'Analytics', 'icon' => 'bx-line-chart'],
 ] : [
     ['route' => '/student/dashboard', 'label' => 'Dashboards', 'icon' => 'bx-home'],
@@ -32,7 +32,7 @@ $menu_items = ($role === 'Admin') ? [
     ['route' => '/student/complaints', 'label' => 'Complaints', 'icon' => 'bx-message-error'],
     ['route' => '/student/maintenance', 'label' => 'Maintenance', 'icon' => 'bx-wrench'],
     ['route' => '/student/billing', 'label' => 'Billings', 'icon' => 'bx-credit-card'],
-    ['route' => '/student/announcements', 'label' => 'Announcements', 'icon' => 'bx-file'],
+    ['route' => '/student/announcements', 'label' => 'Announcements', 'icon' => 'bxs-megaphone'],
 ];
 
 // Define logout item separately

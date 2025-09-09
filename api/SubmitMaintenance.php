@@ -1,5 +1,5 @@
 <?php
-require_once "./app/controllers/MaintenanceController.php";
+require_once __DIR__ . "/../app/controllers/MaintenanceController.php";
 
 
 header('Content-Type: application/json');
@@ -11,6 +11,6 @@ if ($result) {
     $response = json_encode(['success' => true, 'message' => 'Maintenance request submitted successfully']);
     out($response);
 } else {
-   $response = json_encode(['success' => false, 'error' => 'Failed to submit maintenance request']);
+    $response = json_encode(['success' => false, 'error' => 'Failed to submit maintenance request']);
     out($response);
-}   
+}

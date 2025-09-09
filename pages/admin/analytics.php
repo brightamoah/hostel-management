@@ -48,18 +48,7 @@
     <script src="../../assets/js/config.js"></script>
 
     <style>
-        .chart-loading {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-        }
-
-        .chart-container {
-            position: relative;
-        }
+        /* Custom analytics styles can go here if needed */
     </style>
 </head>
 
@@ -131,12 +120,7 @@
                                             </ul>
                                         </div>
                                     </div>
-                                    <div class="card-body chart-container">
-                                        <div class="chart-loading">
-                                            <div class="spinner-border text-primary" role="status">
-                                                <span class="visually-hidden">Loading...</span>
-                                            </div>
-                                        </div>
+                                    <div class="card-body">
                                         <div id="lineAreaChart"></div>
                                     </div>
                                 </div>
@@ -199,6 +183,7 @@
 
     <!-- Main JS -->
     <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/notifications.js"></script>
     <!-- Page JS -->
     <script src="../../assets/js/admin-analytics.js"></script>
 </body>

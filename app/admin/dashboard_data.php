@@ -1,16 +1,11 @@
 <?php
-require_once "./database/db.php";
-require_once "./app/models/Room.php";
-require_once "./app/models/Student.php";
-require_once "./app/models/MaintenanceRequest.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../../app/models/Room.php";
+require_once __DIR__ . "/../../app/models/Student.php";
+require_once __DIR__ . "/../../app/models/MaintenanceRequest.php";
 
 // Initialize classes
-$db = new Database();
-$conn = $db->connect();
-if (!$conn) {
-    die("Database connection failed: {$db->connect()->connect_error}");
-}
-
+$conn = getDb();
 $rooms = new Rooms();
 $student = new Student($conn);
 $maintenance = new MaintenanceRequest();
@@ -147,7 +142,7 @@ $stmt->close();
 
 // Get admin's information
 $user = $_SESSION['user'] ?? null;
-$user_id = $user['user_id'] ;
+$user_id = $user['user_id'];
 $admin_query = "SELECT name, role, last_login FROM users WHERE user_id = ?";
 $stmt = $conn->prepare($admin_query);
 $stmt->bind_param("i", $user_id);
@@ -174,4 +169,3 @@ $stmt->close();
 // print_r($admin_result);
 // print_r($_SESSION['user']);
 // echo "</pre>";
-

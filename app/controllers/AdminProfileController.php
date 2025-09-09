@@ -1,18 +1,16 @@
 <?php
-require_once "./database/db.php";
-require_once "./app/models/User.php";
-require_once "./utils/functions.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/../../app/models/User.php";
+require_once __DIR__ . "/../../utils/functions.php";
 
 class AdminProfileController
 {
-    private $db;
     private $conn;
     private $user;
 
     public function __construct()
     {
-        $this->db = new Database();
-        $this->conn = $this->db->connect();
+        $this->conn = getDb();
         $this->user = new User($this->conn);
     }
 

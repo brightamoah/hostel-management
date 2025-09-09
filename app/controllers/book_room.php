@@ -1,6 +1,5 @@
 <?php
-// session_start();
-require_once './database/db.php'; // Adjust path
+require_once __DIR__ . "/../../database/db.php";
 
 header('Content-Type: application/json');
 
@@ -17,9 +16,7 @@ if (!$room_id) {
     exit;
 }
 
-$db = new Database();
-$conn = $db->connect();
-
+$conn = getDb();
 // Check if student already has an active allocation
 $stmt = $conn->prepare("SELECT COUNT(*) FROM allocations WHERE student_id = (SELECT student_id FROM students WHERE user_id = ?) AND status = 'Active'");
 $stmt->bind_param("i", $_SESSION['user']['user_id']);

@@ -403,6 +403,128 @@ class User
         return $admin;
     }
 
+    public function getAdminRecentActivities($admin_user_id, $limit = 10)
+    {
+        $activities = [];
+
+        try {
+            // Get admin_id first
+            $admin_query = "SELECT admin_id FROM admins WHERE user_id = ?";
+            $stmt = $this->connection->prepare($admin_query);
+            if (!$stmt) {
+                throw new Exception("Prepare failed: " . $this->connection->error);
+            }
+            $stmt->bind_param("i", $admin_user_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $admin_data = $result->fetch_assoc();
+            $stmt->close();
+
+            if (!$admin_data) {
+                return $activities;
+            }
+
+            $admin_id = $admin_data['admin_id'];
+
+            // Recent Announcements Posted
+            $announcement_query = "
+                SELECT 'announcement' as activity_type, date_posted as activity_date,
+                       CONCAT('Posted announcement: ', LEFT(title, 50), '...') as description,
+                       'Published' as status, title as announcement_title, priority
+                FROM announcements 
+                WHERE posted_by = ? 
+                ORDER BY date_posted DESC 
+                LIMIT 5";
+
+            $stmt = $this->connection->prepare($announcement_query);
+            if ($stmt) {
+                $stmt->bind_param("i", $admin_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                while ($row = $result->fetch_assoc()) {
+                    $activities[] = $row;
+                }
+                $stmt->close();
+            }
+
+            // Recent Maintenance Responses
+            $maintenance_query = "
+                SELECT 'maintenance_response' as activity_type, mr.response_date as activity_date,
+                       CONCAT('Responded to maintenance request: ', LEFT(mr.response_text, 50), '...') as description,
+                       'Responded' as status, mreq.priority, h.hostel_name as affected_hostel
+                FROM maintenance_responses mr
+                JOIN maintenance_requests mreq ON mr.request_id = mreq.request_id
+                LEFT JOIN hostels h ON mreq.hostel_id = h.hostel_id
+                WHERE mr.user_id = ? 
+                ORDER BY mr.response_date DESC 
+                LIMIT 5";
+
+            $stmt = $this->connection->prepare($maintenance_query);
+            if ($stmt) {
+                $stmt->bind_param("i", $admin_user_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                while ($row = $result->fetch_assoc()) {
+                    $activities[] = $row;
+                }
+                $stmt->close();
+            }
+
+            // Recent Complaint Responses
+            $complaint_query = "
+                SELECT 'complaint_response' as activity_type, cr.response_date as activity_date,
+                       CONCAT('Responded to complaint: ', LEFT(cr.response_text, 50), '...') as description,
+                       'Responded' as status, c.priority
+                FROM complaint_responses cr
+                JOIN complaints c ON cr.complaint_id = c.complaint_id
+                WHERE cr.admin_id = ? 
+                ORDER BY cr.response_date DESC 
+                LIMIT 5";
+
+            $stmt = $this->connection->prepare($complaint_query);
+            if ($stmt) {
+                $stmt->bind_param("i", $admin_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                while ($row = $result->fetch_assoc()) {
+                    $activities[] = $row;
+                }
+                $stmt->close();
+            }
+
+            // System Login Activities
+            $login_query = "
+                SELECT 'login' as activity_type, last_login as activity_date,
+                       'Logged into the system' as description,
+                       'Success' as status
+                FROM users 
+                WHERE user_id = ? AND last_login IS NOT NULL
+                ORDER BY last_login DESC 
+                LIMIT 3";
+
+            $stmt = $this->connection->prepare($login_query);
+            if ($stmt) {
+                $stmt->bind_param("i", $admin_user_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                while ($row = $result->fetch_assoc()) {
+                    $activities[] = $row;
+                }
+                $stmt->close();
+            }
+
+            // Sort all activities by date and limit
+            usort($activities, function ($a, $b) {
+                return strtotime($b['activity_date']) - strtotime($a['activity_date']);
+            });
+
+            return array_slice($activities, 0, $limit);
+        } catch (Exception $e) {
+            error_log("Error fetching admin activities: " . $e->getMessage());
+            return [];
+        }
+    }
+
 
 
     public function __destruct()

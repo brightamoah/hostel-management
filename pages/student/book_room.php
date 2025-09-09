@@ -7,7 +7,7 @@
 <!DOCTYPE html>
 <html
     lang="en"
-    class="layout-navbar-sticky layout-menu-fixed layout-compact"
+    class="layout-menu-fixed layout-navbar-sticky layout-compact"
     dir="ltr"
     data-skin="default"
     data-assets-path="../../assets/"
@@ -75,16 +75,16 @@
 
 <body>
     <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-content-navbar layout-wrapper">
         <div class="layout-container">
             <!-- Menu -->
 
             <?php include_once "./Components/sidebar.php" ?>
 
-            <div class="menu-mobile-toggler d-xl-none rounded-1">
-                <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+            <div class="rounded-1 menu-mobile-toggler d-xl-none">
+                <a href="javascript:void(0);" class="p-2 rounded-1 text-bg-secondary text-large layout-menu-toggle menu-link">
                     <i class="bx bx-menu icon-base"></i>
-                    <i class="bx bx-chevron-right icon-base"></i>
+                    <i class="bx-chevron-right bx icon-base"></i>
                 </a>
             </div>
             <!-- / Menu -->
@@ -100,15 +100,15 @@
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-                    <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="flex-grow-1 container-p-y container-xxl">
 
 
 
                         <div class="col-xl">
                             <div class="card">
-                                <div class="card-header d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center justify-content-between card-header">
                                     <h5 class="mb-0">Basic with Icons</h5>
-                                    <small class="text-body float-end">Merged input group</small>
+                                    <small class="float-end text-body">Merged input group</small>
                                 </div>
                                 <div class="card-body">
                                     <form>
@@ -244,6 +244,7 @@
     <script src="../../assets/js/main.js"></script>
 
     <!-- Page JS -->
+    <script src="../../assets/js/notifications.js"></script>
     <script src="../../assets/js/app-visitor-list.js"></script>
 
 </body>

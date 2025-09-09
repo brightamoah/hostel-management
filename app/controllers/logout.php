@@ -1,6 +1,6 @@
 <?php
-require_once  './app/models/User.php';
-require_once './database/db.php';
+require_once __DIR__ . "/../../app/models/User.php";
+require_once __DIR__ . "/../../database/db.php";
 
 class Logout
 {
@@ -8,13 +8,13 @@ class Logout
 
     public function __construct()
     {
-        $db = new Database();
-        $this->user = new User($db->connect());
+        $db = getDb();
+        $this->user = new User($db);
     }
 
     public function logout()
     {
-     
+
         session_unset(); // Unset all session variables
 
         if (isset($_COOKIE['remember_me'])) {

@@ -272,6 +272,7 @@
     <script src="../../assets/vendor/libs/@form-validation/auto-focus.js"></script>
     <script src="../../assets/vendor/libs/cleave-zen/cleave-zen.js"></script>
     <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/notifications.js"></script>
     <script src="../../assets/js/ui-modals.js"></script>
     <script src="../../assets/js/app-room-list.js"></script>
 </body>

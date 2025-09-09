@@ -1,26 +1,29 @@
 <?php
-require_once __DIR__. "/../../database/db.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/BaseModel.php";
 
-class MaintenanceRequest
+class MaintenanceRequest extends BaseModel
 {
-    private $db;
-    private $conn;
-
     public function __construct()
     {
-
-        $this->conn = getDb();
+        parent::__construct();
     }
 
 
     // Get all maintenance requests (Admin only)
     public function getAllRequests()
     {
-        $query = "SELECT mr.*, r.room_number, r.building, CONCAT(s.first_name, ' ', s.last_name) AS student_name 
+        $query = "SELECT mr.*, r.room_number, r.building, h.hostel_name, CONCAT(s.first_name, ' ', s.last_name) AS student_name 
                  FROM maintenance_requests mr
                  LEFT JOIN rooms r ON mr.room_id = r.room_id
                  LEFT JOIN students s ON mr.student_id = s.student_id
-                 ORDER BY mr.request_date DESC";
+                 LEFT JOIN hostels h ON mr.hostel_id = h.hostel_id
+                 WHERE 1=1";
+
+        // Apply hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query, 'mr');
+        $query .= " ORDER BY mr.request_date DESC";
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -46,11 +49,16 @@ class MaintenanceRequest
     public function getPendingRequest($student_id = 0)
     {
         $query = "SELECT COUNT(*) as count 
-                 FROM maintenance_requests 
-                 WHERE status = 'Pending'";
+                 FROM maintenance_requests mr
+                 WHERE mr.status = 'Pending'";
+
         if ($student_id > 0) {
-            $query .= " AND student_id = ?";
+            $query .= " AND mr.student_id = ?";
+        } else {
+            // Apply hostel filtering for admin counts
+            $query = $this->addHostelFilter($query, 'mr');
         }
+
         $stmt = $this->conn->prepare($query);
         if ($student_id > 0) {
             $stmt->bind_param("i", $student_id);
@@ -63,11 +71,16 @@ class MaintenanceRequest
     public function getInProgressRequest($student_id = 0)
     {
         $query = "SELECT COUNT(*) as count 
-                 FROM maintenance_requests 
-                 WHERE status = 'In-Progress'";
+                 FROM maintenance_requests mr
+                 WHERE mr.status = 'In-Progress'";
+
         if ($student_id > 0) {
-            $query .= " AND student_id = ?";
+            $query .= " AND mr.student_id = ?";
+        } else {
+            // Apply hostel filtering for admin counts
+            $query = $this->addHostelFilter($query, 'mr');
         }
+
         $stmt = $this->conn->prepare($query);
         if ($student_id > 0) {
             $stmt->bind_param("i", $student_id);
@@ -81,11 +94,16 @@ class MaintenanceRequest
     public function getResolvedRequest($student_id = 0)
     {
         $query = "SELECT COUNT(*) as count 
-                 FROM maintenance_requests 
-                 WHERE status = 'Completed'";
+                 FROM maintenance_requests mr
+                 WHERE mr.status = 'Completed'";
+
         if ($student_id > 0) {
-            $query .= " AND student_id = ?";
+            $query .= " AND mr.student_id = ?";
+        } else {
+            // Apply hostel filtering for admin counts
+            $query = $this->addHostelFilter($query, 'mr');
         }
+
         $stmt = $this->conn->prepare($query);
         if ($student_id > 0) {
             $stmt->bind_param("i", $student_id);
@@ -99,11 +117,16 @@ class MaintenanceRequest
     public function getRejectedRequest($student_id = 0)
     {
         $query = "SELECT COUNT(*) as count 
-                 FROM maintenance_requests 
-                 WHERE status = 'Rejected'";
+                 FROM maintenance_requests mr
+                 WHERE mr.status = 'Rejected'";
+
         if ($student_id > 0) {
-            $query .= " AND student_id = ?";
+            $query .= " AND mr.student_id = ?";
+        } else {
+            // Apply hostel filtering for admin counts
+            $query = $this->addHostelFilter($query, 'mr');
         }
+
         $stmt = $this->conn->prepare($query);
         if ($student_id > 0) {
             $stmt->bind_param("i", $student_id);
@@ -116,33 +139,95 @@ class MaintenanceRequest
     // Submit a new maintenance request
     public function submitRequest($data)
     {
-        $query = "INSERT INTO maintenance_requests (student_id, room_id, issue_type, description, priority, status) 
-                 VALUES (?, ?, ?, ?, ?, 'Pending')";
+        // Determine hostel_id based on room or student's current allocation
+        $hostel_id = null;
+
+        if ($data['room_id']) {
+            // Get hostel from room
+            $room_query = "SELECT hostel_id FROM rooms WHERE room_id = ?";
+            $stmt = $this->conn->prepare($room_query);
+            $stmt->bind_param("i", $data['room_id']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($row = $result->fetch_assoc()) {
+                $hostel_id = $row['hostel_id'];
+            }
+            $stmt->close();
+        } else {
+            // Get hostel from student's current allocation
+            $allocation_query = "SELECT r.hostel_id 
+                               FROM allocations a 
+                               JOIN rooms r ON a.room_id = r.room_id 
+                               WHERE a.student_id = ? AND a.status = 'Active' 
+                               LIMIT 1";
+            $stmt = $this->conn->prepare($allocation_query);
+            $stmt->bind_param("i", $data['student_id']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($row = $result->fetch_assoc()) {
+                $hostel_id = $row['hostel_id'];
+            }
+            $stmt->close();
+        }
+
+        $query = "INSERT INTO maintenance_requests (student_id, room_id, hostel_id, issue_type, description, priority, status) 
+                 VALUES (?, ?, ?, ?, ?, ?, 'Pending')";
         $stmt = $this->conn->prepare($query);
         $room_id = $data['room_id'] ?: null;
-        $stmt->bind_param("iisss", $data['student_id'], $room_id, $data['issue_type'], $data['description'], $data['priority']);
+        $stmt->bind_param("iiisss", $data['student_id'], $room_id, $hostel_id, $data['issue_type'], $data['description'], $data['priority']);
         return $stmt->execute();
     }
 
     // Get maintenance request details by ID
     public function getRequestById($request_id)
     {
-        $query = "SELECT mr.*, r.room_number, r.building, CONCAT(s.first_name, ' ', s.last_name) AS student_name 
+        $query = "SELECT mr.*, r.room_number, r.building, h.hostel_name, CONCAT(s.first_name, ' ', s.last_name) AS student_name 
                  FROM maintenance_requests mr 
                  LEFT JOIN rooms r ON mr.room_id = r.room_id 
                  LEFT JOIN students s ON mr.student_id = s.student_id 
+                 LEFT JOIN hostels h ON mr.hostel_id = h.hostel_id
                  WHERE mr.request_id = ?";
+
+        // Apply hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query, 'mr');
+
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("i", $request_id);
         $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
+        $result = $stmt->get_result()->fetch_assoc();
+
+        // Additional validation for admin access
+        if ($result && isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'Admin') {
+            $this->validateHostelAccess($result['hostel_id']);
+        }
+
+        return $result;
     }
 
     // Update request status and add response (Admin only)
     public function updateRequestStatus($request_id, $status, $admin_id, $response_text)
     {
-        // Update status
-        $query = "UPDATE maintenance_requests SET status = ? WHERE request_id = ?";
+        // First validate that the admin can access this request
+        $check_query = "SELECT hostel_id FROM maintenance_requests WHERE request_id = ?";
+        $check_query = $this->addHostelFilter($check_query);
+
+        $stmt = $this->conn->prepare($check_query);
+        $stmt->bind_param("i", $request_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if (!$result->fetch_assoc()) {
+            throw new Exception('Access denied: Cannot access this maintenance request');
+        }
+        $stmt->close();
+
+        // Update status with completion date if status is 'Completed'
+        if ($status === 'Completed') {
+            $query = "UPDATE maintenance_requests SET status = ?, completion_date = NOW() WHERE request_id = ?";
+        } else {
+            $query = "UPDATE maintenance_requests SET status = ? WHERE request_id = ?";
+        }
+
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("si", $status, $request_id);
         $status_updated = $stmt->execute();
@@ -158,6 +243,22 @@ class MaintenanceRequest
     // Add a response to a maintenance request
     public function addResponse($request_id, $user_id, $response_text)
     {
+        // Validate access to the request (for admin users)
+        if (isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'Admin') {
+            $check_query = "SELECT hostel_id FROM maintenance_requests WHERE request_id = ?";
+            $check_query = $this->addHostelFilter($check_query);
+
+            $stmt = $this->conn->prepare($check_query);
+            $stmt->bind_param("i", $request_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if (!$result->fetch_assoc()) {
+                throw new Exception('Access denied: Cannot access this maintenance request');
+            }
+            $stmt->close();
+        }
+
         $query = "INSERT INTO maintenance_responses (request_id, user_id, response_text, response_date) 
                  VALUES (?, ?, ?, NOW())";
         $stmt = $this->conn->prepare($query);

@@ -9,6 +9,10 @@
 # Environment variables
 .env
 
+# HTTP request files (may contain API keys)
+*.http
+utils/example.http
+
 # Log files
 *.log
 
@@ -21,8 +25,8 @@ Thumbs.db
 
 # Instructions and documentation
 general_instructions.md
+gemini_instructions.md
 SYSTEM_INSTRUCTIONS.md
 NUXT_MIGRATION.md
-gemini_instructions.md
 NOTION_TIMELINE_PROMPT.md
 NUXT_MIGRATION_GUIDE.md

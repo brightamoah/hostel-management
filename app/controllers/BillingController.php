@@ -1,9 +1,9 @@
 <?php
-// require_once "./app/models/Student.php";
 require_once __DIR__ . "/../models/Student.php";
 require_once __DIR__ . "/../../database/db.php";
 require_once __DIR__ . "/../models/Billing.php";
 require_once __DIR__ . "/../../services/PaymentService.php";
+require_once __DIR__ . "/../../utils/hostel_helpers.php";
 
 
 class BillingController
@@ -39,8 +39,16 @@ class BillingController
 
     public function getBillingData()
     {
-        // header('Content-Type: application/json');
+        // Check if user is authenticated and is admin
+        if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Unauthorized: Admin access required']);
+            http_response_code(401);
+            exit;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            header('Content-Type: application/json');
             echo json_encode(['error' => 'Invalid request method'], JSON_PRETTY_PRINT);
             http_response_code(405);
             exit;
@@ -59,6 +67,14 @@ class BillingController
 
     public function createInvoice()
     {
+        // Check if user is authenticated and is admin
+        if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Unauthorized: Admin access required']);
+            http_response_code(401);
+            exit;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !is_csrf_valid()) {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => 'Invalid request or CSRF token']);
@@ -108,6 +124,14 @@ class BillingController
 
     public function updateInvoice($billing_id)
     {
+        // Check if user is authenticated and is admin
+        if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Unauthorized: Admin access required']);
+            http_response_code(401);
+            exit;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !is_csrf_valid()) {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => 'Invalid request or CSRF token']);
@@ -151,6 +175,14 @@ class BillingController
 
     public function deleteInvoice($billing_id)
     {
+        // Check if user is authenticated and is admin
+        if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Unauthorized: Admin access required']);
+            http_response_code(401);
+            exit;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !is_csrf_valid()) {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => 'Invalid request or CSRF token']);
@@ -235,6 +267,14 @@ class BillingController
 
     public function recordPayment()
     {
+        // Check if user is authenticated and is admin
+        if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Unauthorized: Admin access required']);
+            http_response_code(401);
+            exit;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !is_csrf_valid()) {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => 'Invalid request or CSRF token']);

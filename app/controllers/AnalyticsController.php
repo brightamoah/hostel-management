@@ -48,6 +48,7 @@ class AnalyticsController
                 'growth_data' => $growthData,
                 'expense_ratio' => $this->analyticsModel->getExpenseRatio($expensePeriod),
                 'order_data' => $this->analyticsModel->getOrderData($orderPeriod),
+                'order_report' => $this->analyticsModel->getOrderReport($orderPeriod),
                 'revenue_last_30_days' => $this->analyticsModel->getRevenueByPeriod($revenuePeriod),
                 'revenue_report' => $this->analyticsModel->getRevenueReport($reportPeriod)
             ];

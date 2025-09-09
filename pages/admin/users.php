@@ -1,5 +1,9 @@
 <?php
-require_once __DIR__ . "/../../app/admin/users_stats.php"
+require_once __DIR__ . "/../../app/admin/users_stats.php";
+require_once __DIR__ . "/../../utils/hostel_helpers.php";
+
+// Determine scope text for statistics
+$statsScope = isSuperAdmin() ? "All Hostels" : "Your Hostel";
 ?>
 
 <!DOCTYPE html>
@@ -74,90 +78,15 @@ require_once __DIR__ . "/../../app/admin/users_stats.php"
                     <div class="flex-grow-1 container-p-y container-xxl">
 
                         <!-- Statistic Cards -->
-                        <div class="mb-6 row g-6">
-                            <div class="col-sm-6 col-lg-3">
-                                <div class="card-border-shadow-primary h-100 card">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="me-4 avatar">
-                                                <span class="bg-label-primary rounded avatar-initial"><i
-                                                        class="icon-base bx bx-user icon-lg"></i></span>
-                                            </div>
-                                            <h4 class="mb-0"><?php echo $totalUsers; ?></h4>
-                                        </div>
-                                        <p class="mb-2">Total Users</p>
-                                        <p class="mb-0">
-                                            <span
-                                                class="me-2 text-heading fw-medium">+<?php echo round(($totalUsers / 100) * 10, 1); ?>%</span>
-                                            <span class="text-body-secondary">than last month</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6 col-lg-3">
-                                <div class="card-border-shadow-success h-100 card">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="me-4 avatar">
-                                                <span class="bg-label-success rounded avatar-initial"><i
-                                                        class="icon-base bx bx-book-reader icon-lg"></i></span>
-                                            </div>
-                                            <h4 class="mb-0"><?php echo $totalStudents; ?></h4>
-                                        </div>
-                                        <p class="mb-2">Total Students</p>
-                                        <p class="mb-0">
-                                            <span
-                                                class="me-2 text-heading fw-medium">+<?php echo round(($totalStudents / 100) * 5, 1); ?>%</span>
-                                            <span class="text-body-secondary">than last month</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6 col-lg-3">
-                                <div class="card-border-shadow-danger h-100 card">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="me-4 avatar">
-                                                <span class="bg-label-danger rounded avatar-initial"><i
-                                                        class="icon-base bx bx-desktop icon-lg"></i></span>
-                                            </div>
-                                            <h4 class="mb-0"><?php echo $totalAdmins; ?></h4>
-                                        </div>
-                                        <p class="mb-2">Total Admins</p>
-                                        <p class="mb-0">
-                                            <span
-                                                class="me-2 text-heading fw-medium"><?php echo $totalAdmins > 0 ? "+" . round(($totalAdmins / ($totalUsers + $totalStudents + $totalAdmins)) * 100, 1) . "%" : "0%"; ?></span>
-                                            <span class="text-body-secondary">of total users</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6 col-lg-3">
-                                <div class="card-border-shadow-info h-100 card">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="me-4 avatar">
-                                                <span class="bg-label-info rounded avatar-initial"><i
-                                                        class="icon-base bx bx-home icon-lg"></i></span>
-                                            </div>
-                                            <h4 class="mb-0"><?php echo $activeStudents; ?></h4>
-                                        </div>
-                                        <p class="mb-2">Active Students</p>
-                                        <p class="mb-0">
-                                            <span
-                                                class="me-2 text-heading fw-medium">+<?php echo round(($activeStudents / 100) * 8, 1); ?>%</span>
-                                            <span class="text-body-secondary">than last month</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- /Statistic Cards -->
+                        <?php include_once __DIR__ . "/../../Components/admin/user/stat_cards.php"; ?>
 
                         <!-- Users DataTable -->
                         <div class="card">
-                            <div class="card-header">
+                            <div class="d-flex align-items-center justify-content-between card-header">
                                 <h5 class="mb-0 card-title">Users List</h5>
+                                <div id="accessLevelIndicator" style="display: none;">
+                                    <span class="bg-label-info badge" id="accessBadge">Loading...</span>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <div class="mb-4 row">
@@ -224,30 +153,11 @@ require_once __DIR__ . "/../../app/admin/users_stats.php"
                         <!-- /Add User Offcanvas -->
 
                         <!-- Student Details Modal -->
-                        <div class="modal fade" id="studentDetailsModal" tabindex="-1"
-                            aria-labelledby="studentDetailsModalLabel" aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="studentDetailsModalLabel">Student Details</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered">
-                                                <tbody id="studentDetailsContent"></tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-primary"
-                                            data-bs-dismiss="modal">Close</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- /Student Details Modal -->
+                        <?php include_once __DIR__ . "/../../Components/admin/user/student_details.php"; ?>
+
+                        <!-- Admin Details Modal -->
+                        <?php include_once __DIR__ . "/../../Components/admin/user/admin-details.php"; ?>
+
                     </div>
                     <!-- /Content -->
 
@@ -291,6 +201,7 @@ require_once __DIR__ . "/../../app/admin/users_stats.php"
     <script src="../../assets/js/main.js"></script>
 
     <!-- Page JS -->
+    <script src="../../assets/js/notifications.js"></script>
     <script src="../../assets/js/app-user-list.js"></script>
 </body>
 

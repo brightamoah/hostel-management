@@ -1,5 +1,7 @@
 <?php
-require_once './app/models/Visitor.php';
+require_once __DIR__ . "/../../app/models/Visitor.php";
+require_once __DIR__ . "/../../utils/hostel_helpers.php";
+require_once __DIR__ . "/../../database/db.php";
 
 class VisitorController
 {
@@ -8,6 +10,44 @@ class VisitorController
     public function __construct()
     {
         $this->visitorModel = new Visitor();
+    }
+
+    // Helper method to check if admin can manage a visitor
+    private function canManageVisitor($visitor_id)
+    {
+        // Super admins can manage all visitors
+        if (isSuperAdmin()) {
+            return true;
+        }
+
+        // Regular admins can only manage visitors from their hostel
+        $admin_hostel_id = getCurrentAdminHostelId();
+        if (!$admin_hostel_id) {
+            return false;
+        }
+
+        // Get visitor's hostel through student allocation
+        $visitor = $this->visitorModel->getVisitorById($visitor_id);
+        if (!$visitor) {
+            return false;
+        }
+
+        // Check if visitor's student is in the same hostel as the admin
+        $conn = getDb();
+        $query = "SELECT r.hostel_id 
+                  FROM students s
+                  LEFT JOIN allocations a ON s.student_id = a.student_id AND a.status = 'Active'
+                  LEFT JOIN rooms r ON a.room_id = r.room_id
+                  WHERE s.student_id = ?";
+
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $visitor['student_id']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        return $row && $row['hostel_id'] == $admin_hostel_id;
     }
 
     // Register a new visitor (student action)
@@ -163,8 +203,53 @@ class VisitorController
     public function view($id)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($id)) {
+            // Check if user is authenticated
+            if (!isset($_SESSION['user'])) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: Please log in']);
+                exit();
+            }
+
             $visitor_id = $id;
-            $visitor = $this->visitorModel->getVisitorById($visitor_id);
+            $user_role = $_SESSION['user']['role'];
+
+            // Handle different user roles
+            if ($user_role === 'Student') {
+                // Students can only view their own visitors
+                $student_id = $_SESSION['user']['student_id'] ?? null;
+                if (!$student_id) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Student ID not found in session']);
+                    exit();
+                }
+
+                // Check if this visitor belongs to the student
+                $visitor = $this->visitorModel->getVisitorById($visitor_id);
+                if (!$visitor) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'No visitor found with this ID.']);
+                    exit();
+                }
+
+                if ($visitor['student_id'] != $student_id) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Unauthorized: You can only view your own visitors']);
+                    exit();
+                }
+            } elseif ($user_role === 'Admin') {
+                // Admins must follow hostel access restrictions
+                if (!$this->canManageVisitor($visitor_id)) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Unauthorized: You can only view visitors from your hostel']);
+                    exit();
+                }
+                $visitor = $this->visitorModel->getVisitorById($visitor_id);
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: Invalid user role']);
+                exit();
+            }
+
             header('Content-Type: application/json');
             if ($visitor) {
                 echo json_encode(['success' => true, 'data' => $visitor]);
@@ -192,6 +277,13 @@ class VisitorController
                 echo json_encode(['success' => false, 'message' => 'Visitor ID is required']);
                 exit();
             }
+
+            // Check if admin can manage this visitor
+            if (!$this->canManageVisitor($visitor_id)) {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: You can only approve visitors from your hostel']);
+                exit();
+            }
+
             if ($this->visitorModel->approve($visitor_id)) {
                 echo json_encode(['success' => true, 'message' => 'Visitor request approved']);
             } else {
@@ -217,6 +309,13 @@ class VisitorController
                 echo json_encode(['success' => false, 'message' => 'Visitor ID is required']);
                 exit();
             }
+
+            // Check if admin can manage this visitor
+            if (!$this->canManageVisitor($visitor_id)) {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: You can only deny visitors from your hostel']);
+                exit();
+            }
+
             if ($this->visitorModel->deny($visitor_id)) {
                 echo json_encode(['success' => true, 'message' => 'Visitor request denied']);
             } else {
@@ -242,6 +341,13 @@ class VisitorController
                 echo json_encode(['success' => false, 'message' => 'Visitor ID is required']);
                 exit();
             }
+
+            // Check if admin can manage this visitor
+            if (!$this->canManageVisitor($visitor_id)) {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: You can only check in visitors from your hostel']);
+                exit();
+            }
+
             $result = $this->visitorModel->checkIn(
                 $visitor_id
             );
@@ -275,6 +381,13 @@ class VisitorController
                 echo json_encode(['success' => false, 'message' => 'Visitor ID is required']);
                 exit();
             }
+
+            // Check if admin can manage this visitor
+            if (!$this->canManageVisitor($visitor_id)) {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized: You can only check out visitors from your hostel']);
+                exit();
+            }
+
             $result = $this->visitorModel->checkOut($visitor_id);
 
             // Check if the result is an array with success/message keys (error case)
@@ -319,7 +432,14 @@ class VisitorController
             }
             $dateFilter = $_GET['dateFilter'] ?? '';
             $visitors = $this->visitorModel->getAllVisitors($dateFilter);
-            echo json_encode(['data' => $visitors]);
+
+            // Include access level information for frontend
+            $response = [
+                'data' => $visitors,
+                'admin_access' => getAdminAccessLevel()
+            ];
+
+            echo json_encode($response);
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
         }

@@ -1,5 +1,5 @@
 <?php
-require_once "./app/controllers/AnnouncementController.php";
+require_once __DIR__ . "/../../app/controllers/AnnouncementController.php";
 
 $controller = new AnnouncementController();
 // $data = $controller->getAnnouncements();

@@ -1,5 +1,5 @@
 <?php
-require_once "./database/db.php";
+require_once __DIR__ . "/../../database/db.php";
 require_once __DIR__ . "/../../app/models/MaintenanceRequest.php";
 
 // Check if user is authenticated and is an admin
@@ -9,8 +9,8 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
 }
 
 $maintenanceModel = new MaintenanceRequest();
-$db = new Database();
-$conn = $db->connect();
+
+$conn = getDb();
 
 // Fetch maintenance stats
 $total_requests = count($maintenanceModel->getAllRequests()['data']);
@@ -419,6 +419,7 @@ $rejected_requests = $maintenanceModel->getRejectedRequest();
     <script src="../../assets/js/extended-ui-timeline.js"></script>
 
     <!-- Page JS -->
+    <script src="../../assets/js/notifications.js"></script>
     <script src="../../assets/js/admin-maintenance-list.js"></script>
 </body>
 

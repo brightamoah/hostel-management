@@ -42,12 +42,7 @@
                 </ul>
             </div>
         </div>
-        <div class="card-body chart-container">
-            <div class="chart-loading">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
+        <div class="card-body">
             <div id="donutChart"></div>
         </div>
     </div>

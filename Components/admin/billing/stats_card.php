@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../../../utils/hostel_helpers.php";
+
 // Assuming $stats is passed from the controller with the getBillings response
 $stats = $stats ?? [
     'total_billings' => 0,
@@ -10,6 +12,15 @@ $stats = $stats ?? [
     'pending_change' => 0,
     'overdue_change' => 0
 ];
+
+// Determine the scope for statistics display
+$statsScope = isSuperAdmin() ? "All Hostels" : "Your Hostel";
+$currentHostelDetails = getCurrentHostelDetails();
+$scopeDetails = "";
+
+if (!isSuperAdmin() && $currentHostelDetails) {
+    $scopeDetails = " ({$currentHostelDetails['hostel_name']})";
+}
 
 // Helper function to determine class and icon based on percentage change
 function getChangeClasses($change)
@@ -43,12 +54,12 @@ $overdueChange = getChangeClasses($stats['overdue_change']);
 
 <div class="row">
     <!-- Total Billings -->
-    <div class="col-md-6 col-lg-3 mb-4">
-        <div class="card h-100 card-border-shadow-primary">
+    <div class="mb-4 col-md-6 col-lg-3">
+        <div class="card-border-shadow-primary h-100 card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="card-title mb-0">Total Billings</h6>
-                    <i class="bx bx-wallet text-primary icon-xl"></i>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="mb-0 card-title">Total Billings</h6>
+                    <i class="text-primary bx bx-wallet icon-xl"></i>
                 </div>
                 <h4 class="mb-2"><?= formatCurrency($stats['total_billings']) ?></h4>
                 <small class="d-flex align-items-center <?= $totalChange['text_class'] ?>">
@@ -61,12 +72,12 @@ $overdueChange = getChangeClasses($stats['overdue_change']);
     </div>
 
     <!-- Total Paid -->
-    <div class="col-md-6 col-lg-3 mb-4">
-        <div class="card h-100 card-border-shadow-success">
+    <div class="mb-4 col-md-6 col-lg-3">
+        <div class="card-border-shadow-success h-100 card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="card-title mb-0">Total Paid</h6>
-                    <i class="bx bx-check-circle text-success icon-xl"></i>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="mb-0 card-title">Total Paid</h6>
+                    <i class="text-success bx bx-check-circle icon-xl"></i>
                 </div>
                 <h4 class="mb-2"><?= formatCurrency($stats['total_paid']) ?></h4>
                 <small class="d-flex align-items-center <?= $paidChange['text_class'] ?>">
@@ -79,12 +90,12 @@ $overdueChange = getChangeClasses($stats['overdue_change']);
     </div>
 
     <!-- Pending Invoices -->
-    <div class="col-md-6 col-lg-3 mb-4">
-        <div class="card h-100 card-border-shadow-warning">
+    <div class="mb-4 col-md-6 col-lg-3">
+        <div class="card-border-shadow-warning h-100 card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="card-title mb-0">Pending Invoices</h6>
-                    <i class="bx bx-time-five text-warning icon-xl"></i>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="mb-0 card-title">Pending Invoices</h6>
+                    <i class="text-warning bx bx-time-five icon-xl"></i>
                 </div>
                 <h4 class="mb-2"><?= formatCurrency($stats['pending_invoices']) ?></h4>
                 <small class="d-flex align-items-center <?= $pendingChange['text_class'] ?>">
@@ -97,12 +108,12 @@ $overdueChange = getChangeClasses($stats['overdue_change']);
     </div>
 
     <!-- Overdue -->
-    <div class="col-md-6 col-lg-3 mb-4">
-        <div class="card h-100 card-border-shadow-danger">
+    <div class="mb-4 col-md-6 col-lg-3">
+        <div class="card-border-shadow-danger h-100 card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="card-title mb-0">Overdue</h6>
-                    <i class="bx bx-error text-danger icon-xl"></i>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="mb-0 card-title">Overdue</h6>
+                    <i class="text-danger bx bx-error icon-xl"></i>
                 </div>
                 <h4 class="mb-2"><?= formatCurrency($stats['overdue_invoices']) ?></h4>
                 <small class="d-flex align-items-center <?= $overdueChange['text_class'] ?>">

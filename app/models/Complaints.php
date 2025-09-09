@@ -1,15 +1,12 @@
 <?php
-require_once "./database/db.php";
+require_once __DIR__ . "/../../database/db.php";
+require_once __DIR__ . "/BaseModel.php";
 
-class Complaint
+class Complaint extends BaseModel
 {
-    private $db;
-    private $conn;
-
     public function __construct()
     {
-        $this->db = new Database();
-        $this->conn = $this->db->connect();
+        parent::__construct();
     }
 
     public function getConnection()
@@ -112,17 +109,49 @@ class Complaint
      */
     public function createComplaint($student_id, $data)
     {
+        // Determine hostel_id based on room or student's current allocation
+        $hostel_id = null;
+
+        if (!empty($data['room_id'])) {
+            // Get hostel from room
+            $room_query = "SELECT hostel_id FROM rooms WHERE room_id = ?";
+            $stmt = $this->conn->prepare($room_query);
+            $stmt->bind_param("i", $data['room_id']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($row = $result->fetch_assoc()) {
+                $hostel_id = $row['hostel_id'];
+            }
+            $stmt->close();
+        } else {
+            // Get hostel from student's current allocation
+            $allocation_query = "SELECT r.hostel_id 
+                               FROM allocations a 
+                               JOIN rooms r ON a.room_id = r.room_id 
+                               WHERE a.student_id = ? AND a.status = 'Active' 
+                               LIMIT 1";
+            $stmt = $this->conn->prepare($allocation_query);
+            $stmt->bind_param("i", $student_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($row = $result->fetch_assoc()) {
+                $hostel_id = $row['hostel_id'];
+            }
+            $stmt->close();
+        }
+
         $query = "
-            INSERT INTO complaints (student_id, room_id, complaint_type, description, priority, status, submitted_at)
-            VALUES (?, ?, ?, ?, ?, 'Pending', NOW())
+            INSERT INTO complaints (student_id, room_id, hostel_id, complaint_type, description, priority, status, submitted_at)
+            VALUES (?, ?, ?, ?, ?, ?, 'Pending', NOW())
         ";
         try {
             $stmt = $this->conn->prepare($query);
             $room_id = !empty($data['room_id']) ? $data['room_id'] : null;
             $stmt->bind_param(
-                "iisss",
+                "iiisss",
                 $student_id,
                 $room_id,
+                $hostel_id,
                 $data['complaint_type'],
                 $data['description'],
                 $data['priority']
@@ -147,6 +176,22 @@ class Complaint
      */
     public function updateComplaintStatus($complaint_id, $status)
     {
+        // Validate admin has access to this complaint
+        if (isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'Admin') {
+            $check_query = "SELECT hostel_id FROM complaints WHERE complaint_id = ?";
+            $check_query = $this->addHostelFilter($check_query);
+
+            $stmt = $this->conn->prepare($check_query);
+            $stmt->bind_param("i", $complaint_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if (!$result->fetch_assoc()) {
+                return ['success' => false, 'error' => 'Access denied: Cannot access this complaint'];
+            }
+            $stmt->close();
+        }
+
         $query = "UPDATE complaints SET status = ?, resolved_at = CASE WHEN ? IN ('Resolved', 'Rejected') THEN NOW() ELSE NULL END WHERE complaint_id = ?";
         try {
             $stmt = $this->conn->prepare($query);
@@ -168,9 +213,9 @@ class Complaint
                 // No changes made, but complaint exists, treat as success
                 return ['success' => true, 'message' => 'No changes made (status was already set)'];
             }
-            return ['success' => false, 'error' => "Complaint not found"];
+            return ['success' => false, 'error' => "Complaint not found or access denied"];
         } catch (Exception $e) {
-            return ['success' => false, 'error' => "Failed to update status: " . $e->getMessage()];
+            return ['success' => false, 'error' => "Access denied: " . $e->getMessage()];
         }
     }
 
@@ -184,6 +229,22 @@ class Complaint
      */
     public function addComplaintResponse($complaint_id, $admin_id, $response_text, $action_taken)
     {
+        // Validate admin has access to this complaint
+        if (isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'Admin') {
+            $check_query = "SELECT hostel_id FROM complaints WHERE complaint_id = ?";
+            $check_query = $this->addHostelFilter($check_query);
+
+            $stmt = $this->conn->prepare($check_query);
+            $stmt->bind_param("i", $complaint_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if (!$result->fetch_assoc()) {
+                return ['success' => false, 'error' => 'Access denied: Cannot access this complaint'];
+            }
+            $stmt->close();
+        }
+
         $query = "INSERT INTO complaint_responses (complaint_id, admin_id, response_text, action_taken, response_date) VALUES (?, ?, ?, ?, NOW())";
         try {
             $stmt = $this->conn->prepare($query);
@@ -196,7 +257,7 @@ class Complaint
             }
             return ['success' => false, 'error' => "Failed to add response"];
         } catch (Exception $e) {
-            return ['success' => false, 'error' => "Failed to add response: " . $e->getMessage()];
+            return ['success' => false, 'error' => "Access denied: " . $e->getMessage()];
         }
     }
 
@@ -271,7 +332,11 @@ class Complaint
     // Fetch total complaints for all students
     public function getTotalComplaint()
     {
-        $query = "SELECT COUNT(*) AS total_complaints FROM complaints";
+        $query = "SELECT COUNT(*) AS total_complaints FROM complaints c WHERE 1=1";
+
+        // Apply hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query, 'c');
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -282,7 +347,11 @@ class Complaint
 
     public function getPendingComplaintCount()
     {
-        $query = "SELECT COUNT(*) AS pending_complaints FROM complaints WHERE status = 'Pending'";
+        $query = "SELECT COUNT(*) AS pending_complaints FROM complaints c WHERE c.status = 'Pending'";
+
+        // Apply hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query, 'c');
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -293,7 +362,11 @@ class Complaint
 
     public function getResolvedComplaintCount()
     {
-        $query = "SELECT COUNT(*) AS resolved_complaints FROM complaints WHERE status = 'Resolved'";
+        $query = "SELECT COUNT(*) AS resolved_complaints FROM complaints c WHERE c.status = 'Resolved'";
+
+        // Apply hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query, 'c');
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -304,7 +377,11 @@ class Complaint
 
     public function getInProgressComplaintCount()
     {
-        $query = "SELECT COUNT(*) AS in_progress_complaints FROM complaints WHERE status = 'In-Progress'";
+        $query = "SELECT COUNT(*) AS in_progress_complaints FROM complaints c WHERE c.status = 'In-Progress'";
+
+        // Apply hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query, 'c');
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -333,13 +410,19 @@ class Complaint
     {
         $query = "
         SELECT c.complaint_id, c.complaint_type, c.description, c.priority, c.status, 
-               c.submitted_at, r.room_number, r.building, 
+               c.submitted_at, r.room_number, r.building, h.hostel_name,
                CONCAT(s.first_name, ' ', s.last_name) AS student_name
         FROM complaints c
         LEFT JOIN rooms r ON c.room_id = r.room_id
+        LEFT JOIN hostels h ON c.hostel_id = h.hostel_id
         JOIN students s ON c.student_id = s.student_id
-        ORDER BY c.complaint_id DESC
+        WHERE 1=1
     ";
+
+        // Apply hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query, 'c');
+        $query .= " ORDER BY c.complaint_id DESC";
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -355,14 +438,19 @@ class Complaint
     {
         $query = "
         SELECT c.complaint_id, c.complaint_type, c.description, c.priority, c.status, 
-               c.submitted_at, r.room_number, r.building, 
+               c.submitted_at, c.resolved_at, c.hostel_id, r.room_number, r.building, h.hostel_name,
                CONCAT(s.first_name, ' ', s.last_name) AS student_name
         FROM complaints c
         LEFT JOIN rooms r ON c.room_id = r.room_id
+        LEFT JOIN hostels h ON c.hostel_id = h.hostel_id
         JOIN students s ON c.student_id = s.student_id
         WHERE c.complaint_id = ?
-        ORDER BY c.complaint_id DESC
     ";
+
+        // Apply hostel filtering for non-super admins
+        $query = $this->addHostelFilter($query, 'c');
+        $query .= " ORDER BY c.complaint_id DESC";
+
         try {
             $stmt = $this->conn->prepare($query);
             $stmt->bind_param("i", $complaint_id);
@@ -374,14 +462,16 @@ class Complaint
             if ($complaint) {
                 return ['success' => true, 'data' => $complaint];
             }
-            return ['success' => false, 'error' => "Complaint not found"];
+            return ['success' => false, 'error' => "Complaint not found or access denied"];
         } catch (Exception $e) {
-            return ['success' => false, 'error' => "Failed to fetch complaint: " . $e->getMessage()];
+            return ['success' => false, 'error' => "Access denied: " . $e->getMessage()];
         }
     }
 
     public function __destruct()
     {
-        $this->db->close();
+        if ($this->conn) {
+            $this->conn->close();
+        }
     }
 }

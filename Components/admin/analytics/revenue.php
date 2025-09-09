@@ -22,12 +22,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="chart-container">
-                    <div class="chart-loading">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
+                <div>
                     <div id="totalRevenueChart" class="px-3"></div>
                 </div>
             </div>
@@ -59,12 +54,7 @@
                         </div>
                     </div>
 
-                    <div class="chart-container">
-                        <div class="chart-loading">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </div>
+                    <div>
                         <div id="growthChart"></div>
                     </div>
                     <div class="my-6 text-center fw-medium" id="growthText">Company Growth</div>

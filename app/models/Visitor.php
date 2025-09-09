@@ -217,6 +217,9 @@ class Visitor
     public function getAllVisitors($dateFilter = '')
     {
         try {
+            // Include hostel helpers for filtering
+            require_once __DIR__ . "/../../utils/hostel_helpers.php";
+
             $query = "SELECT
                 v.visitor_id,
                 v.visitor_name,
@@ -247,6 +250,14 @@ class Visitor
                 LEFT JOIN allocations a ON s.student_id = a.student_id AND a.status = 'Active'
                 LEFT JOIN rooms r ON a.room_id = r.room_id
             WHERE 1=1";
+
+            // Apply hostel filtering for regular admins
+            if (!isSuperAdmin()) {
+                $admin_hostel_id = getCurrentAdminHostelId();
+                if ($admin_hostel_id) {
+                    $query .= " AND r.hostel_id = " . intval($admin_hostel_id);
+                }
+            }
 
             // Add date filter conditions
             $params = [];

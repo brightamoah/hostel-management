@@ -172,6 +172,7 @@ CREATE TABLE maintenance_requests (
     request_id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
     room_id INT NOT NULL,
+    hostel_id INT NULL,
     issue_type ENUM(
         'Plumbing',
         'Electrical',
@@ -200,7 +201,8 @@ CREATE TABLE maintenance_requests (
     completion_date TIMESTAMP NULL,
     assigned_to INT NULL DEFAULT NULL,
     FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,
-    FOREIGN KEY (room_id) REFERENCES rooms (room_id) ON DELETE CASCADE
+    FOREIGN KEY (room_id) REFERENCES rooms (room_id) ON DELETE CASCADE,
+    FOREIGN KEY (hostel_id) REFERENCES hostels (hostel_id) ON DELETE RESTRICT
 ) ENGINE = InnoDB;
 
 -- Table structure for table `maintenance_responses`
@@ -250,6 +252,7 @@ CREATE TABLE billing (
     billing_id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
     allocation_id INT NULL DEFAULT NULL,
+    hostel_id INT NULL DEFAULT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     description VARCHAR(255) NOT NULL,
     date_issued TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -265,6 +268,7 @@ CREATE TABLE billing (
     paid_amount DECIMAL(10, 2) DEFAULT 0.00,
     FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,
     FOREIGN KEY (allocation_id) REFERENCES allocations (allocation_id) ON DELETE SET NULL,
+    FOREIGN KEY (hostel_id) REFERENCES hostels (hostel_id) ON DELETE SET NULL,
     CONSTRAINT chk_paid_amount CHECK (paid_amount >= 0)
 );
 
@@ -303,6 +307,7 @@ CREATE TABLE complaints (
     complaint_id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
     room_id INT NULL DEFAULT NULL, -- Optional, for room-specific complaints
+    hostel_id INT NULL,
     complaint_type ENUM(
         'Room Condition',
         'Staff Behavior',
@@ -331,6 +336,7 @@ CREATE TABLE complaints (
     FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,
     FOREIGN KEY (room_id) REFERENCES rooms (room_id) ON DELETE SET NULL,
     FOREIGN KEY (resolved_by) REFERENCES admins (admin_id) ON DELETE SET NULL,
+    FOREIGN KEY (hostel_id) REFERENCES hostels (hostel_id) ON DELETE RESTRICT,
     CONSTRAINT chk_description CHECK (TRIM(description) != '')
 ) ENGINE = InnoDB;
 
@@ -526,3 +532,85 @@ ADD COLUMN outstanding_amount DECIMAL(10, 2) AS (
         0
     )
 ) PERSISTENT;
+
+-- ========================================
+-- HOSTEL MANAGEMENT SYSTEM ENHANCEMENTS
+-- ========================================
+
+-- Create hostels table
+CREATE TABLE hostels (
+    hostel_id INT AUTO_INCREMENT PRIMARY KEY,
+    hostel_name VARCHAR(100) NOT NULL UNIQUE,
+    hostel_code VARCHAR(10) NOT NULL UNIQUE,
+    address TEXT,
+    contact_phone VARCHAR(20),
+    contact_email VARCHAR(100),
+    manager_id INT NULL, -- References admin who manages this hostel
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM(
+        'Active',
+        'Inactive',
+        'Under Construction'
+    ) DEFAULT 'Active',
+    FOREIGN KEY (manager_id) REFERENCES admins (admin_id) ON DELETE SET NULL
+) ENGINE = InnoDB;
+
+-- Add hostel_id to admins table
+ALTER TABLE admins ADD COLUMN hostel_id INT NULL AFTER access_level;
+
+ALTER TABLE admins
+ADD FOREIGN KEY (hostel_id) REFERENCES hostels (hostel_id) ON DELETE SET NULL;
+
+-- Add hostel_id to rooms table
+ALTER TABLE rooms ADD COLUMN hostel_id INT NULL AFTER room_id;
+
+ALTER TABLE rooms
+ADD FOREIGN KEY (hostel_id) REFERENCES hostels (hostel_id) ON DELETE RESTRICT;
+
+-- Create default hostels based on existing buildings
+INSERT INTO
+    hostels (
+        hostel_name,
+        hostel_code,
+        address,
+        status
+    )
+SELECT
+    CONCAT(building, ' Hostel') as hostel_name,
+    CONCAT(
+        UPPER(LEFT(building, 3)),
+        '_',
+        ROW_NUMBER() OVER (
+            ORDER BY building
+        )
+    ) as hostel_code,
+    CONCAT('Building ', building) as address,
+    'Active' as status
+FROM (
+        SELECT DISTINCT
+            building
+        FROM rooms
+        WHERE
+            building IS NOT NULL
+            AND building != ''
+    ) AS unique_buildings;
+
+-- Update rooms to belong to hostels based on building names
+UPDATE rooms r
+JOIN hostels h ON h.hostel_name = CONCAT(r.building, ' Hostel')
+SET
+    r.hostel_id = h.hostel_id;
+
+-- Make hostel_id NOT NULL after data migration
+ALTER TABLE rooms MODIFY COLUMN hostel_id INT NOT NULL;
+
+-- Create indexes for better performance
+CREATE INDEX idx_rooms_hostel_id ON rooms (hostel_id);
+
+CREATE INDEX idx_admins_hostel_id ON admins (hostel_id);
+
+CREATE INDEX idx_maintenance_requests_hostel_id ON maintenance_requests (hostel_id);
+
+CREATE INDEX idx_complaints_hostel_id ON complaints (hostel_id);
+
+CREATE INDEX idx_billing_hostel_id ON billing (hostel_id);

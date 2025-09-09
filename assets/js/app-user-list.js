@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
    };
 
    let dt_user;
+   let adminAccess = null; // Store admin access level information
 
    // Function to handle View Details
    const handleViewDetails = (userId, role) => {
@@ -79,10 +80,71 @@ document.addEventListener("DOMContentLoaded", function () {
                   "error"
                );
             });
+      } else if (role === "Admin") {
+         // Fetch admin details
+         fetch(`/admin/admin/${userId}`)
+            .then((response) => response.json())
+            .then((data) => {
+               if (data.success) {
+                  const admin = data.data;
+                  const details = `
+                     <tr><td>Name</td><td>${admin.first_name} ${
+                     admin.last_name
+                  }</td></tr>
+                     <tr><td>Email</td><td>${admin.email}</td></tr>
+                     <tr><td>Department</td><td>${
+                        admin.department || "N/A"
+                     }</td></tr>
+                     <tr><td>Access Level</td><td>${
+                        admin.access_level || "N/A"
+                     }</td></tr>
+                     <tr><td>Last Login</td><td>${
+                        admin.last_login || "Never"
+                     }</td></tr>
+                     <tr><td>Email Verified</td><td>${
+                        admin.is_email_verified ? "Yes" : "No"
+                     }</td></tr>
+                     <tr><td>Current Hostel</td><td>${
+                        admin.hostel_name || "Not Assigned"
+                     }</td></tr>
+                     <tr><td>Hostel Code</td><td>${
+                        admin.hostel_code || "N/A"
+                     }</td></tr>
+                  `;
+
+                  document.getElementById("adminDetailsContent").innerHTML =
+                     details;
+
+                  // Only show hostel assignment section for Super Admins
+                  const hostelSection = document.getElementById(
+                     "hostelAssignmentSection"
+                  );
+                  if (adminAccess && adminAccess.can_assign_hostels) {
+                     hostelSection.style.display = "block";
+                     // Load hostels for assignment
+                     loadHostelsForAssignment(admin.admin_id, admin.hostel_id);
+                  } else {
+                     hostelSection.style.display = "none";
+                  }
+
+                  new bootstrap.Modal(
+                     document.getElementById("adminDetailsModal")
+                  ).show();
+               } else {
+                  Swal.fire("Error", data.message, "error");
+               }
+            })
+            .catch((error) => {
+               Swal.fire(
+                  "Error",
+                  "Failed to fetch admin details: " + error.message,
+                  "error"
+               );
+            });
       } else {
          Swal.fire(
             "Info",
-            "Detailed view is only available for students.",
+            "Detailed view is available for students and admins only.",
             "info"
          );
       }
@@ -173,12 +235,133 @@ document.addEventListener("DOMContentLoaded", function () {
       });
    };
 
+   // Function to load hostels for assignment
+   const loadHostelsForAssignment = (adminId, currentHostelId) => {
+      fetch("/admin/hostels")
+         .then((response) => response.json())
+         .then((data) => {
+            if (data.success) {
+               const hostelSelect = document.getElementById("hostelSelect");
+               hostelSelect.innerHTML =
+                  '<option value="">Select Hostel</option>';
+
+               data.data.forEach((hostel) => {
+                  const option = document.createElement("option");
+                  option.value = hostel.hostel_id;
+                  option.textContent = `${hostel.hostel_name} (${hostel.hostel_code})`;
+                  if (hostel.hostel_id == currentHostelId) {
+                     option.selected = true;
+                  }
+                  hostelSelect.appendChild(option);
+               });
+
+               // Setup assign button handler
+               const assignBtn = document.getElementById("assignHostelBtn");
+               assignBtn.onclick = () => handleAssignHostel(adminId);
+            } else {
+               console.error("Failed to load hostels:", data.message);
+            }
+         })
+         .catch((error) => {
+            console.error("Error loading hostels:", error);
+         });
+   };
+
+   // Function to handle hostel assignment
+   const handleAssignHostel = (adminId) => {
+      const hostelSelect = document.getElementById("hostelSelect");
+      const hostelId = hostelSelect.value;
+
+      if (!hostelId) {
+         Swal.fire("Warning", "Please select a hostel", "warning");
+         return;
+      }
+
+      Swal.fire({
+         title: "Confirm Assignment",
+         text: "Assign this admin to the selected hostel?",
+         icon: "question",
+         showCancelButton: true,
+         confirmButtonText: "Yes, assign!",
+      }).then((result) => {
+         if (result.isConfirmed) {
+            fetch("/admin/assign-hostel", {
+               method: "POST",
+               headers: { "Content-Type": "application/json" },
+               body: JSON.stringify({
+                  admin_id: adminId,
+                  hostel_id: hostelId,
+               }),
+            })
+               .then((response) => response.json())
+               .then((data) => {
+                  if (data.success) {
+                     Swal.fire(
+                        "Success",
+                        "Hostel assigned successfully!",
+                        "success"
+                     );
+                     // Refresh the admin details
+                     const modal = bootstrap.Modal.getInstance(
+                        document.getElementById("adminDetailsModal")
+                     );
+                     modal.hide();
+                     // Reload the table
+                     dt_user.ajax.reload();
+                  } else {
+                     Swal.fire("Error", data.message, "error");
+                  }
+               })
+               .catch((error) => {
+                  Swal.fire(
+                     "Error",
+                     "Failed to assign hostel: " + error.message,
+                     "error"
+                  );
+               });
+         }
+      });
+   };
+
+   // Function to update access level indicator
+   const updateAccessLevelIndicator = (access) => {
+      const indicator = document.getElementById("accessLevelIndicator");
+      const badge = document.getElementById("accessBadge");
+
+      if (indicator && badge && access) {
+         const isSuperAdmin = access.is_super_admin;
+
+         badge.textContent = isSuperAdmin
+            ? "Super Admin - Full Access"
+            : "Regular Admin - Limited Access";
+         badge.className = isSuperAdmin
+            ? "badge bg-label-success"
+            : "badge bg-label-warning";
+
+         indicator.style.display = "block";
+
+         // Add tooltip for limited access
+         if (!isSuperAdmin) {
+            badge.title = "Limited to hostel-specific data and actions";
+         } else {
+            badge.title = "Full system access and management capabilities";
+         }
+      }
+   };
+
    if (dt_user_table) {
       dt_user = new DataTable(dt_user_table, {
          responsive: true,
          ajax: {
             url: "/admin/users-data",
-            dataSrc: "data",
+            dataSrc: function (response) {
+               // Store admin access information
+               if (response.admin_access) {
+                  adminAccess = response.admin_access;
+                  updateAccessLevelIndicator(adminAccess);
+               }
+               return response.data;
+            },
          },
          columns: [
             {
@@ -290,17 +473,54 @@ document.addEventListener("DOMContentLoaded", function () {
                searchable: false,
                orderable: false,
                render: function (data, type, full) {
+                  const canDelete = adminAccess && adminAccess.can_delete_users;
+                  const canToggleRole =
+                     adminAccess &&
+                     (adminAccess.is_super_admin || full.role === "Student"); // Regular admins can only promote students
+                  const isAdminToAdmin =
+                     full.role === "Admin" && !adminAccess?.is_super_admin;
+
                   return `
                      <div class="d-flex align-items-center">
-                         <a href="javascript:;" class="btn btn-icon view-details" data-user-id="${full.user_id}" data-role="${full.role}">
+                         <a href="javascript:;" class="btn btn-icon view-details" data-user-id="${
+                            full.user_id
+                         }" data-role="${full.role}">
                              <i class="icon-base bx bx-show icon-md"></i>
                          </a>
-                         <a href="javascript:;" class="btn btn-icon toggle-role" data-user-id="${full.user_id}" data-role="${full.role}">
+                         ${
+                            canToggleRole && !isAdminToAdmin
+                               ? `
+                         <a href="javascript:;" class="btn btn-icon  toggle-role" data-user-id="${
+                            full.user_id
+                         }" data-role="${full.role}" title="${
+                                    full.role === "Admin"
+                                       ? "Demote to Student"
+                                       : "Promote to Admin"
+                                 }" style="margin-right: 5px;">
                              <i class="icon-base bx bx-refresh icon-md"></i>
-                         </a>
-                         <a href="javascript:;" class="btn btn-icon delete-record" data-user-id="${full.user_id}">
+                         </a>`
+                               : `
+                         <a href="javascript:;" class="btn btn-icon toggle-role disabled" data-user-id="${
+                            full.user_id
+                         }" data-role="${full.role}" title="${
+                                    isAdminToAdmin
+                                       ? "Cannot demote other admins"
+                                       : "No permission to change roles"
+                                 }" style="opacity: 0.5; cursor: not-allowed; border: none; margin-right: 5px;">
+                             <i class="icon-base bx bx-refresh icon-md"></i>
+                         </a>`
+                         }
+                         ${
+                            canDelete
+                               ? `
+                         <a href="javascript:;" class="btn btn-icon delete-record" data-user-id="${full.user_id}" title="Delete User">
                              <i class="icon-base bx bx-trash icon-md"></i>
-                         </a>
+                         </a>`
+                               : `
+                         <a href="javascript:;" class="btn btn-icon delete-record disabled" data-user-id="${full.user_id}" title="Only Super Admins can delete users" style="opacity: 0.5; cursor: not-allowed;">
+                             <i class="icon-base bx bx-trash icon-md"></i>
+                         </a>`
+                         }
                      </div>
                   `;
                },
@@ -489,6 +709,12 @@ document.addEventListener("DOMContentLoaded", function () {
          );
          if (!target) return;
 
+         // Check if button is disabled
+         if (target.classList.contains("disabled")) {
+            e.preventDefault();
+            return;
+         }
+
          const userId = target.dataset.userId;
          const role = target.dataset.role;
 
@@ -513,8 +739,30 @@ document.addEventListener("DOMContentLoaded", function () {
                handleViewDetails(userId, role);
             }
          } else if (target.classList.contains("toggle-role")) {
+            // Additional check for role toggle permissions
+            if (
+               adminAccess &&
+               !adminAccess.is_super_admin &&
+               role === "Admin"
+            ) {
+               Swal.fire(
+                  "Restricted",
+                  "Regular admins cannot demote other admins",
+                  "warning"
+               );
+               return;
+            }
             handleToggleRole(userId, role);
          } else if (target.classList.contains("delete-record")) {
+            // Additional check for delete permissions
+            if (!adminAccess || !adminAccess.can_delete_users) {
+               Swal.fire(
+                  "Restricted",
+                  "Only Super Admins can delete users",
+                  "warning"
+               );
+               return;
+            }
             handleDeleteUser(userId);
          }
       });

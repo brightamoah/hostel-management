@@ -1,6 +1,16 @@
 <?php
 require_once __DIR__ . "/../../app/admin/billing_stats_data.php";
 require_once __DIR__ . "/../../utils/format_currency.php";
+require_once __DIR__ . "/../../utils/hostel_helpers.php";
+
+// Variables for scope badge
+$statsScope = isSuperAdmin() ? "All Hostels" : "Your Hostel";
+$currentHostelDetails = getCurrentHostelDetails();
+$scopeDetails = "";
+
+if (!isSuperAdmin() && $currentHostelDetails) {
+    $scopeDetails = " ({$currentHostelDetails['hostel_name']})";
+}
 ?>
 
 <!DOCTYPE html>
@@ -98,13 +108,17 @@ require_once __DIR__ . "/../../utils/format_currency.php";
 
                         <!-- Billing Records DataTable -->
                         <div class="card">
-                            <div class="card-header-flex border-bottom card-header">
-                                <h5 class="mb-1 card-title">Billing Records</h5>
-                                <div class="action-buttons">
-
-                                    <button type="button" class="refresh-table btn-outline-secondary btn btn-sm">
-                                        <i class="me-1 bx bx-refresh icon-lg"></i> Refresh
-                                    </button>
+                            <div class="d-flex align-items-center justify-content-between card-header">
+                                <h5 class="mb-0 card-title">Billing Records</h5>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div id="accessLevelIndicator" style="display: none;">
+                                        <span class="bg-label-info badge" id="accessBadge">Loading...</span>
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button type="button" class="refresh-table btn-outline-secondary btn btn-sm">
+                                            <i class="me-1 bx bx-refresh icon-lg"></i> Refresh
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="table-responsive card-datatable">
@@ -193,7 +207,24 @@ require_once __DIR__ . "/../../utils/format_currency.php";
     <!-- Main JS -->
     <script src="../../assets/js/main.js"></script>
     <!-- Page JS -->
+    <script src="../../assets/js/notifications.js"></script>
     <script src="../../assets/js/admin-billing-list.js"></script>
+
+    <!-- Access Level Indicator Script -->
+    <script>
+        $(document).ready(function() {
+            // Show access level indicator for non-super admins
+            <?php if (!isSuperAdmin()): ?>
+                const indicator = document.getElementById('accessLevelIndicator');
+                const badge = document.getElementById('accessBadge');
+
+                if (indicator && badge) {
+                    badge.textContent = '<?= $statsScope ?><?= $scopeDetails ?>';
+                    indicator.style.display = 'block';
+                }
+            <?php endif; ?>
+        });
+    </script>
 
 </body>
 
