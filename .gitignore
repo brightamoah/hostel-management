@@ -19,8 +19,10 @@ debug_session.php
 .DS_Store
 Thumbs.db
 
-#instructions
+# Instructions and documentation
 general_instructions.md
 SYSTEM_INSTRUCTIONS.md
-SYSTEM_INSTRUCTIONS.md
 NUXT_MIGRATION.md
+gemini_instructions.md
+NOTION_TIMELINE_PROMPT.md
+NUXT_MIGRATION_GUIDE.md
