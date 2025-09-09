@@ -207,6 +207,7 @@ if (!isSuperAdmin() && $currentHostelDetails) {
     <!-- Main JS -->
     <script src="../../assets/js/main.js"></script>
     <!-- Page JS -->
+    <script src="../../assets/js/notifications.js"></script>
     <script src="../../assets/js/admin-billing-list.js"></script>
 
     <!-- Access Level Indicator Script -->

@@ -486,6 +486,7 @@ require_once "./app/controllers/RoomController.php";
     <!-- Main JS -->
     <script src="../../assets/js/main.js"></script>
     <!-- Page JS -->
+    <script src="../../assets/js/notifications.js"></script>
     <script src="../../assets/js/admin-room-list.js"></script>
 </body>
 

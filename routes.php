@@ -16,12 +16,13 @@ get('/reset-password', '/pages/auth/reset_password.php', ['guest']);
 get('/reset-password/$tkn', '/app/controllers/ResetPassword.php', ['guest']);
 
 // General Routes
-get('/layout', '/pages/layout.php');
 get('/paystack/callback', '/app/controllers/PaystackCallback.php');
 
 
 
 //general APIs
+get('/api/notifications', 'api/GetNotifications.php', ['auth']);
+get('/api/notification-count', 'api/GetNotificationCount.php', ['auth']);
 
 
 //student APIs

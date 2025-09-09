@@ -440,6 +440,7 @@ $room = $student->getRoomAllocation($user_id);
 
     <!-- Main JS -->
     <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/notifications.js"></script>
 
     <script src="../../assets/js/extended-ui-timeline.js"></script>
 

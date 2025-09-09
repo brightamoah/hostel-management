@@ -419,6 +419,7 @@ $rejected_requests = $maintenanceModel->getRejectedRequest();
     <script src="../../assets/js/extended-ui-timeline.js"></script>
 
     <!-- Page JS -->
+    <script src="../../assets/js/notifications.js"></script>
     <script src="../../assets/js/admin-maintenance-list.js"></script>
 </body>
 

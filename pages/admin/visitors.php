@@ -519,6 +519,7 @@ require_once __DIR__ . "/../../utils/hostel_helpers.php";
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/extended-ui-sweetalert2.js"></script>
     <!-- Page JS -->
+    <script src="../../assets/js/notifications.js"></script>
     <script src="../../assets/js/admin-visitor-list.js"></script>
 </body>
 

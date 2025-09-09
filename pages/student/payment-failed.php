@@ -128,6 +128,7 @@ ob_start();
 
     <!-- Main JS -->
     <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/notifications.js"></script>
 </body>
 
 </html>

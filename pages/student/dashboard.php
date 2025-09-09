@@ -398,6 +398,7 @@ require_once __DIR__ . "/../../app/controllers/student.php";
     <!-- Main JS -->
     <script src="../../assets/js/main.js"></script>
     <!-- Page JS -->
+    <script src="../../assets/js/notifications.js"></script>
     <script src="../../assets/js/app-visitor-list.js"></script>
 </body>
 

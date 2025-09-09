@@ -396,6 +396,7 @@ require_once "./app/controllers/visitors/visitor_stats.php";
 
     <script src="../../assets/js/extended-ui-sweetalert2.js"></script>
     <!-- Page JS -->
+    <script src="../../assets/js/notifications.js"></script>
     <script src="../../assets/js/app-visitor-list.js"></script>
 </body>
 

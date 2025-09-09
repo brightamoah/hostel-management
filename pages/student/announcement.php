@@ -264,6 +264,7 @@
     <script src="../../assets/vendor/libs/cleave-zen/cleave-zen.js"></script>
     <script src="../../assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
     <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/notifications.js"></script>
 
     <!-- Page JS -->
     <script>

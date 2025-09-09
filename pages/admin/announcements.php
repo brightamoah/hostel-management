@@ -184,6 +184,7 @@ $announcementController = new AnnouncementController();
     <script src="../../assets/js/extended-ui-sweetalert2.js"></script>
 
     <!-- Page JS -->
+    <script src="../../assets/js/notifications.js"></script>
     <script src="../../assets/js/admin-announcement-new.js"></script>
 </body>
 

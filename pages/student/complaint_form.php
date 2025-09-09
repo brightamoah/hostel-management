@@ -476,6 +476,7 @@ $rooms = $conn->query("SELECT room_id, room_number, building FROM rooms ORDER BY
     <script src="../../assets/js/extended-ui-timeline.js"></script>
 
     <!-- Page JS -->
+    <script src="../../assets/js/notifications.js"></script>
     <script src="../../assets/js/app-complaint-list.js"></script>
 </body>
 
