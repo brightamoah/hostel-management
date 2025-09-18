@@ -246,27 +246,25 @@
                         data.details.description
                      );
                      $("#modalRequestPriority").html(
-                        `<span class="badge bg-label-${
-                           data.details.priority === "Emergency"
-                              ? "danger"
-                              : data.details.priority === "High"
+                        `<span class="badge bg-label-${data.details.priority === "Emergency"
+                           ? "danger"
+                           : data.details.priority === "High"
                               ? "warning"
                               : data.details.priority === "Medium"
-                              ? "info"
-                              : "success"
+                                 ? "info"
+                                 : "success"
                         }">${data.details.priority}</span>`
                      );
                      $("#modalRequestStatus").html(
-                        `<span class="badge bg-label-${
-                           data.details.status === "Completed"
-                              ? "success"
-                              : data.details.status === "Rejected"
+                        `<span class="badge bg-label-${data.details.status === "Completed"
+                           ? "success"
+                           : data.details.status === "Rejected"
                               ? "danger"
                               : data.details.status === "In-Progress"
-                              ? "primary"
-                              : data.details.status === "Assigned"
-                              ? "info"
-                              : "warning"
+                                 ? "primary"
+                                 : data.details.status === "Assigned"
+                                    ? "info"
+                                    : "warning"
                         }">${data.details.status}</span>`
                      );
                      $("#modalRequestDate").text(
@@ -305,20 +303,18 @@
                         </span>
                         <div class="timeline-event">
                            <div class="timeline-header mb-1">
-                              <h6 class="mb-0">${
-                                 r.role === "Admin"
-                                    ? "Staff Response"
-                                    : "Student Response"
-                              }</h6>
+                              <h6 class="mb-0">${r.role === "Admin"
+                                             ? "Staff Response"
+                                             : "Student Response"
+                                          }</h6>
                               <small class="text-muted">${moment(
-                                 r.response_date
-                              ).format("MMM D, YYYY h:mm A")}</small>
+                                             r.response_date
+                                          ).format("MMM D, YYYY h:mm A")}</small>
                            </div>
                            <p class="mb-2">${r.response_text}</p>
                            <div class="d-flex justify-content-between align-items-center">
-                              <span class="badge bg-label-info">Role: ${
-                                 r.role
-                              }</span>
+                              <span class="badge bg-label-info">Role: ${r.role
+                                          }</span>
                               <span>${r.name}</span>
                            </div>
                         </div>
@@ -394,12 +390,56 @@
 
             // Handle follow-up button (mock; implement in production)
             $("#followUpBtn").on("click", function () {
-               Swal.fire({
-                  icon: "info",
-                  title: "Follow-up",
-                  text: "This feature is not yet implemented. Please contact support for follow-ups.",
-               });
+               // Swal.fire({
+               //    icon: "info",
+               //    title: "Follow-up",
+               //    text: "This feature is not yet implemented. Please contact support for follow-ups.",
+               // });
+
+               const requestId = $("#modalRequestId").text();
+               $("#maintenanceDetailsModal").modal("hide"); // Close details modal first
+               setTimeout(function () {
+                  $("#followUpRequestId").val(requestId);
+                  $("#followUpText").val("");
+                  $("#followUpModal").modal("show");
+               }, 200);
             });
+
+            $("#followUpForm").on("submit", function (e) {
+               e.preventDefault();
+               $.ajax({
+                  url: "/student/maintenance/add-response",
+                  method: "POST",
+                  data: $(this).serialize(),
+                  success: function (response) {
+                     if (response.success) {
+                        Swal.fire({
+                           icon: "success",
+                           title: "Follow-up Submitted",
+                           text: "Your follow-up has been added.",
+                           timer: 1500,
+                        }).then(() => {
+                           $("#followUpModal").modal("hide");
+                           $("#maintenanceDetailsModal").modal("hide");
+                           api.ajax.reload(null, false);
+                        });
+                     } else {
+                        Swal.fire({
+                           icon: "error",
+                           title: "Error",
+                           text: response.error || "Failed to submit follow-up.",
+                        });
+                     }
+                  },
+                  error: function () {
+                     Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Submission failed",
+                     });
+                  },
+               });
+            })
          },
       });
    }

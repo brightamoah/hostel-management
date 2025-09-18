@@ -398,6 +398,8 @@ $room = $student->getRoomAllocation($user_id);
                         </div>
                     </div>
 
+                    <?php include_once __DIR__ . "/../../Components/student/maintenance/follow-up-modal.php" ?>
+
                     <!-- Footer -->
                     <?php include_once "./Components/footer.php" ?>
                     <!-- / Footer -->

@@ -1,6 +1,5 @@
 <?php
-session_start(); // Start session at the top unconditionally
-
+session_start();
 function get($route, $path_to_include, $middleware = [])
 {
     if ($_SERVER['REQUEST_METHOD'] == 'GET') {

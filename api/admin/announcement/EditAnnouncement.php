@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         } else {
             $error = "Failed to update announcement.";
-            error_log("Failed to update announcement: " . $announcementId);
+            error_log("Failed to update announcement: $announcementId");
         }
     }
 }

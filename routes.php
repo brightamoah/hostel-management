@@ -125,6 +125,7 @@ post('/student/profile/update', '/app/controllers/ProfileController.php', ['auth
 post('/admin/profile/update', '/app/controllers/AdminProfileController.php', ['auth', 'admin']);
 post('/complaint/submit', 'api/SubmitComplaint.php', ['auth']);
 post('/maintenance/submit', '/api/SubmitMaintenance.php', ['auth']);
+post('/student/maintenance/add-response', 'api/student/AddMaintenanceFollowUpResponse.php', ['auth']);
 post('/announcement/mark-read', 'api/student/MarkAnnouncementAsRead.php', ['auth']);
 post('/admin/user/add', 'api/admin/users/AddUser.php', ['auth', 'admin']);
 post('/admin/user/update', 'api/admin/UpdateUser.php', ['auth', 'admin']);

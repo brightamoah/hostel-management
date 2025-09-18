@@ -1,16 +1,7 @@
 <?php
-
-require_once "./app/controllers/Login.php";
+require_once __DIR__ . "/../app/controllers/Login.php";
 
 $user = $_SESSION['user'] ?? null;
-
-// if ($user) {
-//     echo "<pre>";
-//     print_r($user);
-//     echo "</pre>";
-// } else {
-//     echo "No user is logged in.";
-// }
 
 function getRoute()
 {
@@ -143,16 +134,15 @@ function getRoute()
 
         <!-- Useful features: Start -->
         <?php include_once __DIR__ . '/home/features.php'; ?>
-        <!-- Useful features: End -->
+
 
         <!-- FAQ: Start -->
         <?php include_once __DIR__ . '/home/faq.php'; ?>
 
-        <!-- FAQ: End -->
 
         <!-- contact us -->
         <?php include_once __DIR__ . '/home/contact-us.php'; ?>
-        <!-- contact us: End -->
+
 
     </div>
 
@@ -188,7 +178,7 @@ function getRoute()
             </div>
         </div>
     </footer>
-    <!-- Footer: End -->
+
 
 
     <script src="../../assets/vendor/libs/jquery/jquery.js"></script>
@@ -200,7 +190,6 @@ function getRoute()
     <script src="../../assets/vendor/libs/pickr/pickr.js"></script>
     <script src="../../assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
 
-    <!-- endbuild -->
 
     <!-- Vendors JS -->
     <script src="../../assets/vendor/libs/nouislider/nouislider.js"></script>
